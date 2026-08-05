@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flyto-modules-robotics"
+version = "0.1.0"
+description = "Optional robot-control modules for Flyto2 workflows"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+dependencies = []
+
+# Discovered by flyto-core's ModuleRegistry.discover_plugins(). Installing this
+# package is the only thing that makes robot motion authorable in the builder;
+# a Flyto2 install without it stays pure software.
+[project.entry-points."flyto.modules"]
+robotics = "flyto_modules_robotics:register_all"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
