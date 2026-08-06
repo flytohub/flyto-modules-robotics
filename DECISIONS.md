@@ -31,3 +31,19 @@ Reason: the job was already dispatched to a device, so the step runs on the robo
 it drives. A host in a workflow would bind it to one machine — the same
 duplication the capability model exists to remove, wearing a URL instead of a
 device id. A test asserts no plan ever contains one.
+
+## 2026-08-06 — A step declares motion; the robot's runner performs it
+
+Decision: `modules.py` never posts to a gateway. It builds a plan, names the
+device that must carry it out, and returns that as the job payload.
+
+Reason: these modules register into `flyto-core`, and `flyto-core` runs on the
+worker and the desktop — not on the robot. The first version posted to
+`127.0.0.1:8766`, which is correct only if the code runs on the Pi. On a worker
+that address is the container's own loopback, so the request would either fail
+or find something else listening. Thirty-six tests passed against that design
+because every one of them assumed the module ran on the robot.
+
+Reversal of the transport half of the 2026-08-05 entry above. The plan format,
+the bounds and the address-is-configuration rule are unchanged; only who sends
+it moved.

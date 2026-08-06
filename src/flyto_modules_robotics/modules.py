@@ -1,14 +1,18 @@
-"""The four workflow steps this package adds to the builder.
+"""The workflow steps this package adds to the builder.
 
-flyto-core is imported inside :func:`build_modules`, never at module scope. That
-keeps ``plan`` and ``gateway`` importable — and testable — on a machine with no
-flyto-core installed, which is most machines: this package is only installed
-where a robot is.
+A step here *declares* motion; it never performs it. These modules register into
+flyto-core, and flyto-core runs on the worker and the desktop — not on the
+robot. A step that drove hardware from here would be reaching for a gateway on
+the wrong machine: the loopback address meaning "this robot" on a Pi means "this
+container" on a worker, and the request would either fail or find something else
+listening.
 
-Each step does the same three things: turn its parameters into a plan, hand the
-plan to the local gateway, and report what came back. No step opens a serial
-port, publishes a velocity, or holds a ROS context. The gateway owns the robot,
-so a step that dies leaves the robot's own safe stop in charge.
+So a step builds a plan, names the device that must carry it out, and returns it
+as the payload the robot's own runner reads from its job. Driving stays on the
+robot, behind the gateway that owns the final stop.
+
+flyto-core is imported inside :func:`build_modules`, never at module scope, so
+``plan`` stays importable — and testable — where flyto-core is absent.
 """
 
 from __future__ import annotations
@@ -17,7 +21,6 @@ import time
 import uuid
 from typing import Any
 
-from .gateway import GatewayError, GatewayRefused, await_session, robot_id, start_plan
 from .plan import PlanBuildError, move_plan, run_request, stop_plan, turn_plan
 
 MODULE_MOVE = "robotics.move"
@@ -32,28 +35,39 @@ def _now_iso() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
-def _dispatch(plan: dict[str, Any], *, wait: bool, timeout_seconds: float) -> dict[str, Any]:
-    """Send one plan and describe the outcome in workflow terms."""
-    request = run_request(
-        plan,
-        request_id=f"wf-{uuid.uuid4().hex[:12]}",
-        requested_at=_now_iso(),
-    )
-    session = start_plan(request)
-    session_id = str(session.get("session_id") or "")
-    if wait and session_id:
-        session = await_session(session_id, timeout_seconds=timeout_seconds)
+def _declare(plan: dict[str, Any], *, resource_id: str) -> dict[str, Any]:
+    """Say what this step wants done, without doing it.
 
-    state = str(session.get("state") or session.get("status") or "unknown")
+    These modules register into flyto-core, and flyto-core runs on the worker
+    and the desktop — not on the robot. A step that drove hardware from here
+    would be reaching for a gateway on the wrong machine: the loopback address
+    that means "this robot" on a Pi means "this container" on a worker, and the
+    request would either fail or, worse, find something else listening.
+
+    So the step declares. It builds the plan, names the device that must carry
+    it out, and returns it as the job payload the robot's own runner reads. The
+    driving stays where the robot is, behind the gateway that owns the final
+    stop.
+    """
     return {
-        "session_id": session_id,
-        "state": state,
-        "succeeded": state.lower() == "succeeded",
-        "timed_out": bool(session.get("timed_out")),
+        "dispatched": False,
+        "requires_device": resource_id,
         "plan_id": plan["plan_id"],
         "goal": plan["goal"],
-        "pose": session.get("final_pose") or session.get("pose"),
-        "minimum_range": session.get("minimum_range"),
+        "request": run_request(
+            plan,
+            request_id=f"wf-{uuid.uuid4().hex[:12]}",
+            requested_at=_now_iso(),
+        ),
+    }
+
+
+def _refuse(exc: Exception) -> dict[str, Any]:
+    """A step that cannot even be described is a workflow fault, reported."""
+    return {
+        "dispatched": False,
+        "requires_device": "",
+        "error": str(exc)[:300],
     }
 
 
@@ -64,18 +78,6 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
     function has no import-time dependency on flyto-core, and so a test can
     exercise the classes against a stand-in.
     """
-
-    def _fail(exc: Exception) -> dict[str, Any]:
-        # A refusal and an unreachable robot are different facts and a workflow
-        # author needs to tell them apart: one is a bad step, the other is a
-        # robot that is not there.
-        return {
-            "session_id": "",
-            "state": "refused" if isinstance(exc, GatewayRefused) else "unavailable",
-            "succeeded": False,
-            "timed_out": False,
-            "error": str(exc)[:300],
-        }
 
     @register_module(
         module_id=MODULE_MOVE,
@@ -117,18 +119,18 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         def execute(self) -> dict[str, Any]:
             try:
                 plan = move_plan(
-                    robot_id=robot_id(),
+                    robot_id=str(self.params.get("robot_id") or "").strip()
+                    or self.context.get("resource_id", ""),
                     distance_m=self.params.get("distance_m", 0.4),
                     speed=self.params.get("speed", 0.12),
                     reverse=bool(self.params.get("reverse", False)),
                 )
-                return _dispatch(
-                    plan,
-                    wait=bool(self.params.get("wait", True)),
-                    timeout_seconds=float(self.params.get("timeout_seconds", 120.0)),
-                )
-            except (GatewayError, PlanBuildError) as exc:
-                return _fail(exc)
+            except (PlanBuildError, ValueError) as exc:
+                return _refuse(exc)
+            return _declare(
+                plan, resource_id=str(self.context.get("resource_id", "")),
+            )
+
 
     @register_module(
         module_id=MODULE_TURN,
@@ -168,18 +170,18 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         def execute(self) -> dict[str, Any]:
             try:
                 plan = turn_plan(
-                    robot_id=robot_id(),
+                    robot_id=str(self.params.get("robot_id") or "").strip()
+                    or self.context.get("resource_id", ""),
                     degrees=self.params.get("degrees", 90),
                     angular_speed=self.params.get("angular_speed", 0.4),
                     clockwise=bool(self.params.get("clockwise", False)),
                 )
-                return _dispatch(
-                    plan,
-                    wait=bool(self.params.get("wait", True)),
-                    timeout_seconds=float(self.params.get("timeout_seconds", 120.0)),
-                )
-            except (GatewayError, PlanBuildError) as exc:
-                return _fail(exc)
+            except (PlanBuildError, ValueError) as exc:
+                return _refuse(exc)
+            return _declare(
+                plan, resource_id=str(self.context.get("resource_id", "")),
+            )
+
 
     @register_module(
         module_id=MODULE_STOP,
@@ -214,13 +216,16 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         def execute(self) -> dict[str, Any]:
             try:
                 plan = stop_plan(
-                    robot_id=robot_id(), seconds=self.params.get("seconds", 0.0)
+                    robot_id=str(self.params.get("robot_id") or "").strip()
+                    or self.context.get("resource_id", ""),
+                    seconds=self.params.get("seconds", 0.0),
                 )
-                # A stop is always waited for. Reporting "sent" while a robot is
-                # still moving is the one result nobody can act on.
-                return _dispatch(plan, wait=True, timeout_seconds=90.0)
-            except (GatewayError, PlanBuildError) as exc:
-                return _fail(exc)
+            except (PlanBuildError, ValueError) as exc:
+                return _refuse(exc)
+            return _declare(
+                plan, resource_id=str(self.context.get("resource_id", "")),
+            )
+
 
     return [
         (MODULE_MOVE, RoboticsMove),

@@ -82,13 +82,52 @@ def test_a_bad_distance_fails_when_the_step_is_configured_not_when_it_runs():
         raise AssertionError("an out-of-range distance was accepted")
 
 
-def test_an_unreachable_robot_is_reported_not_raised(monkeypatch):
-    """A workflow needs a result it can branch on, not a traceback."""
-    monkeypatch.setenv("FLYTO_ROBOTICS_DELIVERY_TOKEN", "t" * 40)
-    monkeypatch.setenv("FLYTO_ROBOTICS_ROBOT_ID", "flyto-tb3-lab-001")
-    monkeypatch.setenv("FLYTO_ROBOTICS_GATEWAY_URL", "http://127.0.0.1:1")
+def test_a_step_declares_the_plan_and_drives_nothing():
+    """flyto-core runs on the worker, not the robot. A step reaching for a
+    gateway here would find whatever is on the worker's loopback."""
     _, move = build_modules(StandInModule, fake_register_module)[0]
-    result = move({"distance_m": 0.4, "wait": False}, {}).execute()
-    assert result["succeeded"] is False
-    assert result["state"] == "unavailable"
-    assert "127.0.0.1:1" in result["error"]
+    result = move({"distance_m": 0.4}, {"resource_id": "robot-1"}).execute()
+    assert result["dispatched"] is False, "declaring, not driving"
+    assert result["requires_device"] == "robot-1"
+    assert result["request"]["plan"]["steps"][0]["capability"] == "move_relative"
+    assert result["request"]["plan"]["steps"][-1]["capability"] == "safe_stop"
+
+
+def test_no_step_reaches_for_a_gateway():
+    """The wrong-machine bug, kept from coming back.
+
+    Checks imports and calls rather than the word, because the docstring
+    explaining why this must not happen legitimately contains it — a grep for
+    prose would fail on the very comment that keeps the rule understood.
+    """
+    import ast
+    from pathlib import Path as _Path
+
+    source = _Path(__file__).resolve().parents[1] / "src" / "flyto_modules_robotics" / "modules.py"
+    tree = ast.parse(source.read_text())
+
+    imported = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            imported.add(node.module)
+            imported.update(a.name for a in node.names)
+        elif isinstance(node, ast.Import):
+            imported.update(a.name for a in node.names)
+    assert not {"gateway", ".gateway"} & imported, "modules.py imports the gateway client"
+
+    called = {
+        node.func.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+    }
+    assert not {"start_plan", "await_session", "session"} & called
+
+
+def test_a_bad_parameter_is_reported_not_raised():
+    """A workflow needs a result it can branch on, not a traceback."""
+    _, move = build_modules(StandInModule, fake_register_module)[0]
+    step = move.__new__(move)
+    step.params = {"distance_m": 99.0}
+    step.context = {"resource_id": "robot-1"}
+    result = step.execute()
+    assert result["dispatched"] is False and "distance_m" in result["error"]

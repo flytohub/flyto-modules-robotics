@@ -3,16 +3,28 @@
 Three layers, only the thinnest of which needs `flyto-core`.
 
 ```
-flyto-core registry            <- register_all(), via the flyto.modules entry point
-    |
-modules.py                     <- the three step classes; the only flyto-core coupling
-    |
-plan.py        gateway.py      <- pure: builds plans / posts them over loopback
-    |
-flyto-robotics gateway         <- validates, executes, owns the final stop
-    |
-ROS 2 / robot
+worker or desktop                        robot
+------------------------------------     ---------------------------------
+flyto-core registry                      flyto_job_runner
+    |  register_all()                        |  claims the job
+modules.py   <- declares, never drives       |
+    |                                        v
+plan.py      -----> job payload -----> flyto-robotics gateway
+                     (device queue)        validates, executes,
+                                           owns the final stop
+                                               |
+                                           ROS 2 / robot
 ```
+
+The split across the two columns is the point. `flyto-core` runs on the worker
+and the desktop; the robot has neither. A step that drove hardware from the
+left column would be reaching for a gateway on the wrong machine — the loopback
+address meaning "this robot" on a Pi means "this container" on a worker.
+
+So `modules.py` declares: it builds a plan, names the device, and returns it as
+the payload the robot's runner reads from its job. `gateway.py` is the client
+that runner uses; nothing in `modules.py` touches it, and a test asserts that by
+inspecting imports and calls rather than grepping for the word.
 
 ## Why the split
 
