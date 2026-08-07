@@ -9,7 +9,29 @@ description = "Optional robot-control modules for Flyto2 workflows"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
+authors = [{ name = "Flyto2" }]
+keywords = ["flyto", "robotics", "workflow", "automation", "ros2"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+# None, and that is the point: the package is pure Python, so it installs on a
+# Raspberry Pi that has no execution engine at all. flyto-core is what
+# discovers it, but it is imported inside register_all and never at module
+# scope, so this stays importable — and its plan building testable — where
+# flyto-core is absent.
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/flytohub/flyto-modules-robotics"
+Source = "https://github.com/flytohub/flyto-modules-robotics"
+Issues = "https://github.com/flytohub/flyto-modules-robotics/issues"
 
 # Discovered by flyto-core's ModuleRegistry.discover_plugins(). Installing this
 # package is the only thing that makes robot motion authorable in the builder;

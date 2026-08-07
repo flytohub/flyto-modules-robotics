@@ -8,8 +8,8 @@ pip install flyto-modules-robotics
 ```
 
 Without it, Flyto2 is pure software automation. With it, the workflow builder
-gains four steps — move, turn, stop, and read the range scan — so a command like
-"advance three steps" is authored on the canvas like any other workflow.
+gains three steps — move, turn and stop — so a command like "advance forty
+centimetres" is authored on the canvas like any other workflow.
 
 ## Why this is a separate package
 
