@@ -98,6 +98,13 @@ def _plan_from_params(module_id: str, params: Mapping[str, Any], robot_id: str) 
     return plan
 
 
+# flyto-core awaits execute() (core/modules/base.py: `return await self.execute()`),
+# so these must be coroutines. They were plain functions, and every one of the
+# 36 tests passed anyway because the stand-in base class in test_registration.py
+# calls .execute() synchronously — the engine's own contract was never in the
+# room. Against a real installed flyto-core the step died with "object dict
+# can't be used in 'await' expression", which is not a failure a workflow author
+# can act on.
 def build_modules(base_module, register_module) -> list[tuple[str, type]]:
     """Define the module classes against whatever flyto-core provides.
 
@@ -138,7 +145,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
             # than after something has started moving.
             _plan_from_params(MODULE_MOVE, self.params, "validation-only")
 
-        def execute(self) -> dict[str, Any]:
+        async def execute(self) -> dict[str, Any]:
             try:
                 plan = _plan_from_params(MODULE_MOVE, self.params, _robot_id(self))
             except (PlanBuildError, ValueError) as exc:
@@ -178,7 +185,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         def validate_params(self) -> None:
             _plan_from_params(MODULE_TURN, self.params, "validation-only")
 
-        def execute(self) -> dict[str, Any]:
+        async def execute(self) -> dict[str, Any]:
             try:
                 plan = _plan_from_params(MODULE_TURN, self.params, _robot_id(self))
             except (PlanBuildError, ValueError) as exc:
@@ -218,7 +225,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         def validate_params(self) -> None:
             _plan_from_params(MODULE_STOP, self.params, "validation-only")
 
-        def execute(self) -> dict[str, Any]:
+        async def execute(self) -> dict[str, Any]:
             try:
                 plan = _plan_from_params(MODULE_STOP, self.params, _robot_id(self))
             except (PlanBuildError, ValueError) as exc:

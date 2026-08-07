@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 import logging
 
 import flyto_modules_robotics as pkg
@@ -86,7 +88,7 @@ def test_a_step_declares_the_plan_and_drives_nothing():
     """flyto-core runs on the worker, not the robot. A step reaching for a
     gateway here would find whatever is on the worker's loopback."""
     _, move = build_modules(StandInModule, fake_register_module)[0]
-    result = move({"distance_m": 0.4}, {"resource_id": "robot-1"}).execute()
+    result = asyncio.run(move({"distance_m": 0.4}, {"resource_id": "robot-1"}).execute())
     assert result["dispatched"] is False, "declaring, not driving"
     assert result["requires_device"] == "robot-1"
     assert result["request"]["plan"]["steps"][0]["capability"] == "move_relative"
@@ -129,5 +131,21 @@ def test_a_bad_parameter_is_reported_not_raised():
     step = move.__new__(move)
     step.params = {"distance_m": 99.0}
     step.context = {"resource_id": "robot-1"}
-    result = step.execute()
+    result = asyncio.run(step.execute())
     assert result["dispatched"] is False and "distance_m" in result["error"]
+
+
+def test_every_step_is_a_coroutine_because_the_engine_awaits_it():
+    """flyto-core runs a module with `return await self.execute()`
+    (core/modules/base.py). A plain function there dies at runtime with
+    "object dict can't be used in 'await' expression" — which is not a failure
+    a workflow author can act on, and not one this suite could see: the
+    stand-in base class below calls .execute() directly, so for 36 green tests
+    the engine's own contract was never in the room.
+    """
+    import inspect
+
+    for module_id, cls in build_modules(StandInModule, fake_register_module):
+        assert inspect.iscoroutinefunction(cls.execute), (
+            f"{module_id}.execute must be async — flyto-core awaits it"
+        )
