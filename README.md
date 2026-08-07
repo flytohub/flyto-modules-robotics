@@ -48,9 +48,13 @@ lives in this repository.
 git tag v0.1.0 && git push origin v0.1.0
 ```
 
-The first release of a new project also needs a **pending publisher** on PyPI
-(Your projects → Publishing → Add a pending publisher), because Trusted
-Publishing has nothing to trust until then:
+The first release needs a **pending publisher** on PyPI, because Trusted
+Publishing has nothing to trust until then. The project is not created by
+hand: a pending publisher is what creates it, on the first successful upload.
+
+The form lives under the **account** sidebar rather than a project's, since
+the project does not exist yet — <https://pypi.org/manage/account/publishing/>,
+"Add a new pending publisher":
 
 | Field | Value |
 |---|---|
@@ -62,3 +66,6 @@ Publishing has nothing to trust until then:
 
 `workflow_dispatch` publishes to TestPyPI instead, which needs the same entry
 on test.pypi.org.
+
+A pending publisher does not reserve the name — it only becomes a project on
+the first upload that uses it.
