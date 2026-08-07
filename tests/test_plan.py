@@ -53,12 +53,12 @@ def test_a_missing_robot_id_is_refused():
 
 def test_a_turn_plan_converts_degrees_and_keeps_the_stop():
     plan = turn_plan(robot_id=ROBOT, degrees=90)
-    radians = plan["steps"][0]["arguments"]["radians"]
+    radians = plan["steps"][0]["arguments"]["yaw_delta_rad"]
     assert 1.57 < radians < 1.58
     assert plan["steps"][-1]["capability"] == "safe_stop"
     assert turn_plan(robot_id=ROBOT, degrees=90, clockwise=True)["steps"][0][
         "arguments"
-    ]["radians"] < 0
+    ]["yaw_delta_rad"] < 0
 
 
 @pytest.mark.parametrize("degrees", [0, 361, "ninety"])

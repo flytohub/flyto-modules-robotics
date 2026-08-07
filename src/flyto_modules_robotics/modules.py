@@ -19,13 +19,14 @@ from __future__ import annotations
 
 import time
 import uuid
-from typing import Any
+from typing import Any, Mapping
 
-from .plan import PlanBuildError, move_plan, run_request, stop_plan, turn_plan
+from .plan import PlanBuildError, run_request
+from .steps import MODULE_MOVE, MODULE_STOP, MODULE_TURN, plan_for_step
 
-MODULE_MOVE = "robotics.move"
-MODULE_TURN = "robotics.turn"
-MODULE_STOP = "robotics.stop"
+# Re-exported for callers that used to read these here. The identifiers now
+# live beside the mapping that gives them meaning, in steps.py.
+__all__ = ["MODULE_MOVE", "MODULE_TURN", "MODULE_STOP", "build_modules"]
 
 CATEGORY = "robotics"
 ICON_COLOR = "#22D3EE"
@@ -71,6 +72,32 @@ def _refuse(exc: Exception) -> dict[str, Any]:
     }
 
 
+def _robot_id(step: Any) -> str:
+    """Which robot this step is for: the one it names, else the one it reached.
+
+    A workflow that names no robot is the normal case and the useful one — the
+    same authored steps then run on whichever device the job was dispatched to,
+    which is what lets five identical robots share one workflow.
+    """
+    named = str(step.params.get("robot_id") or "").strip()
+    return named or str(step.context.get("resource_id", ""))
+
+
+def _plan_from_params(module_id: str, params: Mapping[str, Any], robot_id: str) -> dict[str, Any]:
+    """The plan this step describes, built by the mapping in steps.py.
+
+    Both halves of the product ask the same question of the same table: this
+    module, to declare the motion, and the robot's own runner, to perform it.
+    Spelling the builder call out here as well would be a second answer, free
+    to drift from the first without anything failing until a robot moved
+    differently from what the canvas said.
+    """
+    plan = plan_for_step(module_id, params, robot_id=robot_id)
+    if plan is None:  # pragma: no cover - the table and the classes are one file apart
+        raise PlanBuildError(f"no plan is defined for {module_id}")
+    return plan
+
+
 def build_modules(base_module, register_module) -> list[tuple[str, type]]:
     """Define the module classes against whatever flyto-core provides.
 
@@ -109,22 +136,11 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         def validate_params(self) -> None:
             # Build the plan now so a bad distance fails on the canvas rather
             # than after something has started moving.
-            move_plan(
-                robot_id="validation-only",
-                distance_m=self.params.get("distance_m", 0.4),
-                speed=self.params.get("speed", 0.12),
-                reverse=bool(self.params.get("reverse", False)),
-            )
+            _plan_from_params(MODULE_MOVE, self.params, "validation-only")
 
         def execute(self) -> dict[str, Any]:
             try:
-                plan = move_plan(
-                    robot_id=str(self.params.get("robot_id") or "").strip()
-                    or self.context.get("resource_id", ""),
-                    distance_m=self.params.get("distance_m", 0.4),
-                    speed=self.params.get("speed", 0.12),
-                    reverse=bool(self.params.get("reverse", False)),
-                )
+                plan = _plan_from_params(MODULE_MOVE, self.params, _robot_id(self))
             except (PlanBuildError, ValueError) as exc:
                 return _refuse(exc)
             return _declare(
@@ -160,22 +176,11 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         module_description = "Turn in place, then stop safely"
 
         def validate_params(self) -> None:
-            turn_plan(
-                robot_id="validation-only",
-                degrees=self.params.get("degrees", 90),
-                angular_speed=self.params.get("angular_speed", 0.4),
-                clockwise=bool(self.params.get("clockwise", False)),
-            )
+            _plan_from_params(MODULE_TURN, self.params, "validation-only")
 
         def execute(self) -> dict[str, Any]:
             try:
-                plan = turn_plan(
-                    robot_id=str(self.params.get("robot_id") or "").strip()
-                    or self.context.get("resource_id", ""),
-                    degrees=self.params.get("degrees", 90),
-                    angular_speed=self.params.get("angular_speed", 0.4),
-                    clockwise=bool(self.params.get("clockwise", False)),
-                )
+                plan = _plan_from_params(MODULE_TURN, self.params, _robot_id(self))
             except (PlanBuildError, ValueError) as exc:
                 return _refuse(exc)
             return _declare(
@@ -211,15 +216,11 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         module_description = "Safe stop, held for a bounded time"
 
         def validate_params(self) -> None:
-            stop_plan(robot_id="validation-only", seconds=self.params.get("seconds", 0.0))
+            _plan_from_params(MODULE_STOP, self.params, "validation-only")
 
         def execute(self) -> dict[str, Any]:
             try:
-                plan = stop_plan(
-                    robot_id=str(self.params.get("robot_id") or "").strip()
-                    or self.context.get("resource_id", ""),
-                    seconds=self.params.get("seconds", 0.0),
-                )
+                plan = _plan_from_params(MODULE_STOP, self.params, _robot_id(self))
             except (PlanBuildError, ValueError) as exc:
                 return _refuse(exc)
             return _declare(

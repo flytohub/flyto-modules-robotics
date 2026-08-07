@@ -4,9 +4,24 @@ Date: 2026-08-05
 
 ## Status
 
-Written and tested; never installed alongside a real `flyto-core`.
+Installed alongside a real `flyto-core`, and verified against a real robot.
 
-- 36 tests pass, none needing a robot or `flyto-core`.
+- 54 tests pass, none needing a robot or `flyto-core`.
+- `steps.py` holds the one mapping from a module identifier to the plan it
+  means. Two readers share it: the modules registered into `flyto-core`, which
+  read it to *declare* a motion, and the robot's own job runner, which reads it
+  to *perform* one. A copy on either side would be free to drift, and the drift
+  would only show as a robot moving differently from what the canvas said.
+- The plan now uses the argument names and bounds the robot's own capability
+  contract declares. Three did not match and every test passed anyway, because
+  each asserted the name this package had chosen rather than the one the robot
+  reads: `radians` is `yaw_delta_rad`; angular speed is 0.1-1.0, not 0.05-0.8;
+  and `yaw_delta_rad` caps at ±3.0 rad, so the old 360° limit meant any turn
+  past ~172° was refused by the gateway after the job had been claimed.
+- Verified end to end on 2026-08-08: a `robotics.turn` step authored on the
+  canvas, dispatched as a Space task, was built into a plan by the robot's
+  runner and carried out — `workflow.turn.left.90deg.v1`, reported succeeded
+  with `arrival.pose` and `clearance.measurement`.
 - Three steps registered: `robotics.move`, `robotics.turn`, `robotics.stop`.
 - `POST /v1/plans`, the gateway endpoint these post to, is on `flyto-robotics`
   `main` and verified on a TurtleBot3 (six live runs, forward and backward,

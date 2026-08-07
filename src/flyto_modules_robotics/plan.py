@@ -23,17 +23,28 @@ from typing import Any
 PLAN_CONTRACT_VERSION = "flyto.robotics.plan.v1"
 PLAN_RUN_REQUEST_CONTRACT_VERSION = "flyto.cloud.plan-run-request.v1"
 
-# Bounds a workflow author may not exceed. Chosen to sit inside what a TurtleBot3
-# class platform will accept, so a step that validates here is not then refused
-# by the robot for being out of range.
+# Bounds a workflow author may not exceed. These are not taste: each one is the
+# range the robot's own capability contract declares
+# (flyto-robotics `capabilities.py`, `move_relative` and `turn_relative`), so a
+# step that validates here is not then refused by the gateway for being out of
+# range. Where the two disagreed, the robot won — it is the one that has to
+# carry the motion out.
+#
+#   move_relative : distance_m  -2.0 .. 2.0     speed  0.02 .. 0.35 (default 0.12)
+#   turn_relative : yaw_delta_rad -3.0 .. 3.0   angular_speed 0.1 .. 1.0 (default 0.6)
+#
+# The turn limit is stated in radians and the degree limit derived from it,
+# rather than written as a rounded degree figure that would drift from the
+# contract it is supposed to mirror.
 MIN_DISTANCE_M = 0.01
 MAX_DISTANCE_M = 2.0
-MIN_SPEED_MPS = 0.01
-MAX_SPEED_MPS = 0.2
-MAX_TURN_DEGREES = 360.0
+MIN_SPEED_MPS = 0.02
+MAX_SPEED_MPS = 0.35
+MAX_TURN_RADIANS = 3.0
 MIN_TURN_DEGREES = 1.0
-MIN_ANGULAR_SPEED = 0.05
-MAX_ANGULAR_SPEED = 0.8
+MAX_TURN_DEGREES = MAX_TURN_RADIANS * 180.0 / 3.141592653589793
+MIN_ANGULAR_SPEED = 0.1
+MAX_ANGULAR_SPEED = 1.0
 MAX_DWELL_SECONDS = 60.0
 
 DEFAULT_SPEED_MPS = 0.12
@@ -159,7 +170,7 @@ def turn_plan(
             {
                 "step_id": f"turn.{direction}",
                 "capability": "turn_relative",
-                "arguments": {"radians": signed, "angular_speed": speed},
+                "arguments": {"yaw_delta_rad": signed, "angular_speed": speed},
                 "timeout_seconds": _timeout_for(radians / speed),
                 "on_failure": "abort",
             }
