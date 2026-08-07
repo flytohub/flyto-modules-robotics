@@ -37,3 +37,28 @@ if the caller dies mid-mission. Running out of process is the whole point.
 | `FLYTO_ROBOTICS_GATEWAY_URL` | `http://127.0.0.1:8766` | the local robot gateway |
 | `FLYTO_ROBOTICS_DELIVERY_TOKEN` | — | bearer token, required |
 | `FLYTO_ROBOTICS_ROBOT_ID` | — | must match the gateway's job |
+
+## Releasing
+
+Published the way `flyto-core` is: push a `v*` tag and the workflow builds,
+tests the built wheel, and uploads through PyPI Trusted Publishing. No token
+lives in this repository.
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+The first release of a new project also needs a **pending publisher** on PyPI
+(Your projects → Publishing → Add a pending publisher), because Trusted
+Publishing has nothing to trust until then:
+
+| Field | Value |
+|---|---|
+| PyPI project name | `flyto-modules-robotics` |
+| Owner | `flytohub` |
+| Repository name | `flyto-modules-robotics` |
+| Workflow name | `publish-pypi.yml` |
+| Environment name | `pypi` |
+
+`workflow_dispatch` publishes to TestPyPI instead, which needs the same entry
+on test.pypi.org.

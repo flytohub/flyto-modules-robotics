@@ -4,7 +4,19 @@ Date: 2026-08-05
 
 ## Status
 
-Installed alongside a real `flyto-core`, and verified against a real robot.
+Installed alongside a real `flyto-core`, verified against a real robot, and
+ready to publish.
+
+- Packaged for PyPI the way `flyto-core` is: a `v*` tag builds, tests the
+  built wheel, and uploads through Trusted Publishing. The two jobs that
+  matter assert the two properties no unit test can — that the wheel imports
+  and builds plans with no execution engine installed at all, and that a real
+  `flyto-core` from PyPI discovers it through the entry point and registers
+  all three steps.
+- Not yet on PyPI: a new project needs a pending publisher registered on
+  pypi.org first (README, Releasing). Verified locally instead against
+  `flyto-core==2.26.11` installed from PyPI, with this package installed from
+  its own built wheel — both discovered, three steps registered.
 
 - 54 tests pass, none needing a robot or `flyto-core`.
 - `steps.py` holds the one mapping from a module identifier to the plan it
