@@ -30,3 +30,7 @@ registered in `.mcp.json` for Claude and `~/.codex/config.toml` for Codex.
 - If `search` or `impact` results look stale, run `flyto-index scan .` first.
 - Agent scratch checkouts under `.claude/worktrees/` are excluded from the index.
   Delete them when the work is merged; they are full copies of the repo.
+- A handoff is written only after the post-change gate in `AGENTS.md` has run:
+  `flyto-index verify . --strict`. Search and impact come before the edit, the
+  unit suite and then the strict verify after it. Record the strict verify's
+  result in the handoff, pass or fail — a handoff without that result is not a durable record.

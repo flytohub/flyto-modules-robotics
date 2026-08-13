@@ -1,0 +1,6 @@
+version: flyto.coding-config.v1
+checks:
+  - name: verify
+    argv: ["/Users/chester/flytohub/flyto-ai/.venv/bin/python", "-m", "pytest", "-o", "pythonpath=src", "tests/", "-q"]
+    timeout_seconds: 900
+    required: true

@@ -1,0 +1,20 @@
+{
+  "contract_version": "flyto.modules-robotics.gazebo-cleanup.v1",
+  "run_id": "mrg-20260809T090403Z-64172",
+  "lower_run_id": "mrg-20260809T090403Z-64172-lower",
+  "restoration_command": "/Users/chester/flytohub/flyto-robotics/scripts/run-lima-gazebo.sh",
+  "restoration_flags": [],
+  "restoration_invocations": 1,
+  "restoration_attempted": true,
+  "restoration_exit_code": 0,
+  "restoration_timed_out": false,
+  "restored_normal_gateway_runtime": true,
+  "lower_processes_quiesced": true,
+  "quiesce_grace_seconds": 15,
+  "restoration_detail": "run-lima-gazebo.sh returned 0; normal gateway runtime restarted",
+  "zero_command_owner": "flyto-robotics run-lima-gazebo.sh publishes it best-effort before restarting the runtime; this package never publishes one",
+  "guest_scratch_path": "/tmp/flyto-modules-robotics-verify/mrg-20260809T090403Z-64172",
+  "guest_scratch_removed": true,
+  "incoming_status": 1,
+  "final_status": 1
+}

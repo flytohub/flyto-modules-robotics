@@ -17,14 +17,42 @@ changing anything here.
 - **A missing `flyto-core` is logged, not raised.** Discovery loads every plugin in
   one loop; raising would take down the others.
 
+## Before you edit: search and impact
+
+Explore with the `flyto-indexer` tools before changing code, not with a blind
+grep. The constraints above are easy to break from one file away, and the index
+is what shows the other file.
+
+- `search` — find the symbol and the places that already answer the question.
+- `impact(target='<symbol>')` — the references and blast radius of the symbol you
+  are about to change, before you change it. `impact(mode='unstaged')` for what
+  you have already touched.
+
+`plan_for_step` and the bounds in `plan.py` have callers outside this package;
+`impact` is how you see them.
+
 ## Verification
+
+Every change is verified bottom-up: the tests first, then the repository gate.
 
 ```bash
 PYTHONPATH=src python3 -m pytest tests/ -q
 ```
 
-36 tests, none needing a robot or `flyto-core`. Any change to bounds, to the plan
+Tests, none needing a robot or `flyto-core`. Any change to bounds, to the plan
 shape, or to how the address is resolved needs a test that would fail without it.
+
+`search` and `impact` are the pre-change gate; the strict verifier below is the
+mandatory post-change gate. Run it after the edit, and hand nothing off until it passes:
+
+```bash
+flyto-index verify . --strict
+```
+
+It checks index integrity, secrets, documentation coverage, agent-instruction
+hygiene and that the generated index is ignored. `--strict` promotes warnings to
+failures, which is what CI runs. If `search` or `impact` looked stale, run
+`flyto-index scan .` first and verify again.
 
 ## Repo notes
 

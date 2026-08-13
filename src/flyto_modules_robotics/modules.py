@@ -22,7 +22,7 @@ import uuid
 from typing import Any, Mapping
 
 from .plan import PlanBuildError, run_request
-from .steps import MODULE_MOVE, MODULE_STOP, MODULE_TURN, plan_for_step
+from .steps import MODULE_MOVE, MODULE_STOP, MODULE_TURN, preview_plan_for_step
 
 # Re-exported for callers that used to read these here. The identifiers now
 # live beside the mapping that gives them meaning, in steps.py.
@@ -30,6 +30,22 @@ __all__ = ["MODULE_MOVE", "MODULE_TURN", "MODULE_STOP", "build_modules"]
 
 CATEGORY = "robotics"
 ICON_COLOR = "#22D3EE"
+
+# What each step asks a device to be able to do, named in the registry's own
+# vocabulary and versioned so a device declaring an older contract is a
+# mismatch the builder can see rather than a robot that moves unexpectedly.
+# One capability per step, and no two steps share one: the mapping is how a
+# device's declared abilities are matched to an authored step, so a duplicate
+# would make two different motions indistinguishable at match time.
+#
+# These name the *contract*, not the plan's internal step names. The plan
+# builders in plan.py emit the bare capability verbs ("move_relative",
+# "safe_stop") into the plan the gateway executes; these identifiers are what
+# the registry matches a device against. The two are deliberately separate --
+# renaming a registry contract must not silently change the bytes a robot runs.
+CAPABILITY_MOVE = "robotics.motion.move_relative@1"
+CAPABILITY_TURN = "robotics.motion.turn_relative@1"
+CAPABILITY_STOP = "robotics.safety.safe_stop@1"
 
 
 def _now_iso() -> str:
@@ -92,7 +108,7 @@ def _plan_from_params(module_id: str, params: Mapping[str, Any], robot_id: str) 
     to drift from the first without anything failing until a robot moved
     differently from what the canvas said.
     """
-    plan = plan_for_step(module_id, params, robot_id=robot_id)
+    plan = preview_plan_for_step(module_id, params, robot_id=robot_id)
     if plan is None:  # pragma: no cover - the table and the classes are one file apart
         raise PlanBuildError(f"no plan is defined for {module_id}")
     return plan
@@ -118,6 +134,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         version="1.0.0",
         category=CATEGORY,
         subcategory="motion",
+        provides_capability=CAPABILITY_MOVE,
         tags=["robot", "motion", "move", "drive"],
         label="Move Robot",
         label_key="modules.robotics.move.label",
@@ -160,6 +177,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         version="1.0.0",
         category=CATEGORY,
         subcategory="motion",
+        provides_capability=CAPABILITY_TURN,
         tags=["robot", "motion", "turn", "rotate"],
         label="Turn Robot",
         label_key="modules.robotics.turn.label",
@@ -200,6 +218,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         version="1.0.0",
         category=CATEGORY,
         subcategory="motion",
+        provides_capability=CAPABILITY_STOP,
         tags=["robot", "motion", "stop", "safety"],
         label="Stop Robot",
         label_key="modules.robotics.stop.label",

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1",
+  "repository": "flyto-modules-robotics",
+  "documentation": {
+    "module_roots": [
+      "src/flyto_modules_robotics"
+    ],
+    "readme": "README.md",
+    "docs_root": "docs",
+    "agent_instructions": ["AGENTS.md", "CLAUDE.md"],
+    "verification": ["README.md#testing"]
+  }
+}

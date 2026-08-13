@@ -2,21 +2,22 @@
 
 ## Near term
 
-1. **Read bounds from the robot, not from constants.** `flyto-robotics` already
-   exposes `robot.capabilities.list` over MCP, carrying per-capability argument
-   specs, `compatible_robots` and `safety_class`. Expose the same catalog on the
-   HTTP gateway and read bounds from it. Today's constants are a worse duplicate
-   that will drift, because a large AMR and a TurtleBot have different limits.
+1. **Integrate the Pi runner with the trusted named-plan API.** The pure contract
+   is available with fail-closed `require_trusted_catalog` semantics; the next
+   repository can fetch the lower catalog and call it before posting locally.
 2. **A generic escape hatch.** One `robotics.command` step whose capability list
    and parameter schema come from that catalog, so a robot that gains an arm or a
    lift works without a new release of this package.
-3. **Install alongside a real `flyto-core`** and confirm the steps appear on the
-   canvas.
+3. **Confirm the steps on the builder canvas.** Installing alongside a real
+   `flyto-core` is done: 2.27.0 discovers the package through the entry point,
+   owns all three modules and reports their three capabilities. What is left is
+   the canvas itself — load the builder with this installed and confirm the three
+   steps are visible and usable there.
 
 ## Later
 
-- Publish to PyPI once the catalog work lands, so the bounds a user gets are the
-  robot's rather than this package's.
+- Decide whether preview metadata should be refreshed from a cached catalog
+  without making the canvas depend on an online robot.
 
 ## Explicitly out of scope
 

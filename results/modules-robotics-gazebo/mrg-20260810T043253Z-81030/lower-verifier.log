@@ -1,0 +1,463 @@
+Starting >>> flyto_robotics
+running develop
+running egg_info
+creating flyto_robotics.egg-info
+writing flyto_robotics.egg-info/PKG-INFO
+writing dependency_links to flyto_robotics.egg-info/dependency_links.txt
+writing entry points to flyto_robotics.egg-info/entry_points.txt
+writing requirements to flyto_robotics.egg-info/requires.txt
+writing top-level names to flyto_robotics.egg-info/top_level.txt
+writing manifest file 'flyto_robotics.egg-info/SOURCES.txt'
+reading manifest file 'flyto_robotics.egg-info/SOURCES.txt'
+writing manifest file 'flyto_robotics.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/python3.12/site-packages/flyto-robotics.egg-link (link to .)
+Installing flyto-device-events script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-recovery-portal script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-resource-agent script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-robot-doctor script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-robot-mcp script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-robotics script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-ros2-readiness-probe script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing gazebo_lab_driver script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing mission_controller script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing robotics_planning_session script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing ros2_closed_loop_lab script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing ros2_safety_supervisor script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing ros2_sensor_guard script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing shortcut_controller script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing shortcut_gazebo_driver script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing showcase_gazebo_observer script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+
+Installed /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics
+running symlink_data
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index/resource_index
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index/resource_index/packages
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/resource/flyto_robotics -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index/resource_index/packages
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/package.xml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/atomic_ai_demo.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/nav2_closed_loop.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/turtlebot3_fidelity.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/gazebo_lab.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/shortcut_gazebo_demo.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/turtlebot3_bringup_supervised.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/ai4all_medication_showcase.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/hospital_demo.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/ai4all_showcase.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/config
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/config/nav2_params.yaml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/config
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/config/bridge.yaml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/config
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-execution-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/guarded-handoff-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/guarded-handoff-script-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/device-event-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/result-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-adapter-manifest-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/plan-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/resource-manifest-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/job-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/capability-manifest-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/shortcut-result-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/facility-resource-plan-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/human-decision-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/resource-telemetry-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/semantic-location-map-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/lab-matrix-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/soak-report-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/mission-dispatch-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/goal-frame-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/input-event-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/mission-action-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/capability-route-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/lab-scenario-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-execution-grant-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/semantic-location-catalog-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-runtime-snapshot-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/qr-confirmation-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/guarded-handoff-policy-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-stress-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/tb3-lab-shortcut.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/pharmacy-to-ward.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/mission-arena.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/ai-space-delivery.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/teach-current-location.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/ai4all-careflow-showcase.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/ai4all-branching-careflow.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/semantic-location-sequence.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/maps/hospital-ward-delivery.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/maps/atomic-color-route.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/maps/ai4all-branching-route.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/teach-current-location.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-turn-left-90deg.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-backward-40cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-forward-40cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/ai4all-branching-orange-purple.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-forward-30cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/blue-yellow-purple-waypoints.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-turn-right-90deg.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/careflow-human-gate.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/careflow-waypoints-human-gate.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/semantic-location-sequence.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/blue-yellow-purple.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/routes
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/routes/ai4all-branching-routes.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/routes
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/resource-plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/resource-plans/gazebo-shortcut-forward-30cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/resource-plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/resource-plans/nav2-hospital-delivery.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/resource-plans
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-adapters
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/ros2-adapters/flyto2-standard.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-adapters
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-runtime
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/ros2-runtime/ready-sim.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-runtime
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/facility-resources
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/facility-resources/ai4all-showcase-facility.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/facility-resources
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/guarded-handoff
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/guarded-handoff/medication-script.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/guarded-handoff
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/guarded-handoff/medication-policy.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/guarded-handoff
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/scenarios/gazebo/careflow-adversarial.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/scenarios/gazebo/ai4all-medication-handoff.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/scenarios/gazebo/ai4all-branching.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/hospital-logistics.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/mission-arena.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/nav2-closed-loop.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/atomic-color-route-lab.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/ai4all-branching-route.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/atomic-color-route.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/turtlebot3-fidelity.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/maps/nav2_lab.pgm -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/maps/nav2_lab.yaml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/maps
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models/flyto_rover
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/models/flyto_rover/model.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models/flyto_rover
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/models/flyto_rover/model.config -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models/flyto_rover
+Finished <<< flyto_robotics [1.13s]
+
+Summary: 1 package finished [1.24s]
+Lima Gazebo lab provisioned: flyto-robot-gazebo
+gazebo_pid=43863
+fault=none
+gateway=0
+TurtleBot3 Burger simulation is running in flyto-robot-gazebo.
+Physics and sensors: Gazebo Harmonic, 1 ms step, LiDAR + IMU noise.
+Stop and release its memory with: /Users/chester/flytohub/flyto-robotics/scripts/stop-lima-gazebo.sh
+{"command_subscription_count": 2, "contract_version": "flyto.robotics.burger-gazebo-acceptance.v1", "displacement_m": 0.07304999998065155, "evidence_source": "gazebo_harmonic_world_state+ros2_jazzy_topics", "final_speed_mps": 2.4202168047438022e-11, "gazebo_ground_truth_displacement_m": 0.07328243870340834, "gazebo_ground_truth_finish_xy": [-1.7267175615478125, -1.1000000000270498], "gazebo_ground_truth_model": "burger", "gazebo_ground_truth_source": "gz_transport_world_pose_info", "gazebo_ground_truth_start_xy": [-1.8000000002512209, -1.1000000000047363], "gazebo_ground_truth_topic": "/world/flyto_turtlebot3_fidelity/pose/info", "gazebo_physics_settle_max_drift_m": 2.928413498378372e-10, "gazebo_physics_settle_sim_seconds": 10.899000000000001, "gazebo_physics_settle_source": "gz_transport_world_pose_info_sim_time", "gazebo_simulation_time_advance_s": 1.3740000000000006, "imu_angular_velocity_finite": true, "lidar_range_m": [0.11999999731779099, 3.5], "lidar_samples": 360, "model": "turtlebot3_burger", "odometry_displacement_m": 0.07304999998065155, "passed": true}
+Starting >>> flyto_robotics
+running develop
+running egg_info
+creating flyto_robotics.egg-info
+writing flyto_robotics.egg-info/PKG-INFO
+writing dependency_links to flyto_robotics.egg-info/dependency_links.txt
+writing entry points to flyto_robotics.egg-info/entry_points.txt
+writing requirements to flyto_robotics.egg-info/requires.txt
+writing top-level names to flyto_robotics.egg-info/top_level.txt
+writing manifest file 'flyto_robotics.egg-info/SOURCES.txt'
+reading manifest file 'flyto_robotics.egg-info/SOURCES.txt'
+writing manifest file 'flyto_robotics.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/python3.12/site-packages/flyto-robotics.egg-link (link to .)
+Installing flyto-device-events script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-recovery-portal script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-resource-agent script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-robot-doctor script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-robot-mcp script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-robotics script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-ros2-readiness-probe script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing gazebo_lab_driver script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing mission_controller script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing robotics_planning_session script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing ros2_closed_loop_lab script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing ros2_safety_supervisor script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing ros2_sensor_guard script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing shortcut_controller script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing shortcut_gazebo_driver script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing showcase_gazebo_observer script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+
+Installed /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics
+running symlink_data
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index/resource_index
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index/resource_index/packages
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/resource/flyto_robotics -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index/resource_index/packages
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/package.xml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/atomic_ai_demo.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/nav2_closed_loop.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/turtlebot3_fidelity.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/gazebo_lab.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/shortcut_gazebo_demo.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/turtlebot3_bringup_supervised.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/ai4all_medication_showcase.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/hospital_demo.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/ai4all_showcase.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/config
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/config/nav2_params.yaml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/config
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/config/bridge.yaml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/config
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-execution-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/guarded-handoff-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/guarded-handoff-script-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/device-event-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/result-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-adapter-manifest-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/plan-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/resource-manifest-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/job-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/capability-manifest-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/shortcut-result-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/facility-resource-plan-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/human-decision-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/resource-telemetry-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/semantic-location-map-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/lab-matrix-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/soak-report-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/mission-dispatch-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/goal-frame-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/input-event-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/mission-action-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/capability-route-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/lab-scenario-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-execution-grant-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/semantic-location-catalog-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-runtime-snapshot-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/qr-confirmation-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/guarded-handoff-policy-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-stress-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/tb3-lab-shortcut.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/pharmacy-to-ward.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/mission-arena.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/ai-space-delivery.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/teach-current-location.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/ai4all-careflow-showcase.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/ai4all-branching-careflow.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/semantic-location-sequence.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/maps/hospital-ward-delivery.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/maps/atomic-color-route.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/maps/ai4all-branching-route.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/teach-current-location.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-turn-left-90deg.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-backward-40cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-forward-40cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/ai4all-branching-orange-purple.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-forward-30cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/blue-yellow-purple-waypoints.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-turn-right-90deg.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/careflow-human-gate.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/careflow-waypoints-human-gate.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/semantic-location-sequence.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/blue-yellow-purple.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/routes
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/routes/ai4all-branching-routes.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/routes
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/resource-plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/resource-plans/gazebo-shortcut-forward-30cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/resource-plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/resource-plans/nav2-hospital-delivery.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/resource-plans
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-adapters
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/ros2-adapters/flyto2-standard.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-adapters
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-runtime
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/ros2-runtime/ready-sim.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-runtime
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/facility-resources
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/facility-resources/ai4all-showcase-facility.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/facility-resources
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/guarded-handoff
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/guarded-handoff/medication-script.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/guarded-handoff
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/guarded-handoff/medication-policy.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/guarded-handoff
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/scenarios/gazebo/careflow-adversarial.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/scenarios/gazebo/ai4all-medication-handoff.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/scenarios/gazebo/ai4all-branching.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/hospital-logistics.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/mission-arena.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/nav2-closed-loop.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/atomic-color-route-lab.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/ai4all-branching-route.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/atomic-color-route.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/turtlebot3-fidelity.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/maps/nav2_lab.pgm -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/maps/nav2_lab.yaml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/maps
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models/flyto_rover
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/models/flyto_rover/model.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models/flyto_rover
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/models/flyto_rover/model.config -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models/flyto_rover
+Finished <<< flyto_robotics [0.90s]
+
+Summary: 1 package finished [0.96s]
+Lima Gazebo lab provisioned: flyto-robot-gazebo
+gazebo_pid=44308
+fault=lidar_dropout
+gateway=0
+TurtleBot3 Burger simulation is running in flyto-robot-gazebo.
+Physics and sensors: Gazebo Harmonic, 1 ms step, LiDAR + IMU noise.
+Stop and release its memory with: /Users/chester/flytohub/flyto-robotics/scripts/stop-lima-gazebo.sh
+{"command_to_stop_seconds": 0.8039016489929054, "fault": "lidar_dropout:active", "passed": true, "post_latch_zero_commands": 8, "safety_latched": true, "stop_latency_seconds": 0.4217375179869123}
+{"contract_version": "flyto.robotics.burger-gazebo-acceptance.v1", "evidence_source": "gazebo_harmonic_world_state+ros2_jazzy_topics", "fault_safety": {"command_to_stop_seconds": 0.8039016489929054, "fault": "lidar_dropout:active", "passed": true, "post_latch_zero_commands": 8, "safety_latched": true, "stop_latency_seconds": 0.4217375179869123}, "passed": true, "robot": {"command_subscription_count": 2, "contract_version": "flyto.robotics.burger-gazebo-acceptance.v1", "displacement_m": 0.07304999998065155, "evidence_source": "gazebo_harmonic_world_state+ros2_jazzy_topics", "final_speed_mps": 2.4202168047438022e-11, "gazebo_ground_truth_displacement_m": 0.07328243870340834, "gazebo_ground_truth_finish_xy": [-1.7267175615478125, -1.1000000000270498], "gazebo_ground_truth_model": "burger", "gazebo_ground_truth_source": "gz_transport_world_pose_info", "gazebo_ground_truth_start_xy": [-1.8000000002512209, -1.1000000000047363], "gazebo_ground_truth_topic": "/world/flyto_turtlebot3_fidelity/pose/info", "gazebo_physics_settle_max_drift_m": 2.928413498378372e-10, "gazebo_physics_settle_sim_seconds": 10.899000000000001, "gazebo_physics_settle_source": "gz_transport_world_pose_info_sim_time", "gazebo_simulation_time_advance_s": 1.3740000000000006, "imu_angular_velocity_finite": true, "lidar_range_m": [0.11999999731779099, 3.5], "lidar_samples": 360, "model": "turtlebot3_burger", "odometry_displacement_m": 0.07304999998065155, "passed": true}}
+Virtual robot verification: /Users/chester/flytohub/flyto-robotics/results/virtual-robot/mrg-20260810T043253Z-81030-lower/report.json
+Starting >>> flyto_robotics
+running develop
+running egg_info
+creating flyto_robotics.egg-info
+writing flyto_robotics.egg-info/PKG-INFO
+writing dependency_links to flyto_robotics.egg-info/dependency_links.txt
+writing entry points to flyto_robotics.egg-info/entry_points.txt
+writing requirements to flyto_robotics.egg-info/requires.txt
+writing top-level names to flyto_robotics.egg-info/top_level.txt
+writing manifest file 'flyto_robotics.egg-info/SOURCES.txt'
+reading manifest file 'flyto_robotics.egg-info/SOURCES.txt'
+writing manifest file 'flyto_robotics.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/python3.12/site-packages/flyto-robotics.egg-link (link to .)
+Installing flyto-device-events script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-recovery-portal script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-resource-agent script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-robot-doctor script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-robot-mcp script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-robotics script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing flyto-ros2-readiness-probe script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing gazebo_lab_driver script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing mission_controller script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing robotics_planning_session script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing ros2_closed_loop_lab script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing ros2_safety_supervisor script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing ros2_sensor_guard script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing shortcut_controller script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing shortcut_gazebo_driver script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+Installing showcase_gazebo_observer script to /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/lib/flyto_robotics
+
+Installed /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics
+running symlink_data
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index/resource_index
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index/resource_index/packages
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/resource/flyto_robotics -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/ament_index/resource_index/packages
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/package.xml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/atomic_ai_demo.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/nav2_closed_loop.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/turtlebot3_fidelity.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/gazebo_lab.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/shortcut_gazebo_demo.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/turtlebot3_bringup_supervised.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/ai4all_medication_showcase.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/hospital_demo.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/launch/ai4all_showcase.launch.py -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/launch
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/config
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/config/nav2_params.yaml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/config
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/config/bridge.yaml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/config
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-execution-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/guarded-handoff-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/guarded-handoff-script-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/device-event-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/result-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-adapter-manifest-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/plan-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/resource-manifest-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/job-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/capability-manifest-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/shortcut-result-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/facility-resource-plan-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/human-decision-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/resource-telemetry-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/semantic-location-map-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/lab-matrix-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/soak-report-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/mission-dispatch-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/goal-frame-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/input-event-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/mission-action-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/capability-route-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/lab-scenario-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-execution-grant-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/semantic-location-catalog-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-runtime-snapshot-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/qr-confirmation-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/guarded-handoff-policy-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/contracts/ros2-stress-evidence-v1.schema.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/contracts
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/tb3-lab-shortcut.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/pharmacy-to-ward.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/mission-arena.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/jobs/ai-space-delivery.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/jobs
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/teach-current-location.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/ai4all-careflow-showcase.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/ai4all-branching-careflow.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/goal-frames/semantic-location-sequence.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/goal-frames
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/maps/hospital-ward-delivery.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/maps/atomic-color-route.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/maps/ai4all-branching-route.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/maps
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/teach-current-location.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-turn-left-90deg.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-backward-40cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-forward-40cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/ai4all-branching-orange-purple.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-forward-30cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/blue-yellow-purple-waypoints.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/shortcut-turn-right-90deg.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/careflow-human-gate.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/careflow-waypoints-human-gate.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/semantic-location-sequence.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/plans/blue-yellow-purple.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/plans
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/routes
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/routes/ai4all-branching-routes.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/routes
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/resource-plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/resource-plans/gazebo-shortcut-forward-30cm.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/resource-plans
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/resource-plans/nav2-hospital-delivery.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/resource-plans
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-adapters
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/ros2-adapters/flyto2-standard.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-adapters
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-runtime
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/ros2-runtime/ready-sim.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/ros2-runtime
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/facility-resources
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/facility-resources/ai4all-showcase-facility.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/facility-resources
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/guarded-handoff
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/guarded-handoff/medication-script.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/guarded-handoff
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/examples/guarded-handoff/medication-policy.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/examples/guarded-handoff
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/scenarios/gazebo/careflow-adversarial.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/scenarios/gazebo/ai4all-medication-handoff.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/scenarios/gazebo/ai4all-branching.json -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/scenarios/gazebo
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/hospital-logistics.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/mission-arena.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/nav2-closed-loop.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/atomic-color-route-lab.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/ai4all-branching-route.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/atomic-color-route.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/worlds/turtlebot3-fidelity.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/worlds
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/maps/nav2_lab.pgm -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/maps
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/maps/nav2_lab.yaml -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/maps
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models
+creating /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models/flyto_rover
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/models/flyto_rover/model.sdf -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models/flyto_rover
+symbolically linking /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/build/flyto_robotics/models/flyto_rover/model.config -> /home/chester.guest/.local/share/flyto-robot-gazebo/workspace/install/flyto_robotics/share/flyto_robotics/models/flyto_rover
+Finished <<< flyto_robotics [0.91s]
+
+Summary: 1 package finished [0.97s]
+Lima Gazebo lab provisioned: flyto-robot-gazebo
+gazebo_pid=44653
+fault=none
+gateway=1
+TurtleBot3 Burger simulation is running in flyto-robot-gazebo.
+Physics and sensors: Gazebo Harmonic, 1 ms step, LiDAR + IMU noise.
+Stop and release its memory with: /Users/chester/flytohub/flyto-robotics/scripts/stop-lima-gazebo.sh

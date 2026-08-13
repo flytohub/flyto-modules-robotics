@@ -18,6 +18,7 @@ appends it.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 PLAN_CONTRACT_VERSION = "flyto.robotics.plan.v1"
@@ -67,9 +68,17 @@ def _number(value: Any, name: str, *, minimum: float, maximum: float) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise PlanBuildError(f"{name} must be a number")
     number = float(value)
+    if not math.isfinite(number):
+        raise PlanBuildError(f"{name} must be finite")
     if not minimum <= number <= maximum:
         raise PlanBuildError(f"{name} must be between {minimum} and {maximum}")
     return number
+
+
+def _boolean(value: Any, name: str) -> bool:
+    if not isinstance(value, bool):
+        raise PlanBuildError(f"{name} must be a boolean")
+    return value
 
 
 def _identifier(value: Any, name: str) -> str:
@@ -92,7 +101,9 @@ def _plan(
     robot_id: str,
     goal: str,
     steps: list[dict[str, Any]],
+    safe_stop_step: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    stop = SAFE_STOP_STEP if safe_stop_step is None else safe_stop_step
     return {
         "contract_version": PLAN_CONTRACT_VERSION,
         "plan_id": plan_id,
@@ -103,7 +114,12 @@ def _plan(
             "provider": "flyto-cloud",
             "model": "workflow-card",
         },
-        "steps": steps + [dict(SAFE_STOP_STEP)],
+        "steps": steps + [
+            {
+                **stop,
+                "arguments": dict(stop["arguments"]),
+            }
+        ],
     }
 
 
@@ -124,8 +140,9 @@ def move_plan(
         distance_m, "distance_m", minimum=MIN_DISTANCE_M, maximum=MAX_DISTANCE_M
     )
     velocity = _number(speed, "speed", minimum=MIN_SPEED_MPS, maximum=MAX_SPEED_MPS)
-    signed = -distance if reverse else distance
-    direction = "backward" if reverse else "forward"
+    backwards = _boolean(reverse, "reverse")
+    signed = -distance if backwards else distance
+    direction = "backward" if backwards else "forward"
     return _plan(
         plan_id=f"workflow.move.{direction}.{int(round(distance * 100))}cm.v1",
         robot_id=robot_id,
@@ -160,8 +177,9 @@ def turn_plan(
         maximum=MAX_ANGULAR_SPEED,
     )
     radians = angle * 3.141592653589793 / 180.0
-    signed = -radians if clockwise else radians
-    direction = "right" if clockwise else "left"
+    turns_clockwise = _boolean(clockwise, "clockwise")
+    signed = -radians if turns_clockwise else radians
+    direction = "right" if turns_clockwise else "left"
     return _plan(
         plan_id=f"workflow.turn.{direction}.{int(round(angle))}deg.v1",
         robot_id=robot_id,

@@ -13,8 +13,13 @@ gains motion steps on the canvas.
 ## Owned surfaces
 
 - The `robotics.*` module identifiers registered into `flyto-core`'s registry.
+- The capability each of those modules declares to that registry —
+  `robotics.motion.move_relative@1`, `robotics.motion.turn_relative@1`,
+  `robotics.safety.safe_stop@1` — one per step and none shared.
 - The plan documents those modules build (`flyto.robotics.plan.v1`).
 - The loopback client that hands a plan to the robot's own gateway.
+- The pure Pi-runner API that derives named-node plans from a verified lower
+  capability catalog and refuses implicit legacy-bound fallback.
 
 ## Users
 

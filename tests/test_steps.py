@@ -18,6 +18,7 @@ from flyto_modules_robotics.steps import (
     is_robotics_step,
     plan_for_step,
     step_module_id,
+    trusted_plan_for_step,
 )
 
 
@@ -114,7 +115,15 @@ def test_the_table_needs_no_engine():
     from flyto_modules_robotics import steps
 
     assert "core" not in sys.modules or steps.__name__  # not imported by us
-    assert steps.plan_for_step(MODULE_TURN, {"degrees": 90}, robot_id="r")["plan_id"]
+    assert steps.preview_plan_for_step(MODULE_TURN, {"degrees": 90}, robot_id="r")["plan_id"]
+
+
+def test_execution_requires_a_trusted_catalog_and_never_falls_back():
+    with pytest.raises(PlanBuildError, match="trusted capability catalog"):
+        trusted_plan_for_step(MODULE_MOVE, {"distance_m": 0.4}, robot_id="r")
+
+    # Legacy preview remains a separate authoring-only API.
+    assert plan_for_step(MODULE_MOVE, {"distance_m": 0.4}, robot_id="r")["plan_id"]
 
 
 # -- the contract the robot actually enforces ----------------------------

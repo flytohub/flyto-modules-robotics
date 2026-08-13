@@ -5,3 +5,8 @@ __pycache__/
 build/
 dist/
 .venv/
+.flyto/*
+!.flyto/coding.yaml
+
+# Generated code index. Rebuilt by `flyto-index scan .`, never source of truth.
+.flyto-index/

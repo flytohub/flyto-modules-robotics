@@ -1,0 +1,159 @@
+{
+  "contract_version": "flyto.modules-robotics.gazebo-closed-loop.v1",
+  "run_id": "mrg-20260811T063638Z-3203",
+  "passed": true,
+  "scope": "Gazebo simulation only; this is not physical-hardware evidence",
+  "provenance": {
+    "started_at": "2026-08-11T06:36:38Z",
+    "finished_at": "2026-08-11T06:38:13Z",
+    "host_platform": "macOS-14.7.6-arm64-arm-64bit",
+    "repo_commit": "105a31808fe1adadc99c36ce744c266f1048a95e",
+    "lower_repo_commit": "b918b1f2f74f7a0167b52f4300ffc304d4ff7ba4",
+    "verifier_sha256": "7d6d2be933e57a799a2993d4db0e4dd894ab4dc8de8b7ba966b81d9c0d29bd17",
+    "verifier_behavior_revision": "fixed-anchor-process-quiescence.v1",
+    "package_source_sha256": "c7b76e4cc50463293cb1e186261e654cf8b0d154b9c83c8a6a10adef4a964f95",
+    "lima_instance": "flyto-robot-gazebo",
+    "gateway_robot_id": "flyto-rover-sim-001",
+    "lower_verifier": "/Users/chester/flytohub/flyto-robotics/scripts/verify-lima-gazebo.sh",
+    "lower_run_id_env": "FLYTO_GAZEBO_VERIFY_RUN_ID",
+    "token_env_var": "FLYTO_ROBOTICS_DELIVERY_TOKEN",
+    "gateway_url": "http://127.0.0.1:8766",
+    "secrets_recorded": "none; the bearer token is sourced inside the guest and never leaves it"
+  },
+  "lower_layer": {
+    "lower_run_id": "mrg-20260811T063638Z-3203-lower",
+    "lower_run_dir": "/Users/chester/flytohub/flyto-robotics/results/virtual-robot/mrg-20260811T063638Z-3203-lower",
+    "freshness": "the results directory was proved not to exist before the lower verifier ran",
+    "report_path": "/Users/chester/flytohub/flyto-robotics/results/virtual-robot/mrg-20260811T063638Z-3203-lower/report.json",
+    "report_sha256": "2294ed7b07a225a8f613655516e4cb5a8eb49370838da074d3213896f9661afe",
+    "report_contract_version": "flyto.robotics.burger-gazebo-acceptance.v1",
+    "report_passed": true,
+    "cleanup_path": "/Users/chester/flytohub/flyto-robotics/results/virtual-robot/mrg-20260811T063638Z-3203-lower/cleanup.json",
+    "cleanup_sha256": "e3f163c3cf74fd4ca85ff5788a0ec4e5ccea03957ecf1f957db73d0000a4e41f",
+    "cleanup_contract_version": "flyto.robotics.runtime-cleanup.v1",
+    "cleanup_checked": {
+      "passed": true,
+      "restored_normal_gateway_runtime": true,
+      "zero_command_published": true,
+      "normal_runtime_restoration_exit_code": 0,
+      "verification_status": 0
+    },
+    "cleanup_has_no_run_id_field_by_contract": true,
+    "passed": true
+  },
+  "step": {
+    "module_id": "robotics.move",
+    "commanded_distance_m": 0.4,
+    "commanded_speed_mps": 0.12,
+    "plan_id": "workflow.move.forward.40cm.v1",
+    "robot_id": "flyto-rover-sim-001",
+    "request_id": "verify-95673e73173a",
+    "plan_contract_version": "flyto.robotics.plan.v1",
+    "request_contract_version": "flyto.cloud.plan-run-request.v1",
+    "step_count": 2,
+    "first_step_capability": "move_relative",
+    "first_step_arguments": {
+      "distance_m": 0.4,
+      "speed": 0.12
+    },
+    "final_step_id": "stop.finish",
+    "final_step_capability": "safe_stop",
+    "plan_host_scan_findings": [],
+    "plan_host_scan_depth_limit": 32
+  },
+  "gateway_session": {
+    "session_id": "pln-2d1f7f4e587e",
+    "state": "completed",
+    "terminal_success_states": [
+      "completed",
+      "succeeded"
+    ],
+    "timed_out": false,
+    "error": null
+  },
+  "physical_evidence": {
+    "source": "gazebo.world.pose.info",
+    "topic": "/world/flyto_turtlebot3_fidelity/pose/info",
+    "model": "burger",
+    "note": "world pose, not odometry; nothing on the mission path writes here",
+    "physics_gate": {
+      "ok": true,
+      "topic": "/world/flyto_turtlebot3_fidelity/pose/info",
+      "model": "burger",
+      "source": "gazebo.world.pose.info",
+      "anchor_source": "first usable sample",
+      "re_anchored": false,
+      "required_sim_seconds": 10.0,
+      "sim_seconds_observed": 10.270000000000001,
+      "max_drift_allowed_m": 0.01,
+      "max_drift_observed_m": 0.0001246042549978391,
+      "drift_is_finite": true,
+      "samples": 19,
+      "wall_seconds_allowed": 90.0,
+      "anchor": {
+        "sim_time": 10.475,
+        "x": -1.7999999998531517,
+        "y": -1.1000000000025807
+      },
+      "final": {
+        "sim_time": 20.745,
+        "x": -1.8001246041081496,
+        "y": -1.0999999999519092
+      }
+    },
+    "start": {
+      "sim_time": 21.496,
+      "x": -1.8001246041081496,
+      "y": -1.0999999999519092
+    },
+    "end": {
+      "sim_time": 28.9,
+      "x": -1.4284453640078747,
+      "y": -1.0999963433495443
+    },
+    "displacement_m": 0.3716792401182618,
+    "window_m": {
+      "min": 0.3,
+      "max": 0.5
+    },
+    "stopped_pose": {
+      "ok": true,
+      "topic": "/world/flyto_turtlebot3_fidelity/pose/info",
+      "model": "burger",
+      "source": "gazebo.world.pose.info",
+      "anchor_source": "caller-supplied pose",
+      "re_anchored": false,
+      "required_sim_seconds": 3.0,
+      "sim_seconds_observed": 3.084000000000003,
+      "max_drift_allowed_m": 0.01,
+      "max_drift_observed_m": 0.0,
+      "drift_is_finite": true,
+      "samples": 9,
+      "wall_seconds_allowed": 60.0,
+      "anchor": {
+        "sim_time": 28.9,
+        "x": -1.4284453640078747,
+        "y": -1.0999963433495443
+      },
+      "final": {
+        "sim_time": 31.984,
+        "x": -1.4284453640078747,
+        "y": -1.0999963433495443
+      }
+    }
+  },
+  "invariants": {
+    "lower_layer_verified": true,
+    "physics_gate_satisfied": true,
+    "world_pose_sampled": true,
+    "plan_built_by_this_package": true,
+    "request_contract_matches": true,
+    "final_step_is_safe_stop": true,
+    "plan_contains_no_host": true,
+    "gateway_terminal_success": true,
+    "gateway_did_not_time_out": true,
+    "displacement_is_finite": true,
+    "displacement_in_window": true,
+    "stopped_pose_is_stable": true
+  }
+}
