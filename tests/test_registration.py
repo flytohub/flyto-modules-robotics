@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import importlib.util
+import json
 import logging
+import os
+from pathlib import Path
+import re
+import subprocess
 import sys
 import types
 
@@ -18,9 +23,15 @@ TURN = "robotics.turn"
 STOP = "robotics.stop"
 
 CANONICAL_CAPABILITIES = {
-    "robotics.motion.move_relative@1": MOVE,
-    "robotics.motion.turn_relative@1": TURN,
-    "robotics.safety.safe_stop@1": STOP,
+    "robotics.motion.move_relative": MOVE,
+    "robotics.motion.turn_relative": TURN,
+    "robotics.safety.safe_stop": STOP,
+}
+
+CATALOG_CAPABILITIES = {
+    MOVE: "robotics.motion.move_relative@1",
+    TURN: "robotics.motion.turn_relative@1",
+    STOP: "robotics.safety.safe_stop@1",
 }
 
 
@@ -440,8 +451,8 @@ def test_every_step_declares_the_capability_it_needs_a_device_to_have():
     Spelled out as literals rather than imported from ``modules`` on purpose:
     reading the same constants the code registers would assert only that a name
     equals itself, and would keep passing through the rename this test exists to
-    catch. The version suffix is part of the contract -- a device declaring
-    ``@2`` is a mismatch someone must decide about, not a silent match.
+    catch. Registry identifiers use flyto-core's unversioned identifier
+    grammar; catalog revisions belong to the lower execution boundary.
     """
     built = build_modules(StandInModule, fake_register_module)
     declared = {
@@ -449,9 +460,9 @@ def test_every_step_declares_the_capability_it_needs_a_device_to_have():
         for module_id, cls in built
     }
     assert declared == {
-        "robotics.move": "robotics.motion.move_relative@1",
-        "robotics.turn": "robotics.motion.turn_relative@1",
-        "robotics.stop": "robotics.safety.safe_stop@1",
+        "robotics.move": "robotics.motion.move_relative",
+        "robotics.turn": "robotics.motion.turn_relative",
+        "robotics.stop": "robotics.safety.safe_stop",
     }
     # Stated separately from the mapping above because it is a different claim:
     # the mapping says what each step asks for, this says no two steps ask for
@@ -462,6 +473,55 @@ def test_every_step_declares_the_capability_it_needs_a_device_to_have():
     assert len(set(capabilities)) == len(capabilities), (
         f"two steps declare the same capability: {capabilities}"
     )
+
+
+def test_registry_capabilities_obey_flyto_core_identifier_grammar():
+    """The registry rejects ``@1`` before a plugin can be discovered."""
+    grammar = re.compile(r"^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$")
+    assert all(grammar.fullmatch(name) for name in CANONICAL_CAPABILITIES)
+    assert all(not grammar.fullmatch(name) for name in CATALOG_CAPABILITIES.values())
+
+
+def test_registry_names_are_the_unversioned_projection_of_catalog_ids():
+    """The device catalog keeps ``@1`` at the lower execution boundary."""
+    for registry_name, module_id in CANONICAL_CAPABILITIES.items():
+        assert CATALOG_CAPABILITIES[module_id] == f"{registry_name}@1"
+
+
+def test_real_flyto_core_registry_accepts_all_three_capabilities():
+    """Exercise the installed consumer's decorator and registry, not a stand-in."""
+    script = """
+import json
+import sys
+
+sys.path.insert(0, sys.argv[1])
+
+from core.modules.base import BaseModule
+from core.modules.registry import ModuleRegistry, register_module
+from flyto_modules_robotics.modules import build_modules
+
+ModuleRegistry.clear()
+try:
+    build_modules(BaseModule, register_module)
+    print(json.dumps(ModuleRegistry.capabilities(), sort_keys=True))
+finally:
+    ModuleRegistry.clear()
+"""
+    checkout_src = Path(__file__).resolve().parents[1] / "src"
+    completed = subprocess.run(
+        [sys.executable, "-c", script, str(checkout_src)],
+        check=False,
+        capture_output=True,
+        env={key: value for key, value in os.environ.items() if key != "PYTHONPATH"},
+        text=True,
+    )
+    if completed.returncode and "unsupported operand type(s) for |" in completed.stderr:
+        pytest.skip("installed flyto-core requires a newer Python interpreter")
+    assert completed.returncode == 0, completed.stderr
+    assert json.loads(completed.stdout.strip().splitlines()[-1]) == {
+        capability: [module_id]
+        for capability, module_id in CANONICAL_CAPABILITIES.items()
+    }
 
 
 def test_a_bad_distance_fails_when_the_step_is_configured_not_when_it_runs():

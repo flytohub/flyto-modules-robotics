@@ -36,15 +36,19 @@ Once installed alongside `flyto-core`, discovery registers three step IDs:
 
 | Step ID | What it authors | Capability it provides |
 |---|---|---|
-| `robotics.move` | a bounded linear translation | `robotics.motion.move_relative@1` |
-| `robotics.turn` | a bounded yaw change, in degrees at the step boundary | `robotics.motion.turn_relative@1` |
-| `robotics.stop` | an immediate safe stop | `robotics.safety.safe_stop@1` |
+| `robotics.move` | a bounded linear translation | `robotics.motion.move_relative` |
+| `robotics.turn` | a bounded yaw change, in degrees at the step boundary | `robotics.motion.turn_relative` |
+| `robotics.stop` | an immediate safe stop | `robotics.safety.safe_stop` |
 
 Each step declares its capability through `register_module(provides_capability=…)`,
 one per step and none shared, so a device's declared abilities match exactly one
-authored step. Those identifiers name the *registry contract*; they are not the
-bare capability verbs the built plan carries to the gateway, and the two are kept
-separate so renaming a contract cannot change the bytes a robot runs.
+authored step. Those identifiers name the *registry contract* and follow
+`flyto-core`'s safe bounded identifier grammar, which does not admit `@`. The
+device catalog is a different, lower execution contract: it retains revisioned
+IDs such as `robotics.motion.move_relative@1`, while the built plan carries the
+bare gateway verb `move_relative`. Keeping all three boundaries explicit means
+a registry rollback cannot silently rewrite the catalog or the bytes a robot
+runs.
 
 An author places one of these on the canvas like any other step. A step
 **declares** motion; it does not perform it, and it does not post anything.

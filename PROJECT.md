@@ -14,8 +14,10 @@ gains motion steps on the canvas.
 
 - The `robotics.*` module identifiers registered into `flyto-core`'s registry.
 - The capability each of those modules declares to that registry —
-  `robotics.motion.move_relative@1`, `robotics.motion.turn_relative@1`,
-  `robotics.safety.safe_stop@1` — one per step and none shared.
+  `robotics.motion.move_relative`, `robotics.motion.turn_relative`,
+  `robotics.safety.safe_stop` — one per step and none shared. These obey
+  `flyto-core`'s registry grammar; the lower device catalog and execution
+  boundary retain the revisioned `@1` identifiers.
 - The plan documents those modules build (`flyto.robotics.plan.v1`).
 - The loopback client that hands a plan to the robot's own gateway.
 - The pure Pi-runner API that derives named-node plans from a verified lower
