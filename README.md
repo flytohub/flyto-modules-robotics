@@ -40,6 +40,9 @@ Once installed alongside `flyto-core`, discovery registers three step IDs:
 | `robotics.turn` | a bounded yaw change, in degrees at the step boundary | `robotics.motion.turn_relative@1` |
 | `robotics.stop` | an immediate safe stop | `robotics.safety.safe_stop@1` |
 
+> The table lists two identifiers per step. `provides_capability` is the name flyto-core registers (unversioned -- its identifier rule refuses `@`, and a refusal rolls the whole plugin back). The catalog identifier in `steps.py`, which is what a device is matched against, keeps its `@1`.
+
+
 Each step declares its capability through `register_module(provides_capability=…)`,
 one per step and none shared, so a device's declared abilities match exactly one
 authored step. Those identifiers name the *registry contract*; they are not the

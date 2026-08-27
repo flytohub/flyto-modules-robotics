@@ -18,9 +18,9 @@ TURN = "robotics.turn"
 STOP = "robotics.stop"
 
 CANONICAL_CAPABILITIES = {
-    "robotics.motion.move_relative@1": MOVE,
-    "robotics.motion.turn_relative@1": TURN,
-    "robotics.safety.safe_stop@1": STOP,
+    "robotics.motion.move_relative": MOVE,
+    "robotics.motion.turn_relative": TURN,
+    "robotics.safety.safe_stop": STOP,
 }
 
 
@@ -440,8 +440,17 @@ def test_every_step_declares_the_capability_it_needs_a_device_to_have():
     Spelled out as literals rather than imported from ``modules`` on purpose:
     reading the same constants the code registers would assert only that a name
     equals itself, and would keep passing through the rename this test exists to
-    catch. The version suffix is part of the contract -- a device declaring
-    ``@2`` is a mismatch someone must decide about, not a silent match.
+    catch.
+
+    Two identifiers, not one. This assertion used to carry the version suffix
+    and a note saying the suffix is part of the contract. The note is still
+    true, but it is true of the *catalog* identifier in ``steps.py``, which is
+    what a device is genuinely matched against -- and it still carries ``@1``.
+    ``provides_capability`` is the flyto-core registry name, and flyto-core
+    refuses ``@``: its rule is ``^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$``, and the
+    refusal is not per-module. It rolled the whole plugin back, so all three
+    steps left the workflow builder together, and nothing anywhere ever matched
+    the versioned form of this particular identifier.
     """
     built = build_modules(StandInModule, fake_register_module)
     declared = {
@@ -449,9 +458,9 @@ def test_every_step_declares_the_capability_it_needs_a_device_to_have():
         for module_id, cls in built
     }
     assert declared == {
-        "robotics.move": "robotics.motion.move_relative@1",
-        "robotics.turn": "robotics.motion.turn_relative@1",
-        "robotics.stop": "robotics.safety.safe_stop@1",
+        "robotics.move": "robotics.motion.move_relative",
+        "robotics.turn": "robotics.motion.turn_relative",
+        "robotics.stop": "robotics.safety.safe_stop",
     }
     # Stated separately from the mapping above because it is a different claim:
     # the mapping says what each step asks for, this says no two steps ask for
@@ -538,4 +547,43 @@ def test_every_step_is_a_coroutine_because_the_engine_awaits_it():
     for module_id, cls in build_modules(StandInModule, fake_register_module):
         assert inspect.iscoroutinefunction(cls.execute), (
             f"{module_id}.execute must be async — flyto-core awaits it"
+        )
+
+
+def test_the_versioned_catalog_identifier_is_the_one_a_device_is_matched_against():
+    """The version suffix survives, on the identifier that actually uses it.
+
+    Dropping `@1` from `provides_capability` is not the same as abandoning
+    capability versioning. `steps.py` holds the table that is compared against
+    the robot's own `flyto.robotics.capability-catalog.v1` document, and a
+    device declaring `@2` is still a mismatch someone must decide about. If
+    that table ever loses its suffix too, the versioning really is gone, and
+    this says so.
+    """
+    from flyto_modules_robotics.steps import _CATALOG_CAPABILITIES
+
+    assert _CATALOG_CAPABILITIES == {
+        "robotics.move": "robotics.motion.move_relative@1",
+        "robotics.turn": "robotics.motion.turn_relative@1",
+        "robotics.stop": "robotics.safety.safe_stop@1",
+    }
+
+
+def test_the_two_identifiers_name_the_same_capability():
+    """One is the other with the version suffix removed.
+
+    They are separate tables for separate consumers, and separate tables drift.
+    This is what keeps `robotics.move` from asking flyto-core for one capability
+    while asking the robot's catalog for another.
+    """
+    from flyto_modules_robotics.steps import _CATALOG_CAPABILITIES
+
+    built = build_modules(StandInModule, fake_register_module)
+    for module_id, cls in built:
+        registered = cls._registered_metadata["provides_capability"]
+        catalog_id = _CATALOG_CAPABILITIES[module_id]
+
+        assert catalog_id.split("@", 1)[0] == registered, (
+            f"{module_id} registers {registered!r} with flyto-core but looks up "
+            f"{catalog_id!r} in the device catalog"
         )

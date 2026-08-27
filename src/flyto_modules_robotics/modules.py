@@ -43,9 +43,17 @@ ICON_COLOR = "#22D3EE"
 # "safe_stop") into the plan the gateway executes; these identifiers are what
 # the registry matches a device against. The two are deliberately separate --
 # renaming a registry contract must not silently change the bytes a robot runs.
-CAPABILITY_MOVE = "robotics.motion.move_relative@1"
-CAPABILITY_TURN = "robotics.motion.turn_relative@1"
-CAPABILITY_STOP = "robotics.safety.safe_stop@1"
+# No `@1` version suffix. flyto-core rejects it -- its identifier rule is
+# `^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$` (registry/core.py) and `@` is not in it,
+# so declaring one made the whole plugin fail to load and took all three steps
+# out of the builder with it. The suffix also matched nothing: the robot's own
+# catalog names these capabilities `move_relative`, `turn_relative` and
+# `safe_stop` (flyto-robotics/flyto_robotics/ai_planner.py), and no code in
+# either repository ever compared against the versioned form. The sibling
+# vision plugin declares a bare `vision.observe` for the same reason.
+CAPABILITY_MOVE = "robotics.motion.move_relative"
+CAPABILITY_TURN = "robotics.motion.turn_relative"
+CAPABILITY_STOP = "robotics.safety.safe_stop"
 
 
 def _now_iso() -> str:

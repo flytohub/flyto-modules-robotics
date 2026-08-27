@@ -21,6 +21,9 @@ gains motion steps on the canvas.
 - The pure Pi-runner API that derives named-node plans from a verified lower
   capability catalog and refuses implicit legacy-bound fallback.
 
+> The table lists two identifiers per step. `provides_capability` is the name flyto-core registers (unversioned -- its identifier rule refuses `@`, and a refusal rolls the whole plugin back). The catalog identifier in `steps.py`, which is what a device is matched against, keeps its `@1`.
+
+
 ## Users
 
 An operator authoring a workflow in the Flyto2 builder, and the device-side
