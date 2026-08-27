@@ -31,9 +31,10 @@ __all__ = ["MODULE_MOVE", "MODULE_TURN", "MODULE_STOP", "build_modules"]
 CATEGORY = "robotics"
 ICON_COLOR = "#22D3EE"
 
-# What each step asks a device to be able to do, named in the registry's own
-# vocabulary and versioned so a device declaring an older contract is a
-# mismatch the builder can see rather than a robot that moves unexpectedly.
+# What each step asks a device to be able to do, named in flyto-core's
+# registry vocabulary. Registry identifiers deliberately omit the catalog's
+# ``@1`` revision suffix: flyto-core accepts only its safe bounded identifier
+# grammar here, while the execution catalog owns revisioned capability IDs.
 # One capability per step, and no two steps share one: the mapping is how a
 # device's declared abilities are matched to an authored step, so a duplicate
 # would make two different motions indistinguishable at match time.
@@ -43,9 +44,9 @@ ICON_COLOR = "#22D3EE"
 # "safe_stop") into the plan the gateway executes; these identifiers are what
 # the registry matches a device against. The two are deliberately separate --
 # renaming a registry contract must not silently change the bytes a robot runs.
-CAPABILITY_MOVE = "robotics.motion.move_relative@1"
-CAPABILITY_TURN = "robotics.motion.turn_relative@1"
-CAPABILITY_STOP = "robotics.safety.safe_stop@1"
+CAPABILITY_MOVE = "robotics.motion.move_relative"
+CAPABILITY_TURN = "robotics.motion.turn_relative"
+CAPABILITY_STOP = "robotics.safety.safe_stop"
 
 
 def _now_iso() -> str:
