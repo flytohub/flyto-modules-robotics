@@ -130,7 +130,7 @@ def _bounded_json(stream: Any, maximum: int) -> dict[str, Any]:
 
     try:
         raw = stream.read(maximum + 1)
-    except Exception:
+    except Exception:  # noqa: BLE001 - stream may be any file-like response
         raise CapabilityCatalogError() from None
     if isinstance(raw, str):
         try:
@@ -173,6 +173,26 @@ def capability_catalog(*, opener=urllib.request.urlopen) -> CapabilityCatalog:
 
 def session(session_id: str, *, opener=urllib.request.urlopen) -> dict[str, Any]:
     return _call(f"/v1/deliveries/{session_id}", opener=opener)
+
+
+def safe_stop(
+    session_id: str,
+    *,
+    reason: str = "cloud_cancel_requested",
+    opener=urllib.request.urlopen,
+) -> dict[str, Any]:
+    """Stop an active gateway session and return its resulting state.
+
+    The gateway owns both the actuator stop and the session transition.  A
+    caller may therefore report cancellation only when this response says the
+    session is ``cancelled``; posting a separate stop plan would not prove that
+    the original work was withdrawn.
+    """
+    return _call(
+        f"/v1/deliveries/{session_id}/safe-stop",
+        payload={"reason": reason},
+        opener=opener,
+    )
 
 
 def await_session(

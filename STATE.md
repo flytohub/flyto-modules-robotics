@@ -1,6 +1,6 @@
 # State
 
-Date: 2026-08-11
+Date: 2026-08-28
 
 ## Where this stands today
 
@@ -22,6 +22,21 @@ A registry pass says the steps and their capabilities arrive in `flyto-core`'s
 registry. A Gazebo pass says the contract survives to a simulated chassis.
 Neither is hardware evidence, neither renews the physical TurtleBot3
 measurements, and neither may be presented as exhibition-ready physical closure.
+
+## Safe-stop session cancellation — changed 2026-08-28
+
+The client now exposes the lower gateway's existing
+`POST /v1/deliveries/{session_id}/safe-stop` contract as
+`gateway.safe_stop(...)`. This is materially different from starting a separate
+stop plan: the lower gateway owns both the actuator stop and the transition of
+the original session to `cancelled`, so an upstream caller can inspect that
+state before claiming the work was withdrawn.
+
+The package suite passed with **291 tests**, and strict Flyto Indexer
+verification passed **18/18**. These tests cover the exact HTTP method, path,
+reason payload, authentication path, and returned cancellation state. No
+gateway, ROS process, simulator, or physical robot was contacted by this change;
+the physical revalidation status above remains blocked on a safely cleared area.
 
 ## The registration boundary — changed 2026-08-11, accepted
 

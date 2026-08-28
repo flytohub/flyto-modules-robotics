@@ -4,6 +4,7 @@ New handoffs use `YYYY-MM-DD-topic.md`.
 
 | Date | Topic | File | Status | Owner | Branch |
 |---|---|---|---|---|---|
+| 2026-08-28 | Safe-stop client that cancels the original gateway session | `2026-08-28-safe-stop-session-cancellation.md` | Complete in client; Cloud adapter wiring follows in flyto-cloud | codex | main |
 | 2026-08-13 | Trusted catalog plan wiring using the lower runtime argument names | `2026-08-13-trusted-catalog-plan-wiring.md` | Active — pure plan wiring complete; Pi runner integration is next | flyto_coding | main |
 | 2026-08-13 | Strict immutable consumer for the delivery capability catalog | `2026-08-13-strict-capability-catalog-consumer.md` | Active — catalog read/validation boundary complete | flyto_coding | main |
 | 2026-08-09 | A bottom-up Gazebo verifier, reconciled against the layer below it | `2026-08-09-gazebo-bottom-up-closed-loop.md` | Active — Gazebo closed-loop passed (run `mrg-20260809T101631Z-79266`); physical revalidation pending safe area clearance | claude | main |

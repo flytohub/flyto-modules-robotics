@@ -5,6 +5,11 @@ local build only; the dates are when the work landed, not a release date.
 
 ## 0.1.1 — unreleased (local build, 2026-08-08)
 
+- Added `gateway.safe_stop(session_id, reason=...)`, a client for the lower
+  delivery gateway's existing safe-stop endpoint. It returns the original
+  session's resulting state so Cloud can report cancellation only after the
+  gateway says that session is `cancelled`, rather than confusing a separate
+  stop command with withdrawal of the active work.
 - Added a pure catalog-derived `plan_for_step` API for the next Pi runner. It
   requires a verified lower catalog by default, fails closed on missing or
   drifted contracts, retains safe-stop endings, and keeps legacy canvas behavior

@@ -7,10 +7,10 @@ import json
 import urllib.error
 
 import pytest
+from test_catalog import valid_catalog
 
 from flyto_modules_robotics import gateway as gw
 from flyto_modules_robotics.catalog import CapabilityCatalogError
-from test_catalog import valid_catalog
 
 
 @pytest.fixture(autouse=True)
@@ -78,6 +78,23 @@ def test_catalog_get_uses_bearer_auth_and_starts_no_plan():
         "Bearer test-only-token-with-at-least-32-bytes!!"
     )
     assert catalog.capabilities[0].runtime_name == "move_relative"
+
+
+def test_safe_stop_uses_the_session_endpoint_and_returns_its_cancelled_state():
+    captured = []
+    result = gw.safe_stop(
+        "pln-1",
+        reason="operator_cancelled",
+        opener=responder({"session_id": "pln-1", "status": "cancelled"}, captured),
+    )
+
+    request = captured[0]
+    assert request.full_url == (
+        "http://127.0.0.1:8766/v1/deliveries/pln-1/safe-stop"
+    )
+    assert request.get_method() == "POST"
+    assert json.loads(request.data) == {"reason": "operator_cancelled"}
+    assert result["status"] == "cancelled"
 
 
 def test_catalog_refusal_and_invalid_body_keep_fixed_distinct_categories():
