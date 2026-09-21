@@ -2,41 +2,31 @@
 
 ## Purpose
 
-Make robot motion authorable in the Flyto2 workflow builder, as an install
-decision rather than a dependency everybody carries.
-
-`flyto-core` is the software execution engine and does not know what a robot is.
-This package is discovered through its existing `flyto.modules` entry point, so a
-Flyto2 installation without it stays pure software automation, and one with it
-gains motion steps on the canvas.
+Make bounded robotics intent authorable in Flyto2 without putting robot
+transport or hardware control into `flyto-core` or into this plugin.
 
 ## Owned surfaces
 
-- The `robotics.*` module identifiers registered into `flyto-core`'s registry.
-- The capability each of those modules declares to that registry —
-  `robotics.motion.move_relative`, `robotics.motion.turn_relative`,
-  `robotics.safety.safe_stop` — one per step and none shared. These obey
-  `flyto-core`'s registry grammar; the lower device catalog and execution
-  boundary retain the revisioned `@1` identifiers.
-- The plan documents those modules build (`flyto.robotics.plan.v1`).
-- The loopback client that hands a plan to the robot's own gateway.
-- The pure Pi-runner API that derives named-node plans from a verified lower
-  capability catalog and refuses implicit legacy-bound fallback.
+- `robotics.move`, `robotics.turn`, `robotics.stop` module registration.
+- Their one-to-one Flyto2 capability declarations.
+- Pure bounded `flyto.robotics.plan.v1` construction.
+- Strict immutable parsing of a robotics capability catalog supplied by an
+  external adapter.
+- Transport-neutral declarations returned to the Flyto2 runtime.
+
+## Not owned
+
+- Raspberry Pi services or runners.
+- ROS 2 / Nav2 processes.
+- Robot IP addresses, localhost gateways or SSH tunnels.
+- Robot credentials.
+- Dispatch authority, leases or operator approval.
+- Physical safe-stop enforcement.
+- Mission-completion verdicts.
+
+Those belong to the selected external adapter and the Flyto2 Space Task runtime.
 
 ## Users
 
-An operator authoring a workflow in the Flyto2 builder, and the device-side
-runner that executes one of its steps on a robot.
-
-## Non-goals
-
-- **Driving hardware.** No serial port, no ROS topic, no velocity. A step builds
-  a plan and posts it; `flyto-robotics` owns the robot.
-- **Owning safety.** The gateway validates against a frozen capability registry,
-  runs one mission at a time, and sends the final stop if the caller dies. This
-  package must never become the thing that guarantees a stop.
-- **Naming a machine.** A workflow that carried a host would be bound to one
-  robot, which is the duplication the capability model exists to remove.
-- **Being required on a robot.** A machine that only runs robot missions needs
-  `flyto-robotics` and a runner, not this package. This is for *mixed*
-  workflows — crawl a page, then move, then report.
+Workflow authors and adapter implementers. A robot itself does not need this
+package installed.
