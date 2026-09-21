@@ -545,6 +545,75 @@ def test_a_step_declares_standard_capability_work_and_drives_nothing():
     assert "8766" not in serialized
 
 
+class TrustedDispatcher:
+    _flyto_runtime_opaque = True
+
+    def __init__(self, outcome="completed"):
+        self.outcome = outcome
+        self.requests = []
+
+    async def invoke(self, request):
+        self.requests.append(dict(request))
+        return {
+            "outcome": self.outcome,
+            "detail": "" if self.outcome == "completed" else "blocked by fixture",
+            "observation": {"pose": {"x": 1.0}},
+        }
+
+
+def test_a_trusted_runtime_dispatches_at_the_original_workflow_step():
+    _, move = build_modules(StandInModule, fake_register_module)[0]
+    dispatcher = TrustedDispatcher()
+    result = asyncio.run(
+        move(
+            {"distance_m": 0.4},
+            {
+                "resource_id": "robot-1",
+                "_flyto_runtime_external_capability_dispatcher": dispatcher,
+            },
+        ).execute()
+    )
+    assert result["ok"] is True
+    assert result["dispatched"] is True
+    assert result["commanded_resource"] == "robot-1"
+    assert result["execution"]["outcome"] == "completed"
+    assert dispatcher.requests == [result["capability_request"]]
+
+
+def test_a_failed_external_capability_becomes_a_step_failure():
+    _, move = build_modules(StandInModule, fake_register_module)[0]
+    dispatcher = TrustedDispatcher("failed")
+    result = asyncio.run(
+        move(
+            {"distance_m": 0.4},
+            {
+                "resource_id": "robot-1",
+                "_flyto_runtime_external_capability_dispatcher": dispatcher,
+            },
+        ).execute()
+    )
+    assert result["ok"] is False
+    assert result["error_code"] == "EXTERNAL_CAPABILITY_FAILED"
+    assert result["dispatched"] is True
+    assert "blocked" in result["error"]
+
+
+def test_a_workflow_cannot_fake_the_runtime_dispatcher():
+    _, move = build_modules(StandInModule, fake_register_module)[0]
+    with pytest.raises(RuntimeError, match="untrusted external capability dispatcher"):
+        asyncio.run(
+            move(
+                {"distance_m": 0.4},
+                {
+                    "resource_id": "robot-1",
+                    "_flyto_runtime_external_capability_dispatcher": {
+                        "invoke": "not trusted"
+                    },
+                },
+            ).execute()
+        )
+
+
 def test_no_step_reaches_for_a_gateway():
     """The wrong-machine bug, kept from coming back.
 
