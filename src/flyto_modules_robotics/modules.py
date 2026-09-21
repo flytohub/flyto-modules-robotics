@@ -1,32 +1,30 @@
 """The workflow steps this package adds to the builder.
 
-A step here *declares* motion; it never performs it. These modules register into
-flyto-core, and flyto-core runs on the worker and the desktop — not on the
-robot. A step that drove hardware from here would be reaching for a gateway on
-the wrong machine: the loopback address meaning "this robot" on a Pi means "this
-container" on a worker, and the request would either fail or find something else
-listening.
+A step here declares desired motion; it never performs it. The module executes
+on a normal Flyto2 computer and emits a standard capability request naming the
+*commanded resource*. It does not choose the execution host and it never talks
+to the robot.
 
-So a step builds a plan, names the device that must carry it out, and returns it
-as the payload the robot's own runner reads from its job. Driving stays on the
-robot, behind the gateway that owns the final stop.
+AI Space / War Room owns placement of the execution computer. A Generic ROS 2
+Adapter on that computer translates the request to standard ROS 2. The robot
+therefore needs no Flyto2 package, credential, runner or gateway.
 
 flyto-core is imported inside :func:`build_modules`, never at module scope, so
-``plan`` stays importable — and testable — where flyto-core is absent.
+the pure authoring contract remains importable where flyto-core is absent.
 """
 
 from __future__ import annotations
 
-import time
-import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
-from .plan import PlanBuildError, run_request
+from .capability_request import capability_request_for_step
+from .plan import PlanBuildError
 from .steps import MODULE_MOVE, MODULE_STOP, MODULE_TURN, preview_plan_for_step
 
 # Re-exported for callers that used to read these here. The identifiers now
 # live beside the mapping that gives them meaning, in steps.py.
-__all__ = ["MODULE_MOVE", "MODULE_TURN", "MODULE_STOP", "build_modules"]
+__all__ = ["MODULE_MOVE", "MODULE_STOP", "MODULE_TURN", "build_modules"]
 
 CATEGORY = "robotics"
 ICON_COLOR = "#22D3EE"
@@ -39,44 +37,22 @@ ICON_COLOR = "#22D3EE"
 # device's declared abilities are matched to an authored step, so a duplicate
 # would make two different motions indistinguishable at match time.
 #
-# These name the *contract*, not the plan's internal step names. The plan
-# builders in plan.py emit the bare capability verbs ("move_relative",
-# "safe_stop") into the plan the gateway executes; these identifiers are what
-# the registry matches a device against. The two are deliberately separate --
-# renaming a registry contract must not silently change the bytes a robot runs.
+# These remain the builder-plugin registration identifiers for backward
+# compatibility. They are not the physical execution vocabulary. Runtime
+# requests emitted below use the canonical Space capability ids:
+# motion.advance / motion.retreat / motion.rotate / motion.halt.
 CAPABILITY_MOVE = "robotics.motion.move_relative"
 CAPABILITY_TURN = "robotics.motion.turn_relative"
 CAPABILITY_STOP = "robotics.safety.safe_stop"
 
 
-def _now_iso() -> str:
-    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-
-
-def _declare(plan: dict[str, Any], *, resource_id: str) -> dict[str, Any]:
-    """Say what this step wants done, without doing it.
-
-    These modules register into flyto-core, and flyto-core runs on the worker
-    and the desktop — not on the robot. A step that drove hardware from here
-    would be reaching for a gateway on the wrong machine: the loopback address
-    that means "this robot" on a Pi means "this container" on a worker, and the
-    request would either fail or, worse, find something else listening.
-
-    So the step declares. It builds the plan, names the device that must carry
-    it out, and returns it as the job payload the robot's own runner reads. The
-    driving stays where the robot is, behind the gateway that owns the final
-    stop.
-    """
+def _declare(request: dict[str, Any]) -> dict[str, Any]:
+    """Return desired work without selecting or contacting an execution host."""
     return {
         "dispatched": False,
-        "requires_device": resource_id,
-        "plan_id": plan["plan_id"],
-        "goal": plan["goal"],
-        "request": run_request(
-            plan,
-            request_id=f"wf-{uuid.uuid4().hex[:12]}",
-            requested_at=_now_iso(),
-        ),
+        "commanded_resource": request["resource_id"],
+        "goal": request["goal"],
+        "capability_request": request,
     }
 
 
@@ -84,35 +60,40 @@ def _refuse(exc: Exception) -> dict[str, Any]:
     """A step that cannot even be described is a workflow fault, reported."""
     return {
         "dispatched": False,
-        "requires_device": "",
+        "commanded_resource": "",
         "error": str(exc)[:300],
     }
 
 
-def _robot_id(step: Any) -> str:
-    """Which robot this step is for: the one it names, else the one it reached.
+def _resource_id(step: Any) -> str:
+    """The equipment being commanded, never the computer executing the workflow.
 
-    A workflow that names no robot is the normal case and the useful one — the
-    same authored steps then run on whichever device the job was dispatched to,
-    which is what lets five identical robots share one workflow.
+    `resource_id` is canonical. `robot_id` remains an input alias for
+    already-authored workflows; neither value is an adapter address or an
+    execution-host selector.
     """
-    named = str(step.params.get("robot_id") or "").strip()
-    return named or str(step.context.get("resource_id", ""))
+    named = str(
+        step.params.get("resource_id") or step.params.get("robot_id") or ""
+    ).strip()
+    return named or str(step.context.get("resource_id", "")).strip()
 
 
-def _plan_from_params(module_id: str, params: Mapping[str, Any], robot_id: str) -> dict[str, Any]:
-    """The plan this step describes, built by the mapping in steps.py.
+def _validate_params(module_id: str, params: Mapping[str, Any]) -> None:
+    """Validate existing canvas parameters without producing executable work."""
+    plan = preview_plan_for_step(module_id, params, robot_id="validation-only")
+    if plan is None:  # pragma: no cover - classes and mapping are defined together
+        raise PlanBuildError(f"no robotics capability request is defined for {module_id}")
 
-    Both halves of the product ask the same question of the same table: this
-    module, to declare the motion, and the robot's own runner, to perform it.
-    Spelling the builder call out here as well would be a second answer, free
-    to drift from the first without anything failing until a robot moved
-    differently from what the canvas said.
-    """
-    plan = preview_plan_for_step(module_id, params, robot_id=robot_id)
-    if plan is None:  # pragma: no cover - the table and the classes are one file apart
-        raise PlanBuildError(f"no plan is defined for {module_id}")
-    return plan
+
+def _request_from_step(step: Any, module_id: str) -> dict[str, Any]:
+    request = capability_request_for_step(
+        module_id,
+        step.params,
+        resource_id=_resource_id(step),
+    )
+    if request is None:  # pragma: no cover - classes and mapping are defined together
+        raise PlanBuildError(f"no robotics capability request is defined for {module_id}")
+    return request
 
 
 # flyto-core awaits execute() (core/modules/base.py: `return await self.execute()`),
@@ -150,7 +131,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         timeout_ms=180000,
         retryable=False,
         concurrent_safe=False,
-        requires_credentials=True,
+        requires_credentials=False,
         handles_sensitive_data=False,
     )
     class RoboticsMove(base_module):
@@ -159,18 +140,14 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         module_description = "Drive a fixed distance, then stop safely"
 
         def validate_params(self) -> None:
-            # Build the plan now so a bad distance fails on the canvas rather
-            # than after something has started moving.
-            _plan_from_params(MODULE_MOVE, self.params, "validation-only")
+            _validate_params(MODULE_MOVE, self.params)
 
         async def execute(self) -> dict[str, Any]:
             try:
-                plan = _plan_from_params(MODULE_MOVE, self.params, _robot_id(self))
+                request = _request_from_step(self, MODULE_MOVE)
             except (PlanBuildError, ValueError) as exc:
                 return _refuse(exc)
-            return _declare(
-                plan, resource_id=str(self.context.get("resource_id", "")),
-            )
+            return _declare(request)
 
 
     @register_module(
@@ -193,7 +170,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         timeout_ms=180000,
         retryable=False,
         concurrent_safe=False,
-        requires_credentials=True,
+        requires_credentials=False,
         handles_sensitive_data=False,
     )
     class RoboticsTurn(base_module):
@@ -202,16 +179,14 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         module_description = "Turn in place, then stop safely"
 
         def validate_params(self) -> None:
-            _plan_from_params(MODULE_TURN, self.params, "validation-only")
+            _validate_params(MODULE_TURN, self.params)
 
         async def execute(self) -> dict[str, Any]:
             try:
-                plan = _plan_from_params(MODULE_TURN, self.params, _robot_id(self))
+                request = _request_from_step(self, MODULE_TURN)
             except (PlanBuildError, ValueError) as exc:
                 return _refuse(exc)
-            return _declare(
-                plan, resource_id=str(self.context.get("resource_id", "")),
-            )
+            return _declare(request)
 
 
     @register_module(
@@ -234,7 +209,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         timeout_ms=90000,
         retryable=True,
         concurrent_safe=False,
-        requires_credentials=True,
+        requires_credentials=False,
         handles_sensitive_data=False,
     )
     class RoboticsStop(base_module):
@@ -243,16 +218,14 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         module_description = "Safe stop, held for a bounded time"
 
         def validate_params(self) -> None:
-            _plan_from_params(MODULE_STOP, self.params, "validation-only")
+            _validate_params(MODULE_STOP, self.params)
 
         async def execute(self) -> dict[str, Any]:
             try:
-                plan = _plan_from_params(MODULE_STOP, self.params, _robot_id(self))
+                request = _request_from_step(self, MODULE_STOP)
             except (PlanBuildError, ValueError) as exc:
                 return _refuse(exc)
-            return _declare(
-                plan, resource_id=str(self.context.get("resource_id", "")),
-            )
+            return _declare(request)
 
 
     return [

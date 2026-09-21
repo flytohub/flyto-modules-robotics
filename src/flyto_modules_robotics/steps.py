@@ -1,14 +1,11 @@
 # Copyright 2026 Flyto2. Licensed under Apache-2.0. See LICENSE.
 
-"""Which step means which plan — the one place that mapping lives.
+"""Legacy preview/trusted-plan mapping for the three authoring nodes.
 
-Two very different callers need to answer the same question, "what does this
-authored step actually ask the robot to do":
-
-* the modules registered into ``flyto-core``, running on a worker or a
-  desktop, which answer it to *declare* the motion;
-* the robot's own job runner, running on a Pi with no execution engine at all,
-  which answers it to *perform* the motion.
+Production module execution now translates Move / Turn / Stop to canonical
+Flyto2 capability requests in `capability_request.py`. The plan mapping remains
+the validation/preview source and preserves historical Gazebo/downstream
+compatibility while that old delivery path is retired.
 
 If each kept its own answer they would drift, and the drift would be silent
 until a robot moved differently from what the canvas said. So the mapping
@@ -20,11 +17,11 @@ worker.
 from __future__ import annotations
 
 import math
+from collections.abc import Callable, Mapping
 from types import MappingProxyType
-from typing import Any, Callable, Mapping
+from typing import Any
 
 from .catalog import Capability, CapabilityCatalog
-
 from .plan import (
     DEFAULT_ANGULAR_SPEED,
     DEFAULT_SPEED_MPS,
@@ -276,7 +273,7 @@ def _trusted_plan(
             raise PlanBuildError("speed must be greater than zero")
         direction = "backward" if reverse else "forward"
         plan = _plan(
-            plan_id=f"workflow.move.{direction}.{int(round(distance * 100))}cm.v1",
+            plan_id=f"workflow.move.{direction}.{round(distance * 100)}cm.v1",
             robot_id=robot_id,
             goal=f"move {direction} {distance:.2f} m then stop safely",
             steps=[{
@@ -318,7 +315,7 @@ def _trusted_plan(
             raise PlanBuildError("angular_speed must be greater than zero")
         direction = "right" if clockwise else "left"
         plan = _plan(
-            plan_id=f"workflow.turn.{direction}.{int(round(degrees))}deg.v1",
+            plan_id=f"workflow.turn.{direction}.{round(degrees)}deg.v1",
             robot_id=robot_id,
             goal=f"turn {direction} {degrees:.0f} degrees then stop safely",
             steps=[{
@@ -332,7 +329,7 @@ def _trusted_plan(
         return plan
 
     stop = _catalog_safe_stop(
-        catalog, params["seconds"] if "seconds" in params else _MISSING
+        catalog, params.get("seconds", _MISSING)
     )
     seconds = stop["arguments"]["seconds"]
     plan = _plan(
@@ -353,10 +350,12 @@ def trusted_plan_for_step(
     robot_id: str,
     catalog: CapabilityCatalog | None = None,
 ) -> dict[str, Any] | None:
-    """Build the execution plan a Pi runner may submit to its local gateway.
+    """Build the legacy catalog-derived delivery plan.
 
-    All runtime names, numeric bounds, defaults, and the appended stop are
-    derived from the already validated immutable lower capability catalog.
+    This is retained for simulation/downstream compatibility while production
+    workflow modules emit `flyto.capability-request.v1` for an external adapter.
+    All legacy runtime names, bounds, defaults and the appended stop remain
+    derived from the validated immutable lower catalog.
     """
     normalized = str(module_id or "").strip()
     if normalized not in _BUILDERS:

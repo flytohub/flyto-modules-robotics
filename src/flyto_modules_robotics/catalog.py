@@ -1,4 +1,9 @@
-"""Strict, immutable consumer for the robot execution capability catalog."""
+"""Legacy immutable consumer for the superseded delivery capability catalog.
+
+Production workflow execution uses canonical capability requests and an external
+Generic ROS 2 Adapter. This parser remains for historical Gazebo/downstream
+compatibility until the old delivery-plan path is fully removed.
+"""
 
 from __future__ import annotations
 
@@ -6,9 +11,10 @@ import hashlib
 import json
 import math
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 CATALOG_CONTRACT_VERSION = "flyto.robotics.capability-catalog.v1"
 CATALOG_ERROR = "capability catalog invalid"
@@ -148,9 +154,12 @@ def _argument(raw: object) -> Mapping[str, Any]:
             if value_type != "number":
                 _reject()
             normalized[bound] = _finite_number(raw[bound])
-    if "minimum" in normalized and "maximum" in normalized:
-        if normalized["minimum"] > normalized["maximum"]:
-            _reject()
+    if (
+        "minimum" in normalized
+        and "maximum" in normalized
+        and normalized["minimum"] > normalized["maximum"]
+    ):
+        _reject()
     if "choices" in raw:
         if value_type != "string":
             _reject()
@@ -259,5 +268,5 @@ def parse_capability_catalog(value: object) -> CapabilityCatalog:
         )
     except CapabilityCatalogError:
         raise
-    except Exception:
+    except Exception:  # noqa: BLE001 - untrusted mapping subclasses may raise arbitrary errors
         raise CapabilityCatalogError() from None

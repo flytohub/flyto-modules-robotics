@@ -9,7 +9,7 @@ import urllib.error
 import pytest
 from test_catalog import valid_catalog
 
-from flyto_modules_robotics import gateway as gw
+from flyto_modules_robotics import legacy_gateway as gw
 from flyto_modules_robotics.catalog import CapabilityCatalogError
 
 
@@ -17,7 +17,7 @@ from flyto_modules_robotics.catalog import CapabilityCatalogError
 def _env(monkeypatch):
     monkeypatch.setenv(gw.TOKEN_ENV, "test-only-token-with-at-least-32-bytes!!")
     monkeypatch.setenv(gw.ROBOT_ID_ENV, "flyto-tb3-lab-001")
-    monkeypatch.delenv(gw.GATEWAY_URL_ENV, raising=False)
+    monkeypatch.setenv(gw.GATEWAY_URL_ENV, "http://legacy-adapter.example.test:8766")
 
 
 def responder(payload, captured=None):
@@ -36,14 +36,16 @@ def responder(payload, captured=None):
     return opener
 
 
-def test_the_gateway_defaults_to_loopback():
-    """A step runs on the robot it drives, so the address is not a parameter."""
-    assert gw.gateway_url() == "http://127.0.0.1:8766"
+def test_the_legacy_gateway_has_no_default(monkeypatch):
+    """Production must never acquire an implicit robot-local execution path."""
+    monkeypatch.delenv(gw.GATEWAY_URL_ENV, raising=False)
+    with pytest.raises(gw.GatewayError, match="no production default"):
+        gw.gateway_url()
 
 
-def test_a_configured_gateway_url_is_honoured(monkeypatch):
-    monkeypatch.setenv(gw.GATEWAY_URL_ENV, "http://127.0.0.1:9999/")
-    assert gw.gateway_url() == "http://127.0.0.1:9999"
+def test_a_configured_legacy_gateway_url_is_honoured(monkeypatch):
+    monkeypatch.setenv(gw.GATEWAY_URL_ENV, "http://legacy.example.test:9999/")
+    assert gw.gateway_url() == "http://legacy.example.test:9999"
 
 
 def test_a_missing_token_is_refused_before_any_request(monkeypatch):
@@ -62,7 +64,7 @@ def test_the_request_carries_the_bearer_token_and_the_plan():
     captured = []
     gw.start_plan({"contract_version": "x"}, opener=responder({"session_id": "pln-1"}, captured))
     request = captured[0]
-    assert request.full_url == "http://127.0.0.1:8766/v1/plans"
+    assert request.full_url == "http://legacy-adapter.example.test:8766/v1/plans"
     assert request.headers["Authorization"].startswith("Bearer ")
     assert json.loads(request.data)["contract_version"] == "x"
 
@@ -71,7 +73,7 @@ def test_catalog_get_uses_bearer_auth_and_starts_no_plan():
     captured = []
     catalog = gw.capability_catalog(opener=responder(valid_catalog(), captured))
     request = captured[0]
-    assert request.full_url == "http://127.0.0.1:8766/v1/capabilities"
+    assert request.full_url == "http://legacy-adapter.example.test:8766/v1/capabilities"
     assert request.get_method() == "GET"
     assert request.data is None
     assert request.headers["Authorization"] == (
@@ -90,7 +92,7 @@ def test_safe_stop_uses_the_session_endpoint_and_returns_its_cancelled_state():
 
     request = captured[0]
     assert request.full_url == (
-        "http://127.0.0.1:8766/v1/deliveries/pln-1/safe-stop"
+        "http://legacy-adapter.example.test:8766/v1/deliveries/pln-1/safe-stop"
     )
     assert request.get_method() == "POST"
     assert json.loads(request.data) == {"reason": "operator_cancelled"}
@@ -121,7 +123,7 @@ def test_catalog_refusal_and_invalid_body_keep_fixed_distinct_categories():
 
 
 def test_catalog_unreachable_is_fixed_and_does_not_leak_url_or_reason(monkeypatch):
-    monkeypatch.setenv(gw.GATEWAY_URL_ENV, "http://127.0.0.1:9999/?secret=query")
+    monkeypatch.setenv(gw.GATEWAY_URL_ENV, "http://legacy.example.test:9999/?secret=query")
 
     def unavailable(request, timeout=None):
         raise urllib.error.URLError("secret transport reason")
@@ -208,11 +210,11 @@ def test_a_refusal_is_its_own_failure_kind():
         gw.start_plan({}, opener=opener)
 
 
-def test_an_unreachable_gateway_names_the_address():
+def test_an_unreachable_legacy_gateway_names_the_configured_address():
     def opener(request, timeout=None):
         raise urllib.error.URLError("Connection refused")
 
-    with pytest.raises(gw.GatewayError, match="127.0.0.1:8766"):
+    with pytest.raises(gw.GatewayError, match="legacy-adapter.example.test:8766"):
         gw.start_plan({}, opener=opener)
 
 

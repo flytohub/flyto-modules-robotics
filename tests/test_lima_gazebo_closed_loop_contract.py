@@ -235,7 +235,7 @@ def test_the_restoration_count_is_what_ran_not_what_was_meant_to_run(
     restoration command actually ran, after it ran.
     """
     assert '"restoration_attempted": ${RESTORE_ATTEMPTED}' in text
-    assert re.search(r"^RESTORE_INVOCATIONS=0$", text, re.M), "the count starts at zero"
+    assert re.search(r"^RESTORE_INVOCATIONS=0$", text, re.MULTILINE), "the count starts at zero"
 
     raised = lines_matching(lines, r"^\s+RESTORE_INVOCATIONS=1$")
     assert len(raised) == 1, f"expected one place to raise the count, found {len(raised)}"
@@ -289,8 +289,8 @@ def test_the_exit_owner_disarms_itself_before_it_restores(text: str):
     was being restarted and is now neither stopped nor running. The status has
     already been captured by then, so nothing is lost by refusing the signal.
     """
-    assert re.search(r"^\s*trap - EXIT$", text, re.M), "the EXIT trap is removed"
-    assert re.search(r"^\s*trap '' INT TERM$", text, re.M), "INT and TERM are ignored"
+    assert re.search(r"^\s*trap - EXIT$", text, re.MULTILINE), "the EXIT trap is removed"
+    assert re.search(r"^\s*trap '' INT TERM$", text, re.MULTILINE), "INT and TERM are ignored"
 
     disarm = text.index("trap - EXIT")
     ignore = text.index("trap '' INT TERM")
@@ -379,7 +379,7 @@ def test_the_lower_contracts_are_constants_not_environment_overrides(text: str):
     checkout *location* stays overridable, because that is a location."""
     for name in ("LOWER_REPORT_CONTRACT", "LOWER_CLEANUP_CONTRACT", "LOWER_RESULTS_DIR",
                  "LOWER_RESTORE", "LOWER_RUN_ID_ENV", "LIMA_INSTANCE", "ROBOT_ID"):
-        assert not re.search(rf'^{name}="\$\{{[A-Z_]+:-', text, re.M), (
+        assert not re.search(rf'^{name}="\$\{{[A-Z_]+:-', text, re.MULTILINE), (
             f"{name} must be a constant, not an environment override"
         )
     assert 'LOWER_REPO="${FLYTO_ROBOTICS_REPO:-' in text
@@ -460,7 +460,7 @@ def test_the_plan_comes_from_this_packages_own_mapping(text: str):
 
 
 def test_the_gateway_client_under_test_is_this_packages(text: str):
-    assert "from flyto_modules_robotics import gateway" in text
+    assert "from flyto_modules_robotics import legacy_gateway as gateway" in text
     assert "gateway.start_plan(request)" in text
     assert "gateway.await_session(session_id, timeout_seconds=timeout)" in text
 
@@ -660,7 +660,8 @@ def test_the_gateway_address_is_loopback_configuration(text: str):
     """A host never becomes a step parameter; the mission driver is handed a
     loopback URL naming the guest it is already running inside, and the
     runtime's own environment may override it."""
-    assert 'GATEWAY_URL="${FLYTO_ROBOTICS_GATEWAY_URL:-http://127.0.0.1:8766}"' in text
+    assert ': "${FLYTO_ROBOTICS_GATEWAY_URL:?set FLYTO_ROBOTICS_GATEWAY_URL explicitly for the legacy Gazebo verifier}"' in text
+    assert 'GATEWAY_URL="${FLYTO_ROBOTICS_GATEWAY_URL%/}"' in text
     assert "gateway_url = (os.environ.get(gateway.GATEWAY_URL_ENV) or \"\").strip() or fallback_url" in text
 
 
@@ -978,7 +979,7 @@ def test_a_backwards_simulation_clock_fails_instead_of_re_anchoring(text: str):
     assert "was reset, so nothing measured across it is comparable" in text
     assert "# The one and only assignment of the anchor." in text
     assert '"re_anchored": False' in text
-    assert len(re.findall(r"^\s*anchor = here$", text, re.M)) == 1, (
+    assert len(re.findall(r"^\s*anchor = here$", text, re.MULTILINE)) == 1, (
         "the anchor is assigned in exactly one place"
     )
 
@@ -1157,7 +1158,7 @@ def test_the_behaviour_revision_names_the_two_fixed_defects_exactly(text: str):
     before it restores the lower runtime.
     """
     assert f'VERIFIER_BEHAVIOR_REVISION="{EXPECTED_BEHAVIOR_REVISION}"' in text
-    assert len(re.findall(BEHAVIOR_ASSIGNMENT_RE, text, re.M)) == 1
+    assert len(re.findall(BEHAVIOR_ASSIGNMENT_RE, text, re.MULTILINE)) == 1
 
 
 def test_the_behaviour_revision_is_evidence_and_not_a_dead_constant(text: str):
@@ -1203,7 +1204,7 @@ def test_the_aggregate_refuses_a_revision_it_was_not_written_for(
     assert re.search(
         r"^if behavior_revision != EXPECTED_BEHAVIOR_REVISION:\s*\n\s*sys\.exit\(",
         text,
-        re.M,
+        re.MULTILINE,
     ), "the comparison must end the run, not warn"
     assert "verifier behaviour revision mismatch" in text
 
@@ -1229,7 +1230,7 @@ def test_the_cleanup_document_names_each_key_once(text: str):
     """A duplicated key in a JSON heredoc is not a syntax error — the last one
     silently wins. `restoration_invocations` is the field a run's pass depends
     on, so a second copy would be a gate decided by line order."""
-    assert len(re.findall(r'^\s*"restoration_invocations":', text, re.M)) == 1
+    assert len(re.findall(r'^\s*"restoration_invocations":', text, re.MULTILINE)) == 1
 
 
 def test_the_pose_parser_initialises_its_root_once(text: str):
@@ -1252,8 +1253,8 @@ def test_the_pose_parser_initialises_its_root_once(text: str):
     every parsed field into a dict nobody returns, and that failure looks exactly
     like a world with no matching model in it.
     """
-    assert len(re.findall(r"^\s*root = \{\}$", text, re.M)) == 1
-    assert re.search(r"^\s*root = \{\}\n\s*stack = \[root\]$", text, re.M), (
+    assert len(re.findall(r"^\s*root = \{\}$", text, re.MULTILINE)) == 1
+    assert re.search(r"^\s*root = \{\}\n\s*stack = \[root\]$", text, re.MULTILINE), (
         "the stack must be rooted in the one dict that is returned"
     )
 

@@ -1,9 +1,9 @@
-"""Optional robot-control modules for Flyto2 workflows.
+"""Optional robotics authoring modules for Flyto2 workflows.
 
-flyto-core discovers this package through its ``flyto.modules`` entry point and
-calls :func:`register_all`. Installing the package is therefore the whole
-decision: without it Flyto2 is pure software automation, and with it the builder
-gains motion steps.
+flyto-core discovers this package through its ``flyto.modules`` entry point.
+The registered Move/Turn/Stop nodes emit standard capability requests for
+commanded equipment. Execution placement and ROS 2 transport live outside this
+package and outside the robot.
 """
 
 from __future__ import annotations
@@ -11,16 +11,11 @@ from __future__ import annotations
 import logging
 import os
 
-from .catalog import Capability, CapabilityCatalog, CapabilityCatalogError
-
-from .gateway import (
-    DEFAULT_GATEWAY_URL,
-    GatewayError,
-    GatewayRefused,
-    capability_catalog,
-    gateway_url,
-    robot_id,
+from .capability_request import (
+    CAPABILITY_REQUEST_VERSION,
+    capability_request_for_step,
 )
+from .catalog import Capability, CapabilityCatalog, CapabilityCatalogError
 from .plan import (
     MAX_DISTANCE_M,
     MAX_SPEED_MPS,
@@ -33,25 +28,21 @@ from .plan import (
 from .steps import plan_for_step, preview_plan_for_step, trusted_plan_for_step
 
 __all__ = [
-    "DEFAULT_GATEWAY_URL",
+    "CAPABILITY_REQUEST_VERSION",
     "MAX_DISTANCE_M",
     "MAX_SPEED_MPS",
-    "GatewayError",
-    "GatewayRefused",
     "Capability",
     "CapabilityCatalog",
     "CapabilityCatalogError",
     "PlanBuildError",
-    "gateway_url",
-    "capability_catalog",
+    "capability_request_for_step",
     "move_plan",
     "plan_for_step",
     "preview_plan_for_step",
-    "trusted_plan_for_step",
     "register_all",
-    "robot_id",
     "run_request",
     "stop_plan",
+    "trusted_plan_for_step",
     "turn_plan",
 ]
 
@@ -73,7 +64,7 @@ _CORE_API_PACKAGES = frozenset({"core", "core.modules"})
 
 def _is_import_machinery(filename: str) -> bool:
     """Whether a traceback frame belongs to the import system itself."""
-    if filename.startswith("<frozen importlib") or filename.startswith("<frozen zipimport"):
+    if filename.startswith(("<frozen importlib", "<frozen zipimport")):
         return True
     marker = os.sep + "importlib" + os.sep + "_bootstrap"
     return marker in filename
@@ -97,9 +88,11 @@ def _raised_by_our_own_import(exc: ImportError) -> bool:
     tb = exc.__traceback__
     while tb is not None:
         filename = tb.tb_frame.f_code.co_filename
-        if not _is_import_machinery(filename):
-            if os.path.normcase(os.path.abspath(filename)) != here:
-                return False
+        if (
+            not _is_import_machinery(filename)
+            and os.path.normcase(os.path.abspath(filename)) != here
+        ):
+            return False
         tb = tb.tb_next
     return True
 

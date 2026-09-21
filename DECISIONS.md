@@ -1,5 +1,32 @@
 # Decisions
 
+## 2026-09-21 — Robotics modules emit capability requests; robots stay standard ROS 2
+
+Decision: production workflow execution from this package ends at
+`flyto.capability-request.v1`. A module names the commanded equipment and a
+canonical Flyto2 capability; it does not build a robot-local delivery job,
+choose an execution computer or contact a gateway.
+
+Decision: AI Space / War Room chooses the execution host. A Generic ROS 2
+Adapter on that external computer maps `motion.advance`, `motion.retreat`,
+`motion.rotate` and `motion.halt` to standard ROS 2. TurtleBot3 itself carries
+no Flyto2 runtime.
+
+Decision: the old HTTP gateway/catalog/plan APIs are legacy simulation and
+migration compatibility only. The gateway client has no default URL. Historical
+Gazebo verification must opt in explicitly; workflow modules never call it.
+
+Reason: execution placement and commanded equipment are different authority
+dimensions. Putting `requires_device=robot` into a job caused the resource id
+to become the execution host and recreated the Pi-appliance architecture.
+Keeping the module as a pure authoring transformer lets a clean, reinstalled ROS
+2 robot be rediscovered without Flyto2 provisioning.
+
+The 2026-08-05/06 Pi-runner and loopback decisions below are retained as
+historical rationale and are superseded for production execution by this
+decision.
+
+
 ## 2026-08-05 — Hardware arrives as an optional package, not as a flyto-core module
 
 Decision: robot steps live in this separate, optionally installed package,

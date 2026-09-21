@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — external ROS 2 adapter architecture (2026-09-21)
+
+- Change Move/Turn/Stop runtime output to `flyto.capability-request.v1` with a
+  commanded resource and canonical Space motion capability.
+- Separate execution-host placement from commanded equipment; the module result
+  no longer returns `requires_device` for the robot.
+- Remove module credential requirements: workflow authoring no longer talks to a
+  robot-local Flyto2 gateway.
+- Remove the production-facing `gateway.py` and top-level gateway exports. Keep
+  the old HTTP client only as explicitly named `legacy_gateway.py` for
+  Gazebo/historical reproduction, with no implicit loopback default.
+- Document TurtleBot3 as standard ROS 2 equipment controlled by an external
+  Generic ROS 2 Adapter.
+
+
 Nothing in this project has been uploaded to PyPI. Every version below is a
 local build only; the dates are when the work landed, not a release date.
 

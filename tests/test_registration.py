@@ -7,11 +7,11 @@ import importlib.util
 import json
 import logging
 import os
-from pathlib import Path
 import re
 import subprocess
 import sys
 import types
+from pathlib import Path
 
 import pytest
 
@@ -285,9 +285,11 @@ def test_a_dependency_missing_inside_flyto_core_propagates(monkeypatch, caplog):
     install_flyto_core_that_fails_while_importing(
         monkeypatch, ModuleNotFoundError("No module named 'yaml'", name="yaml")
     )
-    with caplog.at_level(logging.WARNING):
-        with pytest.raises(ModuleNotFoundError) as caught:
-            pkg.register_all()
+    with (
+        caplog.at_level(logging.WARNING),
+        pytest.raises(ModuleNotFoundError) as caught,
+    ):
+        pkg.register_all()
     assert caught.value.name == "yaml"
     assert warnings_in(caplog) == []
 
@@ -308,9 +310,8 @@ def test_a_failure_inside_flyto_core_naming_a_core_module_is_not_relabelled(
         name="core.modules.registry",
     )
     install_flyto_core_that_fails_while_importing(monkeypatch, inner)
-    with caplog.at_level(logging.WARNING):
-        with pytest.raises(ImportError) as caught:
-            pkg.register_all()
+    with caplog.at_level(logging.WARNING), pytest.raises(ImportError) as caught:
+        pkg.register_all()
     assert caught.value is inner
     assert warnings_in(caplog) == []
 
@@ -320,9 +321,8 @@ def test_a_broken_plugin_module_propagates(monkeypatch, caplog):
     registry = StandInRegistry()
     install_flyto_core(monkeypatch, register_module=registry.register_module)
     monkeypatch.setitem(sys.modules, "flyto_modules_robotics.modules", None)
-    with caplog.at_level(logging.WARNING):
-        with pytest.raises(ImportError):
-            pkg.register_all()
+    with caplog.at_level(logging.WARNING), pytest.raises(ImportError):
+        pkg.register_all()
     assert warnings_in(caplog) == []
     assert registry.entries == {}
 
@@ -340,9 +340,11 @@ def test_a_decorator_that_raises_propagates(monkeypatch, caplog):
         )
 
     install_flyto_core(monkeypatch, register_module=register_module)
-    with caplog.at_level(logging.WARNING):
-        with pytest.raises(ModuleNotFoundError) as caught:
-            pkg.register_all()
+    with (
+        caplog.at_level(logging.WARNING),
+        pytest.raises(ModuleNotFoundError) as caught,
+    ):
+        pkg.register_all()
     assert caught.value.name == "core.modules.registry"
     assert warnings_in(caplog) == []
 
@@ -356,9 +358,8 @@ def test_a_build_failure_propagates(monkeypatch, caplog):
     monkeypatch.setattr(
         "flyto_modules_robotics.modules.build_modules", build_modules_that_fails
     )
-    with caplog.at_level(logging.WARNING):
-        with pytest.raises(RuntimeError):
-            pkg.register_all()
+    with caplog.at_level(logging.WARNING), pytest.raises(RuntimeError):
+        pkg.register_all()
     assert warnings_in(caplog) == []
 
 
@@ -440,7 +441,7 @@ def test_every_step_declares_itself_to_the_builder():
         assert metadata["module_id"] == module_id
         assert metadata["category"] == "robotics"
         assert metadata["label"], "a step with no label cannot be found on the canvas"
-        assert metadata["requires_credentials"] is True
+        assert metadata["requires_credentials"] is False
         # Two robot commands must never be run at once on one machine.
         assert metadata["concurrent_safe"] is False
 
@@ -526,23 +527,22 @@ finally:
 
 def test_a_bad_distance_fails_when_the_step_is_configured_not_when_it_runs():
     _, move = build_modules(StandInModule, fake_register_module)[0]
-    try:
+    with pytest.raises(pkg.PlanBuildError, match="distance_m"):
         move({"distance_m": 99.0}, {})
-    except Exception as exc:
-        assert "distance_m" in str(exc)
-    else:
-        raise AssertionError("an out-of-range distance was accepted")
 
 
-def test_a_step_declares_the_plan_and_drives_nothing():
-    """flyto-core runs on the worker, not the robot. A step reaching for a
-    gateway here would find whatever is on the worker's loopback."""
+def test_a_step_declares_standard_capability_work_and_drives_nothing():
+    """The workflow emits commanded work; placement and ROS transport stay outside."""
     _, move = build_modules(StandInModule, fake_register_module)[0]
     result = asyncio.run(move({"distance_m": 0.4}, {"resource_id": "robot-1"}).execute())
     assert result["dispatched"] is False, "declaring, not driving"
-    assert result["requires_device"] == "robot-1"
-    assert result["request"]["plan"]["steps"][0]["capability"] == "move_relative"
-    assert result["request"]["plan"]["steps"][-1]["capability"] == "safe_stop"
+    assert result["commanded_resource"] == "robot-1"
+    assert result["capability_request"]["resource_id"] == "robot-1"
+    assert result["capability_request"]["capability_id"] == "motion.advance"
+    assert result["capability_request"]["arguments"]["distance_m"] == pytest.approx(0.4)
+    serialized = json.dumps(result, sort_keys=True)
+    assert "gateway" not in serialized
+    assert "8766" not in serialized
 
 
 def test_no_step_reaches_for_a_gateway():
@@ -583,6 +583,7 @@ def test_a_bad_parameter_is_reported_not_raised():
     step.context = {"resource_id": "robot-1"}
     result = asyncio.run(step.execute())
     assert result["dispatched"] is False and "distance_m" in result["error"]
+    assert result["commanded_resource"] == ""
 
 
 def test_every_step_is_a_coroutine_because_the_engine_awaits_it():

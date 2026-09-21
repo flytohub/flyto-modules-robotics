@@ -1,16 +1,13 @@
-"""Talking to the robot gateway that happens to be on this machine.
+"""Legacy HTTP gateway client retained for simulation/backward compatibility.
 
-A step never names a machine. The job it belongs to was already dispatched to a
-device, so this code is running on the robot it drives, and the gateway is on
-loopback. That is what lets five identical robots share one authored workflow
-instead of five copies differing only by address.
+Production robotics no longer uses a Flyto2 gateway on the robot. Autonomous
+execution is placed on an external AI Space computer, whose Generic ROS 2
+Adapter talks standard ROS 2 southbound.
 
-The address is configuration rather than a parameter for the same reason. A
-workflow that carried a host would be bound to one robot, which is the
-duplication the capability model exists to remove — just wearing a URL instead
-of a device id.
-
-Only the standard library is used, so installing this package pulls nothing in.
+This module remains only so historical Gazebo evidence and old integrations can
+be reproduced deliberately. There is no default address: a caller must opt into
+the legacy gateway explicitly through configuration. Workflow steps never call
+this module.
 """
 
 from __future__ import annotations
@@ -24,7 +21,7 @@ from typing import Any
 
 from .catalog import CapabilityCatalog, CapabilityCatalogError, parse_capability_catalog
 
-DEFAULT_GATEWAY_URL = "http://127.0.0.1:8766"
+DEFAULT_GATEWAY_URL = ""
 GATEWAY_URL_ENV = "FLYTO_ROBOTICS_GATEWAY_URL"
 TOKEN_ENV = "FLYTO_ROBOTICS_DELIVERY_TOKEN"
 ROBOT_ID_ENV = "FLYTO_ROBOTICS_ROBOT_ID"
@@ -46,15 +43,20 @@ TERMINAL_STATES = frozenset(
 
 
 class GatewayError(RuntimeError):
-    """The robot gateway could not be reached, or refused the request."""
+    """The explicitly configured legacy gateway could not be used."""
 
 
 class GatewayRefused(GatewayError):
-    """The gateway rejected the plan. The detail is operator-facing."""
+    """The explicitly configured legacy gateway rejected the request."""
 
 
 def gateway_url() -> str:
-    return (os.environ.get(GATEWAY_URL_ENV) or DEFAULT_GATEWAY_URL).rstrip("/")
+    value = (os.environ.get(GATEWAY_URL_ENV) or DEFAULT_GATEWAY_URL).strip()
+    if not value:
+        raise GatewayError(
+            f"{GATEWAY_URL_ENV} is not set; the legacy gateway has no production default"
+        )
+    return value.rstrip("/")
 
 
 def robot_id() -> str:
@@ -112,7 +114,7 @@ def _call(
         if max_response_bytes is not None:
             raise GatewayError("robot gateway unavailable") from None
         raise GatewayError(
-            f"no robot gateway at {gateway_url()}: {exc.reason}"
+            f"legacy gateway unavailable at {gateway_url()}: {exc.reason}"
         ) from exc
 
 

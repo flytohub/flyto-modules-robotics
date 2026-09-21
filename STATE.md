@@ -1,5 +1,30 @@
 # State
 
+## External ROS 2 adapter convergence — 2026-09-21
+
+Current production contract:
+
+`workflow node -> flyto.capability-request.v1 -> external AI Space computer ->
+Generic ROS 2 Adapter -> standard ROS 2 resource`.
+
+Move/Turn/Stop no longer emit `requires_device` plus a
+`flyto.robotics.plan.v1` job payload. They emit `commanded_resource` plus
+canonical `motion.advance` / `motion.retreat` / `motion.rotate` /
+`motion.halt` requests. The request contains no gateway URL, bearer token,
+execution host, Pi runner identity or ROS implementation detail.
+
+The production-facing `gateway.py` API has been removed. Historical Gazebo
+reproduction uses explicitly named `legacy_gateway.py`, which is not exported
+from the package top level and has no default address. The lower delivery catalog
+and plan helpers remain legacy-only while downstream users migrate;
+`127.0.0.1:8766` is not a production assumption.
+
+Physical TurtleBot3 execution is owned by the external adapter architecture.
+The Pi has been cleaned to native ROS 2 in the 2026-09-21 physical closure work
+tracked in `flyto-cloud`. Historical Pi-runner statements below are evidence
+of the superseded architecture, not current deployment guidance.
+
+
 Date: 2026-08-28
 
 ## Where this stands today
@@ -108,9 +133,10 @@ only.
 Read that wheel digest carefully. It is **not** the same wheel as the 0.1.1 build
 recorded under "Historical evidence" (SHA-256 `0203f2e2…`); the version string is
 unchanged while the source gained the capability metadata above, so the two
-digests differ by design. The Pi runner venv still carries the older `0203f2e2…`
-wheel — the `868805c5…` wheel was built and installed in isolation for this proof
-and deployed nowhere.
+digests differ by design. At the time of this historical proof, the Pi runner venv still carried the
+older `0203f2e2…` wheel. That runner architecture was later removed from the
+physical TurtleBot3; the `868805c5…` wheel was only built and installed in
+isolation for this registration proof.
 
 The build emitted a **setuptools license deprecation warning**. It is a packaging
 follow-up, tracked in `tasks.md`; it is not a registration failure and the
@@ -169,10 +195,16 @@ No blind sectors; odometry drift 0 over 2.000918116 s. The robot remains
 stopped. Physical 0.05 m and 0.10 m revalidation stays pending until the area is
 safely cleared.
 
-## Current status
+## Historical 2026-08 Pi-runner state — superseded
 
-Not published anywhere. Registered and capability-discovered against
-`flyto-core` 2.27.0, Gazebo-closed on the 2026-08-09 run, physically blocked.
+The remainder of this section is retained only as evidence of the architecture
+that existed before the 2026-09-21 external-adapter decision. It is not current
+deployment guidance. Current production truth is the section at the top of this
+file.
+
+At that time the package was not published, registration against `flyto-core`
+2.27.0 had passed, Gazebo had closed on the 2026-08-09 run, and physical motion
+revalidation was blocked.
 
 The next bottom-up consumer layer now exists: the package can authenticate to
 the accepted delivery gateway's `GET /v1/capabilities` endpoint and strictly
@@ -211,9 +243,9 @@ back to them.
   `importlib.metadata.version("flyto-modules-robotics")` both read `0.1.1`. The
   fix is guarded twice: in the unit suite and in the built-wheel CI consumer
   check.
-- The Pi runner venv was upgraded to that exact wheel; the rollback tar has
-  SHA-256 `333ea229cfbf353d0beb6726491a876f6774fcf6c5617040e4b9121b5e4b6fbb`, and
-  `flyto-job-runner` is active after the restart.
+- **Historical only:** the old Pi-runner environment was once upgraded to that
+  wheel and `flyto-job-runner` was observed active. The 2026-09-21 physical
+  cleanup removed that runtime from TurtleBot3; do not recreate it.
 - `steps.py` holds the one mapping from a module identifier to the plan it
   means. Two readers share it: the modules registered into `flyto-core`, which
   read it to *declare* a motion, and the robot's own job runner, which reads it
@@ -225,12 +257,11 @@ back to them.
   reads: `radians` is `yaw_delta_rad`; angular speed is 0.1-1.0, not 0.05-0.8;
   and `yaw_delta_rad` caps at ±3.0 rad, so the old 360° limit meant any turn
   past ~172° was refused by the gateway after the job had been claimed.
-- Three steps: `robotics.move`, `robotics.turn`, `robotics.stop`. Executed
-  inside `flyto-core` they **declare** — `dispatched: false` plus
-  `requires_device` and the built plan — and post nothing. The Pi job runner is
-  what posts, to the gateway on its own loopback.
-- `POST /v1/plans`, the gateway endpoint the *runner* posts to, is on
-  `flyto-robotics` `main`.
+- **Historical only:** the three steps formerly returned `requires_device` plus
+  a delivery plan for a Pi runner. They now emit `commanded_resource` plus a
+  canonical capability request for an external adapter.
+- **Historical only:** the old runner posted `POST /v1/plans`. That endpoint is
+  not part of the current production robotics authority path.
 - Each step declares one capability to the registry through
   `register_module(provides_capability=…)`; the accepted mapping and its 2.27
   consumer proof are above.

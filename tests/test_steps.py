@@ -21,7 +21,6 @@ from flyto_modules_robotics.steps import (
     trusted_plan_for_step,
 )
 
-
 # Enough to build each step, with nothing optional supplied.
 MINIMAL = {
     MODULE_MOVE: {"distance_m": 0.4},
