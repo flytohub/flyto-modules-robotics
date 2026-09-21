@@ -211,7 +211,7 @@ def test_the_package_imports_without_flyto_core():
 
 
 def test_the_public_version_matches_the_distribution_version():
-    """A Pi installs the wheel and reads pkg.__version__; the two drifting
+    """An adapter host installs the wheel and reads pkg.__version__; the two drifting
     apart means the metadata and the public API disagree about what is on the
     machine. Read from the repository's pyproject.toml, not from installed
     metadata, so the check holds on a source checkout too."""
