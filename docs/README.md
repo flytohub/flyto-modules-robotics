@@ -1,17 +1,16 @@
 # Docs
 
-This package is small enough that the durable documentation lives in the
-project-memory files at the repository root:
+The durable current documentation lives in the repository root:
 
 | File | What it answers |
 |---|---|
-| `PROJECT.md` | what this is for, and what it deliberately is not |
-| `ARCHITECTURE.md` | the three layers, and why there is an HTTP hop |
-| `STATE.md` | what is verified and what is not |
-| `ROADMAP.md` | what is next, and what is out of scope |
-| `DECISIONS.md` | the decisions that shaped it, and what each one rejected |
-| `README.md` | installing and configuring it |
+| `PROJECT.md` | purpose and ownership boundaries |
+| `ARCHITECTURE.md` | canonical external-adapter execution model |
+| `STATE.md` | current verified software state |
+| `ROADMAP.md` | next software work |
+| `DECISIONS.md` | architectural decisions and superseded choices |
+| `README.md` | package usage and testing |
 
-Runner integrations should use the public `plan_for_step` API with the immutable
-catalog returned by `capability_catalog`; `preview_plan_for_step` is canvas-only
-compatibility and is not lower-authority execution validation.
+Adapter integrations may use `trusted_plan_for_step` with an immutable catalog
+that the adapter obtained and validated through its own transport. This package
+does not fetch robot state or execute plans itself.
