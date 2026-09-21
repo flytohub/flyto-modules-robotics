@@ -14,5 +14,6 @@ project-memory files at the repository root:
 
 Production integrations should consume `capability_request_for_step`, which emits
 `flyto.capability-request.v1` without a host, credential or robot-local runtime.
-`plan_for_step` / `trusted_plan_for_step`, the delivery catalog and `gateway.py`
-are legacy preview/Gazebo compatibility only while old consumers migrate.
+`plan_for_step` / `trusted_plan_for_step`, the delivery catalog and explicitly
+named `legacy_gateway.py` are legacy preview/Gazebo compatibility only while old
+consumers migrate. The package top level does not export that gateway client.

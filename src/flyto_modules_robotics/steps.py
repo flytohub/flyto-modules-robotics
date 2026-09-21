@@ -17,11 +17,11 @@ worker.
 from __future__ import annotations
 
 import math
+from collections.abc import Callable, Mapping
 from types import MappingProxyType
-from typing import Any, Callable, Mapping
+from typing import Any
 
 from .catalog import Capability, CapabilityCatalog
-
 from .plan import (
     DEFAULT_ANGULAR_SPEED,
     DEFAULT_SPEED_MPS,
@@ -273,7 +273,7 @@ def _trusted_plan(
             raise PlanBuildError("speed must be greater than zero")
         direction = "backward" if reverse else "forward"
         plan = _plan(
-            plan_id=f"workflow.move.{direction}.{int(round(distance * 100))}cm.v1",
+            plan_id=f"workflow.move.{direction}.{round(distance * 100)}cm.v1",
             robot_id=robot_id,
             goal=f"move {direction} {distance:.2f} m then stop safely",
             steps=[{
@@ -315,7 +315,7 @@ def _trusted_plan(
             raise PlanBuildError("angular_speed must be greater than zero")
         direction = "right" if clockwise else "left"
         plan = _plan(
-            plan_id=f"workflow.turn.{direction}.{int(round(degrees))}deg.v1",
+            plan_id=f"workflow.turn.{direction}.{round(degrees)}deg.v1",
             robot_id=robot_id,
             goal=f"turn {direction} {degrees:.0f} degrees then stop safely",
             steps=[{
@@ -329,7 +329,7 @@ def _trusted_plan(
         return plan
 
     stop = _catalog_safe_stop(
-        catalog, params["seconds"] if "seconds" in params else _MISSING
+        catalog, params.get("seconds", _MISSING)
     )
     seconds = stop["arguments"]["seconds"]
     plan = _plan(

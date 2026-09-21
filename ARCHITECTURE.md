@@ -82,8 +82,9 @@ mission verdict. Cloud verification remains authoritative.
 
 ## Legacy compatibility
 
-`plan.py`, `catalog.py` and `gateway.py` preserve historical
-`flyto.robotics.plan.v1` / Gazebo evidence while downstream consumers migrate.
+`plan.py`, `catalog.py` and explicitly named `legacy_gateway.py` preserve
+historical `flyto.robotics.plan.v1` / Gazebo evidence while downstream consumers
+migrate. `legacy_gateway` is not re-exported from the package top level.
 
 They are explicitly outside the production authority path.
 

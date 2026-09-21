@@ -107,9 +107,10 @@ before declaring the task complete.
 
 ## Legacy preview and Gazebo compatibility
 
-The old `flyto.robotics.plan.v1`, capability-catalog parser and HTTP gateway
-client remain only for historical preview/Gazebo evidence and compatibility
-while downstream users migrate.
+The old `flyto.robotics.plan.v1`, capability-catalog parser and explicitly named
+`legacy_gateway` client remain only for historical preview/Gazebo evidence and
+compatibility while downstream users migrate. The gateway client is not part of
+the package top-level API.
 
 They are **not** the production robotics path.
 
@@ -121,7 +122,7 @@ The old plan APIs are:
 
 - `preview_plan_for_step(...)`
 - `trusted_plan_for_step(...)`
-- `gateway.*`
+- `flyto_modules_robotics.legacy_gateway.*` (explicit legacy import only)
 
 New production integration should use `capability_request_for_step(...)`.
 

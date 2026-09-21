@@ -15,7 +15,8 @@ the pure authoring contract remains importable where flyto-core is absent.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from .capability_request import capability_request_for_step
 from .plan import PlanBuildError
@@ -23,7 +24,7 @@ from .steps import MODULE_MOVE, MODULE_STOP, MODULE_TURN, preview_plan_for_step
 
 # Re-exported for callers that used to read these here. The identifiers now
 # live beside the mapping that gives them meaning, in steps.py.
-__all__ = ["MODULE_MOVE", "MODULE_TURN", "MODULE_STOP", "build_modules"]
+__all__ = ["MODULE_MOVE", "MODULE_STOP", "MODULE_TURN", "build_modules"]
 
 CATEGORY = "robotics"
 ICON_COLOR = "#22D3EE"

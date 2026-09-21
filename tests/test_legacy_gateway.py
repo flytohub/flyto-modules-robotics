@@ -9,7 +9,7 @@ import urllib.error
 import pytest
 from test_catalog import valid_catalog
 
-from flyto_modules_robotics import gateway as gw
+from flyto_modules_robotics import legacy_gateway as gw
 from flyto_modules_robotics.catalog import CapabilityCatalogError
 
 

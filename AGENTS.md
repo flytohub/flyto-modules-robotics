@@ -16,8 +16,9 @@ changing anything here.
 - **Canonical production output is `flyto.capability-request.v1`.** Historical
   `flyto.robotics.plan.v1` builders remain only for preview/Gazebo compatibility;
   those legacy motion plans must still end in safe stop until they are removed.
-- **`flyto-core` is imported inside `register_all`, never at module scope.** `plan`
-  and `gateway` must stay importable and testable without it.
+- **`flyto-core` is imported inside `register_all`, never at module scope.** Pure
+  authoring/preview helpers stay importable without it. The legacy gateway client
+  is explicitly named `legacy_gateway` and is never a top-level production API.
 - **A missing `flyto-core` is logged, not raised.** Discovery loads every plugin in
   one loop; raising would take down the others.
 

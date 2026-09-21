@@ -145,7 +145,7 @@ def move_plan(
     signed = -distance if backwards else distance
     direction = "backward" if backwards else "forward"
     return _plan(
-        plan_id=f"workflow.move.{direction}.{int(round(distance * 100))}cm.v1",
+        plan_id=f"workflow.move.{direction}.{round(distance * 100)}cm.v1",
         robot_id=robot_id,
         goal=f"move {direction} {distance:.2f} m then stop safely",
         steps=[
@@ -182,7 +182,7 @@ def turn_plan(
     signed = -radians if turns_clockwise else radians
     direction = "right" if turns_clockwise else "left"
     return _plan(
-        plan_id=f"workflow.turn.{direction}.{int(round(angle))}deg.v1",
+        plan_id=f"workflow.turn.{direction}.{round(angle)}deg.v1",
         robot_id=robot_id,
         goal=f"turn {direction} {angle:.0f} degrees then stop safely",
         steps=[

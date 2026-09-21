@@ -13,9 +13,11 @@ canonical `motion.advance` / `motion.retreat` / `motion.rotate` /
 `motion.halt` requests. The request contains no gateway URL, bearer token,
 execution host, Pi runner identity or ROS implementation detail.
 
-The old `gateway.py`, lower delivery catalog and plan helpers remain only for
-legacy/Gazebo reproduction while downstream users migrate. The legacy gateway
-has no default address; `127.0.0.1:8766` is no longer a production assumption.
+The production-facing `gateway.py` API has been removed. Historical Gazebo
+reproduction uses explicitly named `legacy_gateway.py`, which is not exported
+from the package top level and has no default address. The lower delivery catalog
+and plan helpers remain legacy-only while downstream users migrate;
+`127.0.0.1:8766` is not a production assumption.
 
 Physical TurtleBot3 execution is owned by the external adapter architecture.
 The Pi has been cleaned to native ROS 2 in the 2026-09-21 physical closure work

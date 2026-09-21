@@ -22,8 +22,11 @@
       (`robotics.move` can advance or retreat).
 - [ ] Load the real Flyto2 builder with this package installed and confirm the
       three authoring nodes are visible and emit the canonical request.
-- [ ] Remove legacy `gateway.py`, lower delivery-catalog coupling and
-      `flyto.robotics.plan.v1` after the final downstream/Gazebo consumer
+- [x] Remove the production-facing `gateway.py` API and top-level gateway
+      exports; historical Gazebo reproduction now imports explicit
+      `legacy_gateway.py` only.
+- [ ] Remove `legacy_gateway.py`, lower delivery-catalog coupling and
+      `flyto.robotics.plan.v1` after the final Gazebo/downstream consumer
       migrates.
 - [ ] Decide whether to publish to PyPI and under which account.
 

@@ -1028,7 +1028,7 @@ import json, os, sys, time, uuid
 
 sys.path.insert(0, os.environ["FLYTO_VERIFY_SRC"])
 
-from flyto_modules_robotics import gateway
+from flyto_modules_robotics import legacy_gateway as gateway
 from flyto_modules_robotics.plan import (
     PLAN_CONTRACT_VERSION, PLAN_RUN_REQUEST_CONTRACT_VERSION, run_request,
 )

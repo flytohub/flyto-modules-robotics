@@ -10,7 +10,8 @@ external computer translates the capability request to standard ROS 2.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from .plan import PlanBuildError
 from .steps import MODULE_MOVE, MODULE_STOP, MODULE_TURN, preview_plan_for_step
