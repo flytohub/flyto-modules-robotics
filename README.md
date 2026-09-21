@@ -3,9 +3,11 @@
 Optional robotics **authoring** modules for Flyto2 workflows.
 
 Installing this package adds human-readable Move / Turn / Stop nodes to
-`flyto-core`. Those nodes do not drive a robot, do not choose an execution
-computer and do not contact a Flyto2 gateway. They emit a canonical capability
-request for commanded equipment.
+`flyto-core`. Those nodes never choose an execution computer and never import
+ROS or a robot transport. In ordinary authoring/preview contexts they emit a
+canonical capability request for commanded equipment. On an AI Space computer,
+Flyto2 may inject one trusted ephemeral runtime dispatcher; only then does the
+same step execute that canonical request through the host-owned adapter.
 
 ## Production architecture
 
@@ -66,11 +68,14 @@ Steam Deck executing the workflow. AI Space / War Room owns execution placement.
 
 ## Usage
 
-A workflow author places Move / Turn / Stop on the canvas. At runtime the node
-returns a capability request; AI Space / War Room separately chooses which
-computer runs the workflow and which approved adapter may command the resource.
+A workflow author places Move / Turn / Stop on the canvas. AI Space / War Room
+separately chooses which computer runs the workflow and which approved adapter
+may command the resource. The selected computer may inject a trusted runtime
+dispatcher into the workflow context; the module forwards only its canonical
+capability request to that opaque dispatcher and receives the execution record.
 
-No robot-local Flyto2 process participates in this handoff.
+Without that trusted runtime capability the exact same module remains
+declaration-only. No robot-local Flyto2 process participates in this handoff.
 
 ## Public authoring API
 
@@ -98,6 +103,7 @@ This package never:
 - imports `rclpy`;
 - publishes `cmd_vel`;
 - selects a Flyto2 runner;
+- constructs or discovers an adapter;
 - stores a robot credential;
 - decides that a mission objective is complete.
 
