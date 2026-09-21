@@ -13,14 +13,6 @@ import os
 
 from .catalog import Capability, CapabilityCatalog, CapabilityCatalogError
 
-from .gateway import (
-    DEFAULT_GATEWAY_URL,
-    GatewayError,
-    GatewayRefused,
-    capability_catalog,
-    gateway_url,
-    robot_id,
-)
 from .plan import (
     MAX_DISTANCE_M,
     MAX_SPEED_MPS,
@@ -33,23 +25,17 @@ from .plan import (
 from .steps import plan_for_step, preview_plan_for_step, trusted_plan_for_step
 
 __all__ = [
-    "DEFAULT_GATEWAY_URL",
     "MAX_DISTANCE_M",
     "MAX_SPEED_MPS",
-    "GatewayError",
-    "GatewayRefused",
     "Capability",
     "CapabilityCatalog",
     "CapabilityCatalogError",
     "PlanBuildError",
-    "gateway_url",
-    "capability_catalog",
     "move_plan",
     "plan_for_step",
     "preview_plan_for_step",
     "trusted_plan_for_step",
     "register_all",
-    "robot_id",
     "run_request",
     "stop_plan",
     "turn_plan",
