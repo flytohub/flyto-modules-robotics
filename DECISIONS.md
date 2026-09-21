@@ -1,5 +1,26 @@
 # Decisions
 
+
+## 2026-09-21 — Robot execution is external; this package is authoring-only
+
+Decision: `flyto-modules-robotics` no longer owns a robot-local HTTP client,
+Pi runner contract, localhost gateway default, or Gazebo lower-runtime verifier.
+It registers bounded authoring steps and produces transport-neutral plan
+declarations. A separate adapter is the only component allowed to translate
+those declarations into ROS 2, Nav2, Open-RMF, a simulator, or another machine
+runtime.
+
+Reason: the Flyto2 Space Task runtime already owns capability approval,
+permission, resource binding, evidence and verification. Keeping a second
+robot-local execution path in this package duplicated authority and made the
+same workflow depend on where the code happened to run. Simulator and physical
+robots must use the same adapter boundary.
+
+This decision supersedes the transport portions of the 2026-08-05 and
+2026-08-06 decisions below. Their historical rationale is retained for
+provenance; the current architecture is the 2026-09-21 decision.
+
+
 ## 2026-08-05 — Hardware arrives as an optional package, not as a flyto-core module
 
 Decision: robot steps live in this separate, optionally installed package,
