@@ -1,5 +1,24 @@
 # State
 
+## Legacy runtime retirement — 2026-09-21
+
+Organization-wide code search found no production consumer of the explicit
+`legacy_gateway` client outside this repository. The retired robot-local HTTP
+client, its unit tests, and the executable Lima/Gazebo runtime harness are now
+removed. Historical handoffs/results remain immutable evidence only.
+
+The production contract remains `flyto.capability-request.v1`. This package
+performs authoring and bounded request construction only; external execution is
+owned by the approved adapter on the selected AI Space computer. No TurtleBot3,
+ROS 2, Raspberry Pi, physical service, or hardware configuration was contacted
+or changed by this cleanup.
+
+One software integration gate remains explicit: Flyto2 Cloud has a Generic ROS 2
+Adapter and this package emits the canonical capability request, but the generic
+execution-host adapter consumption seam is not yet a shared runtime plugin
+contract. Do not claim physical execution closure from these repository changes.
+
+
 ## External ROS 2 adapter convergence — 2026-09-21
 
 Current production contract:

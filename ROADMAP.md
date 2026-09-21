@@ -13,11 +13,10 @@
 3. **Builder acceptance.**
    Load a real Flyto2 builder with this package installed and verify Move /
    Turn / Stop authoring plus the emitted capability request.
-4. **Finish legacy simulation extraction.**
-   The production-facing `gateway.py` API is gone; the historical HTTP client is
-   explicitly `legacy_gateway.py` and not top-level exported. Remove that client,
-   lower delivery-catalog coupling and `flyto.robotics.plan.v1` after the last
-   simulation/downstream consumer migrates.
+4. **Finish pure authoring-contract migration.**
+   The robot-local HTTP gateway and executable Gazebo runtime are gone. Remove
+   the remaining lower delivery-catalog / `flyto.robotics.plan.v1` authoring
+   compatibility once the builder no longer reuses it for parameter validation.
 
 ## Later
 

@@ -105,26 +105,16 @@ The external adapter is responsible for translating an approved capability to a
 standard ROS 2 interface. Flyto2 Cloud independently evaluates returned evidence
 before declaring the task complete.
 
-## Legacy preview and Gazebo compatibility
+## Legacy authoring compatibility
 
-The old `flyto.robotics.plan.v1`, capability-catalog parser and explicitly named
-`legacy_gateway` client remain only for historical preview/Gazebo evidence and
-compatibility while downstream users migrate. The gateway client is not part of
-the package top-level API.
+The historical `flyto.robotics.plan.v1` and capability-catalog parser remain
+only as pure authoring/preview compatibility while the builder migration
+finishes. They perform no network I/O and are not an execution path.
 
-They are **not** the production robotics path.
-
-The legacy gateway client has no default address. A caller must explicitly set
-`FLYTO_ROBOTICS_GATEWAY_URL`; nothing silently assumes
-`127.0.0.1:8766`. Workflow modules never call it.
-
-The old plan APIs are:
-
-- `preview_plan_for_step(...)`
-- `trusted_plan_for_step(...)`
-- `flyto_modules_robotics.legacy_gateway.*` (explicit legacy import only)
-
-New production integration should use `capability_request_for_step(...)`.
+The robot-local HTTP gateway client and Gazebo runtime harness have been
+retired. Historical simulation receipts remain under handoffs/results as audit
+evidence; new production integration must use
+`capability_request_for_step(...)` and an external adapter.
 
 ## Installation
 
@@ -149,9 +139,8 @@ flyto-index verify . --strict
 The unit suite is pure Python. No unit test needs ROS, a physical robot or
 `flyto-core`.
 
-Historical Gazebo verification remains available through
-`scripts/verify-lima-gazebo.sh`, but it now requires an explicit legacy
-gateway URL. A Gazebo pass is simulation evidence only.
+Historical Gazebo receipts remain in the repository as simulation evidence.
+There is no executable robot-local gateway/Gazebo runtime path in this package.
 
 ## Releasing
 

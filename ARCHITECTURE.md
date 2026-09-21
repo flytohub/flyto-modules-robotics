@@ -80,20 +80,16 @@ on the selected AI Space computer and maps approved capabilities to standard ROS
 The adapter returns execution observations/evidence; it does not decide the
 mission verdict. Cloud verification remains authoritative.
 
-## Legacy compatibility
+## Legacy authoring compatibility
 
-`plan.py`, `catalog.py` and explicitly named `legacy_gateway.py` preserve
-historical `flyto.robotics.plan.v1` / Gazebo evidence while downstream consumers
-migrate. `legacy_gateway` is not re-exported from the package top level.
+`plan.py` and `catalog.py` remain pure, offline compatibility helpers while
+the builder contract migrates away from the historical
+`flyto.robotics.plan.v1` vocabulary. They open no socket and are outside the
+production execution authority path.
 
-They are explicitly outside the production authority path.
-
-The legacy HTTP client:
-
-- is never imported or called by `modules.py`;
-- has no default URL;
-- requires explicit `FLYTO_ROBOTICS_GATEWAY_URL`;
-- exists for reproduction/compatibility, not deployment on a robot.
+The retired robot-local HTTP gateway client and Gazebo runtime harness are no
+longer shipped by this repository. Historical evidence remains in committed
+handoffs/results only.
 
 ## flyto-core import boundary
 

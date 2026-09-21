@@ -11,10 +11,10 @@
       `motion.advance`, `motion.retreat`, `motion.rotate`, `motion.halt`.
 - [x] Ensure production capability requests contain no gateway URL, token,
       execution host, `robot_id` runtime placement or implicit loopback.
-- [x] Remove the legacy gateway's implicit `127.0.0.1:8766` default; historical
-      Gazebo use must opt in through explicit configuration.
-- [x] Mark lower delivery catalog / plan / gateway APIs as legacy
-      simulation/migration compatibility.
+- [x] Remove the legacy robot-local HTTP gateway and executable Gazebo runtime
+      harness; historical receipts remain evidence only.
+- [x] Keep lower plan/catalog helpers pure and outside the production execution
+      authority path while authoring compatibility remains.
 - [ ] Wire the AI Space/workflow runtime to consume
       `flyto.capability-request.v1` and call the approved Generic ROS 2 Adapter.
 - [ ] Rework builder registration metadata once the host registry can represent
@@ -22,12 +22,12 @@
       (`robotics.move` can advance or retreat).
 - [ ] Load the real Flyto2 builder with this package installed and confirm the
       three authoring nodes are visible and emit the canonical request.
-- [x] Remove the production-facing `gateway.py` API and top-level gateway
-      exports; historical Gazebo reproduction now imports explicit
-      `legacy_gateway.py` only.
-- [ ] Remove `legacy_gateway.py`, lower delivery-catalog coupling and
-      `flyto.robotics.plan.v1` after the final Gazebo/downstream consumer
-      migrates.
+- [x] Remove the production-facing gateway API and the final
+      `legacy_gateway.py` / Gazebo runtime consumer after organization-wide
+      search found no remaining downstream production dependency.
+- [ ] Remove the remaining pure lower delivery-catalog /
+      `flyto.robotics.plan.v1` authoring compatibility after the builder no
+      longer uses it for parameter validation.
 - [ ] Decide whether to publish to PyPI and under which account.
 
 ## Physical acceptance

@@ -15,14 +15,13 @@ adapter can execute.
 - `flyto.capability-request.v1` projection for those nodes.
 - Mapping from authored direction/angle to canonical Space capabilities:
   `motion.advance`, `motion.retreat`, `motion.rotate`, `motion.halt`.
-- Legacy preview/Gazebo plan helpers while old consumers migrate.
+- Pure legacy preview/plan helpers while old authoring consumers migrate.
 
 ## Users
 
 - Workflow authors using the Flyto2 builder.
 - AI Space / workflow runtimes consuming the emitted capability request.
-- Maintainers reproducing historical Gazebo evidence through the explicit
-  legacy compatibility path.
+- Maintainers reading retained historical Gazebo receipts as audit evidence.
 
 ## Non-goals
 
