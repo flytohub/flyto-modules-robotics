@@ -1,15 +1,10 @@
 """The workflow steps this package adds to the builder.
 
 A step here *declares* motion; it never performs it. These modules register into
-flyto-core, and flyto-core runs on the worker and the desktop — not on the
-robot. A step that drove hardware from here would be reaching for a gateway on
-the wrong machine: the loopback address meaning "this robot" on a Pi means "this
-container" on a worker, and the request would either fail or find something else
-listening.
-
-So a step builds a plan, names the device that must carry it out, and returns it
-as the payload the robot's own runner reads from its job. Driving stays on the
-robot, behind the gateway that owns the final stop.
+flyto-core on the worker or desktop. A step builds a bounded plan, names the
+resource that must carry it out, and returns a dispatch-neutral declaration for
+an external robotics adapter. This package opens no robot socket, ROS topic, or
+robot-local service.
 
 flyto-core is imported inside :func:`build_modules`, never at module scope, so
 ``plan`` stays importable — and testable — where flyto-core is absent.
@@ -56,16 +51,10 @@ def _now_iso() -> str:
 def _declare(plan: dict[str, Any], *, resource_id: str) -> dict[str, Any]:
     """Say what this step wants done, without doing it.
 
-    These modules register into flyto-core, and flyto-core runs on the worker
-    and the desktop — not on the robot. A step that drove hardware from here
-    would be reaching for a gateway on the wrong machine: the loopback address
-    that means "this robot" on a Pi means "this container" on a worker, and the
-    request would either fail or, worse, find something else listening.
-
-    So the step declares. It builds the plan, names the device that must carry
-    it out, and returns it as the job payload the robot's own runner reads. The
-    driving stays where the robot is, behind the gateway that owns the final
-    stop.
+    These modules register into flyto-core on the worker or desktop. The step
+    declares only: it builds a bounded plan, names the target resource, and
+    returns the payload for an external adapter. No robot-local transport or
+    execution authority lives in this package.
     """
     return {
         "dispatched": False,
