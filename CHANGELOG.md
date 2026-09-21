@@ -1,5 +1,20 @@
 # Changelog
 
+
+## Unreleased — external adapter cleanup (2026-09-21)
+
+- Retired the robot-local HTTP gateway client and its public exports.
+- Retired Pi job-runner and localhost:8766 as active architecture assumptions.
+- Removed the repository-owned Gazebo lower-runtime verifier; historical
+  receipts remain under `results/` and `handoffs/`.
+- Kept Move / Turn / Stop registration, bounded plan builders, immutable catalog
+  parsing and fail-closed trusted plan derivation.
+- Defined external adapters as the only execution boundary for both simulators
+  and physical robots.
+- No TurtleBot3, ROS2, Raspberry Pi, robot service or hardware configuration was
+  changed by this software cleanup.
+
+
 Nothing in this project has been uploaded to PyPI. Every version below is a
 local build only; the dates are when the work landed, not a release date.
 
