@@ -1,7 +1,7 @@
 """The mapping from an authored step to the plan it means.
 
 Two callers read this table — the modules registered into flyto-core, and the
-robot's own job runner. These tests are what stop the two from drifting: they
+external robotics adapter. These tests are what stop the two from drifting: they
 exercise the table itself, not either caller.
 """
 
