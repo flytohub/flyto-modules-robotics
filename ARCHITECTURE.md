@@ -39,8 +39,10 @@ The module:
 1. validates existing canvas parameters;
 2. resolves the commanded equipment id from `resource_id` (with
    `robot_id` accepted only as a backward-compatible authoring alias);
-3. emits one canonical capability request;
-4. performs no network or ROS operation.
+3. builds one canonical capability request;
+4. remains declaration-only unless the selected AI Space host injected the
+   trusted ephemeral runtime dispatcher;
+5. performs no network or ROS operation itself.
 
 The result deliberately has no `requires_device` execution-placement field.
 It carries `commanded_resource` instead.
@@ -75,7 +77,9 @@ progress. The lower gateway plan never crosses the production request boundary.
 
 This repository does not implement the Generic ROS 2 Adapter. That adapter runs
 on the selected AI Space computer and maps approved capabilities to standard ROS
-2, for example Nav2 actions and `/cmd_vel`.
+2, for example Nav2 actions and `/cmd_vel`. The module sees only an opaque
+runtime dispatcher in its execution context; it never imports the adapter or
+knows its transport.
 
 The adapter returns execution observations/evidence; it does not decide the
 mission verdict. Cloud verification remains authoritative.
