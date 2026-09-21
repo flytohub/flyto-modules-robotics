@@ -14,11 +14,11 @@ changing anything here.
   commanded resource. Tests assert the production request contains no host,
   gateway, token or Pi-runner assumption.
 - **Canonical production output is `flyto.capability-request.v1`.** Historical
-  `flyto.robotics.plan.v1` builders remain only for preview/Gazebo compatibility;
-  those legacy motion plans must still end in safe stop until they are removed.
+  `flyto.robotics.plan.v1` builders remain only as pure authoring/preview
+  compatibility until they are removed.
 - **`flyto-core` is imported inside `register_all`, never at module scope.** Pure
-  authoring/preview helpers stay importable without it. The legacy gateway client
-  is explicitly named `legacy_gateway` and is never a top-level production API.
+  authoring/preview helpers stay importable without it. No robot-local gateway
+  client or execution transport belongs in this package.
 - **A missing `flyto-core` is logged, not raised.** Discovery loads every plugin in
   one loop; raising would take down the others.
 
@@ -44,8 +44,8 @@ Every change is verified bottom-up: the tests first, then the repository gate.
 PYTHONPATH=src python3 -m pytest tests/ -q
 ```
 
-Tests, none needing a robot or `flyto-core`. Any change to bounds, to the plan
-shape, or to how the address is resolved needs a test that would fail without it.
+Tests, none needing a robot or `flyto-core`. Any change to bounds or request
+shape needs a test that would fail without it.
 
 `search` and `impact` are the pre-change gate; the strict verifier below is the
 mandatory post-change gate. Run it after the edit, and hand nothing off until it passes:
