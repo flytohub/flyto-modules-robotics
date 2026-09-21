@@ -1,4 +1,9 @@
-"""Strict, immutable consumer for the robot execution capability catalog."""
+"""Legacy immutable consumer for the superseded delivery capability catalog.
+
+Production workflow execution uses canonical capability requests and an external
+Generic ROS 2 Adapter. This parser remains for historical Gazebo/downstream
+compatibility until the old delivery-plan path is fully removed.
+"""
 
 from __future__ import annotations
 

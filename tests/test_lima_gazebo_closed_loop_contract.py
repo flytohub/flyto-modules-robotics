@@ -660,7 +660,8 @@ def test_the_gateway_address_is_loopback_configuration(text: str):
     """A host never becomes a step parameter; the mission driver is handed a
     loopback URL naming the guest it is already running inside, and the
     runtime's own environment may override it."""
-    assert 'GATEWAY_URL="${FLYTO_ROBOTICS_GATEWAY_URL:-http://127.0.0.1:8766}"' in text
+    assert ': "${FLYTO_ROBOTICS_GATEWAY_URL:?set FLYTO_ROBOTICS_GATEWAY_URL explicitly for the legacy Gazebo verifier}"' in text
+    assert 'GATEWAY_URL="${FLYTO_ROBOTICS_GATEWAY_URL%/}"' in text
     assert "gateway_url = (os.environ.get(gateway.GATEWAY_URL_ENV) or \"\").strip() or fallback_url" in text
 
 

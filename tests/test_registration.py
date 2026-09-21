@@ -440,7 +440,7 @@ def test_every_step_declares_itself_to_the_builder():
         assert metadata["module_id"] == module_id
         assert metadata["category"] == "robotics"
         assert metadata["label"], "a step with no label cannot be found on the canvas"
-        assert metadata["requires_credentials"] is True
+        assert metadata["requires_credentials"] is False
         # Two robot commands must never be run at once on one machine.
         assert metadata["concurrent_safe"] is False
 
@@ -534,15 +534,18 @@ def test_a_bad_distance_fails_when_the_step_is_configured_not_when_it_runs():
         raise AssertionError("an out-of-range distance was accepted")
 
 
-def test_a_step_declares_the_plan_and_drives_nothing():
-    """flyto-core runs on the worker, not the robot. A step reaching for a
-    gateway here would find whatever is on the worker's loopback."""
+def test_a_step_declares_standard_capability_work_and_drives_nothing():
+    """The workflow emits commanded work; placement and ROS transport stay outside."""
     _, move = build_modules(StandInModule, fake_register_module)[0]
     result = asyncio.run(move({"distance_m": 0.4}, {"resource_id": "robot-1"}).execute())
     assert result["dispatched"] is False, "declaring, not driving"
-    assert result["requires_device"] == "robot-1"
-    assert result["request"]["plan"]["steps"][0]["capability"] == "move_relative"
-    assert result["request"]["plan"]["steps"][-1]["capability"] == "safe_stop"
+    assert result["commanded_resource"] == "robot-1"
+    assert result["capability_request"]["resource_id"] == "robot-1"
+    assert result["capability_request"]["capability_id"] == "motion.advance"
+    assert result["capability_request"]["arguments"]["distance_m"] == pytest.approx(0.4)
+    serialized = json.dumps(result, sort_keys=True)
+    assert "gateway" not in serialized
+    assert "8766" not in serialized
 
 
 def test_no_step_reaches_for_a_gateway():
@@ -583,6 +586,7 @@ def test_a_bad_parameter_is_reported_not_raised():
     step.context = {"resource_id": "robot-1"}
     result = asyncio.run(step.execute())
     assert result["dispatched"] is False and "distance_m" in result["error"]
+    assert result["commanded_resource"] == ""
 
 
 def test_every_step_is_a_coroutine_because_the_engine_awaits_it():

@@ -1,116 +1,111 @@
 # Architecture
 
-Three layers, only the thinnest of which needs `flyto-core`.
+## Product boundary
 
+This repository owns **workflow authoring**, not robot execution.
+
+```text
+                 Flyto2 Cloud / War Room
+                        |
+                 selects policy/resource
+                        |
+                        v
+               AI Space computer
+               (execution host)
+                        |
+              workflow module emits
+           flyto.capability-request.v1
+                        |
+                        v
+              Generic ROS 2 Adapter
+                        |
+          standard ROS 2 / DDS / Zenoh
+                        |
+                        v
+                  robot resource
+              (commanded equipment)
 ```
-worker or desktop                        robot
-------------------------------------     ---------------------------------
-flyto-core registry                      flyto_job_runner
-    |  register_all()                        |  claims the job
-modules.py   <- declares, never drives       |
-    |                                        v
-plan.py      -----> job payload -----> flyto-robotics gateway
-                     (device queue)        validates, executes,
-                                           owns the final stop
-                                               |
-                                           ROS 2 / robot
-```
 
-The split across the two columns is the point. `flyto-core` runs on the worker
-and the desktop; the robot has neither. A step that drove hardware from the
-left column would be reaching for a gateway on the wrong machine — the loopback
-address meaning "this robot" on a Pi means "this container" on a worker.
+The execution host and commanded resource are different concepts. A TurtleBot3
+resource id never means "put the Flyto2 job runner on this Pi".
 
-So `modules.py` declares: it builds a plan, names the device, and returns it as
-the payload the robot's runner reads from its job. `gateway.py` is the client
-that runner uses; nothing in `modules.py` touches it, and a test asserts that by
-inspecting imports and calls rather than grepping for the word.
+## Layer 1 — builder plugin
 
-`gateway.capability_catalog()` is the read-only path in the opposite direction.
-It performs authenticated `GET /v1/capabilities` and hands the response to
-`catalog.py`, which accepts only the exact content-addressed
-`flyto.robotics.capability-catalog.v1` projection. The result is recursively
-immutable. Discovery neither builds nor posts a plan, and catalog failures have
-one content-free error so credentials and untrusted response bodies cannot cross
-the boundary. `steps.plan_for_step` is the execution-facing pure API: it requires
-that trusted value by default and derives runtime names, bounds and defaults from
-it. `preview_plan_for_step` alone retains legacy constants for offline canvas
-compatibility; a catalog failure never crosses into that path implicitly.
+`modules.py` registers Move / Turn / Stop with `flyto-core` through the
+existing `flyto.modules` entry point.
 
-## Two vocabularies, deliberately not one
+The module:
 
-A step names its capability twice, in two different vocabularies, and they must
-not be collapsed.
+1. validates existing canvas parameters;
+2. resolves the commanded equipment id from `resource_id` (with
+   `robot_id` accepted only as a backward-compatible authoring alias);
+3. emits one canonical capability request;
+4. performs no network or ROS operation.
 
-| Where | `robotics.move` | `robotics.turn` | `robotics.stop` |
-|---|---|---|---|
-| Registry contract, `modules.py` | `robotics.motion.move_relative@1` | `robotics.motion.turn_relative@1` | `robotics.safety.safe_stop@1` |
-| Plan step verb, `plan.py` | `move_relative` | `turn_relative` | `safe_stop` |
+The result deliberately has no `requires_device` execution-placement field.
+It carries `commanded_resource` instead.
 
-The first is what `flyto-core`'s registry matches a device's declared abilities
-against, versioned so a device on an older contract is a mismatch the builder can
-show rather than a robot that moves unexpectedly. The second is the byte the
-gateway reads and executes. Keeping them separate means renaming a registry
-contract cannot silently change what a robot does. One capability per step, and
-no two steps share one, or two different motions would be indistinguishable at
-match time.
+## Layer 2 — capability request
 
-## Why the split
+`capability_request.py` is the production contract of this package.
 
-`flyto-core` is imported inside `register_all`, never at module scope. So `plan`
-and `gateway` import — and are tested — on a machine with no `flyto-core`, which
-is most machines.
-
-## What `register_all` is allowed to swallow
-
-That lazy import is also the plugin's error boundary, and it has to separate two
-failures that arrive wearing the same exception type.
-
-| What happened | What `register_all` does |
+| Authored node | Capability |
 |---|---|
-| No `flyto-core` here | warn, return — the ordinary case on most machines |
-| `flyto-core` here, without the API this package imports | warn, return |
-| `flyto-core` here and broken on its own import | re-raise |
-| This package's `modules`, the decorator or `build_modules` failing | re-raise |
+| Move forward | `motion.advance` |
+| Move reverse | `motion.retreat` |
+| Turn | `motion.rotate` |
+| Stop | `motion.halt` |
 
-The first two must not raise: `flyto-core` loads every plugin in one loop, so
-raising would take module discovery down for every other plugin as well. The
-last two must raise, because they are *this plugin* failing and only
-`flyto-core`'s discovery boundary can report which plugin failed. Swallowed,
-they became a warning saying `flyto-core` was missing on a machine that had it,
-while three robot steps went quietly absent from the canvas.
+The request contains:
 
-Which row an `ImportError` falls into is decided by where it was raised, not by
-what it is called. A `flyto-core` failing on its own
-`from core.modules.registry import …` names a module this package also imports,
-so a name test would put row three in row two. The traceback is walked instead:
-anything in it that is neither this file nor the import machinery means the
-import reached code behind the boundary and failed there.
+- contract version;
+- commanded resource id;
+- capability id;
+- bounded arguments;
+- human-readable goal.
 
-Registration itself is repeated on every call and remembered between none of
-them, so a registry that was cleared and rediscovered fills again. See
-DECISIONS.md for why a process-global flag is the wrong shape.
+It contains no host, gateway, token, execution-computer identity or ROS node
+name.
 
-`plan.py` is pure: no network, no environment, no clock. The exact bytes a step
-will send are assertable in a test with no robot present.
+The current Move/Turn/Stop parameter validation reuses the existing pure preview
+plan builders so authored bounds have one implementation while migration is in
+progress. The lower gateway plan never crosses the production request boundary.
 
-## Why an HTTP hop rather than a library call
+## Layer 3 — external adapter
 
-Importing `flyto-robotics` and calling its runner in-process would be simpler and
-is wrong. `rclpy`'s init and shutdown are process-global, so a long-running
-workflow executor cannot host them safely; and a caller that died mid-mission
-would leave nothing to stop the robot. The gateway is a service with signal
-handling that sends the final zero-velocity stop. The hop is isolation, not
-overhead.
+This repository does not implement the Generic ROS 2 Adapter. That adapter runs
+on the selected AI Space computer and maps approved capabilities to standard ROS
+2, for example Nav2 actions and `/cmd_vel`.
 
-## Where the address comes from
+The adapter returns execution observations/evidence; it does not decide the
+mission verdict. Cloud verification remains authoritative.
 
-Configuration, not a step parameter. The job was already dispatched to a device,
-so the module is running on the robot it drives and the gateway is on loopback.
-That is what lets five identical robots share one authored workflow.
+## Legacy compatibility
 
-| Variable | Default | Meaning |
-|---|---|---|
-| `FLYTO_ROBOTICS_GATEWAY_URL` | `http://127.0.0.1:8766` | the local robot gateway |
-| `FLYTO_ROBOTICS_DELIVERY_TOKEN` | — | bearer token, required |
-| `FLYTO_ROBOTICS_ROBOT_ID` | — | must match the gateway's job |
+`plan.py`, `catalog.py` and `gateway.py` preserve historical
+`flyto.robotics.plan.v1` / Gazebo evidence while downstream consumers migrate.
+
+They are explicitly outside the production authority path.
+
+The legacy HTTP client:
+
+- is never imported or called by `modules.py`;
+- has no default URL;
+- requires explicit `FLYTO_ROBOTICS_GATEWAY_URL`;
+- exists for reproduction/compatibility, not deployment on a robot.
+
+## flyto-core import boundary
+
+`flyto-core` is imported only inside `register_all`. An absent or
+incompatible registration API is logged and skipped; failures inside a present
+plugin continue to raise so discovery does not silently lose robotics nodes.
+
+## Safety invariants
+
+- No hardware access in this package.
+- No `rclpy`, serial, velocity or device driver.
+- No host/address in workflow parameters.
+- No robot-side Flyto2 runtime assumption.
+- No implicit legacy gateway address.
+- Capability discovery/authoring never grants execution authority.
+- Robot execution success never equals mission completion.

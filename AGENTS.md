@@ -6,12 +6,16 @@ changing anything here.
 ## Constraints
 
 - **Never drive hardware from this package.** No serial port, no ROS topic, no
-  velocity, no `rclpy`. A step builds a plan and posts it. The reason is in
+  velocity, no `rclpy`. A production step emits a canonical capability request
+  for commanded equipment; an external adapter executes it. The reason is in
   DECISIONS.md and it is a safety property, not a preference.
-- **Never put a host in a step parameter.** The gateway address is configuration.
-  A test asserts no plan contains one; do not weaken it.
-- **Every plan that moves must end in a safe stop.** The gateway refuses one that
-  does not; the builders here append it so an author never meets that as an error.
+- **Never put an execution host, gateway URL or credential in a step parameter.**
+  AI Space / War Room chooses the execution computer. The request names only the
+  commanded resource. Tests assert the production request contains no host,
+  gateway, token or Pi-runner assumption.
+- **Canonical production output is `flyto.capability-request.v1`.** Historical
+  `flyto.robotics.plan.v1` builders remain only for preview/Gazebo compatibility;
+  those legacy motion plans must still end in safe stop until they are removed.
 - **`flyto-core` is imported inside `register_all`, never at module scope.** `plan`
   and `gateway` must stay importable and testable without it.
 - **A missing `flyto-core` is logged, not raised.** Discovery loads every plugin in
@@ -62,8 +66,8 @@ The constraints in this file are the point of this package, not style
 preferences.
 
 This repository is deliberately small and deliberately optional. The temptation
-it invites is to make it do more: talk to ROS directly, take a host as a
-parameter, collapse the three steps into one generic node, or grow its own safety
+it invites is to make it do more: talk to ROS directly, choose an execution
+host, put a Flyto runtime on the robot, or grow its own safety/verification
 logic. Each of those has been considered and rejected with a stated reason in
 `DECISIONS.md` and `ROADMAP.md`. Read those before proposing any of them again.
 

@@ -1,10 +1,11 @@
-"""Building the plan a workflow step asks the robot to carry out.
+"""Legacy preview/Gazebo plan builders for the retired delivery path.
 
-This is where "advance three steps" becomes a document. It is deliberately pure:
-no network, no environment, no clock — so the exact bytes a step will send can be
-asserted in a test without a robot anywhere nearby.
+Production workflow modules no longer send `flyto.robotics.plan.v1` to a robot.
+They emit `flyto.capability-request.v1` for an external adapter. These builders
+remain pure and bounded so historical simulation/downstream consumers can
+migrate without changing the evidence they already produced.
 
-Two rules shape it.
+Two rules continue to shape the legacy format.
 
 Bounds live here, at the point of authoring. A distance or a speed outside them
 is refused before anything is sent, so a mistyped workflow fails on the canvas

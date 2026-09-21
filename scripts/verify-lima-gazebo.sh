@@ -107,7 +107,8 @@ LIMA_INSTANCE="flyto-robot-gazebo"
 # topic is not an authenticated operation, so handing the probe a bearer token
 # would widen what a read-only observer can reach for no reason whatsoever.
 
-GATEWAY_URL="${FLYTO_ROBOTICS_GATEWAY_URL:-http://127.0.0.1:8766}"
+: "${FLYTO_ROBOTICS_GATEWAY_URL:?set FLYTO_ROBOTICS_GATEWAY_URL explicitly for the legacy Gazebo verifier}"
+GATEWAY_URL="${FLYTO_ROBOTICS_GATEWAY_URL%/}"
 ROBOT_ID="flyto-rover-sim-001"
 
 # Independent physical evidence. Exact topic, exact model — a prefix match would

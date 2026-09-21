@@ -2,41 +2,36 @@
 
 ## Purpose
 
-Make robot motion authorable in the Flyto2 workflow builder, as an install
-decision rather than a dependency everybody carries.
+Make physical-motion intent authorable in Flyto2 workflows without turning a
+robot into a Flyto2 appliance.
 
-`flyto-core` is the software execution engine and does not know what a robot is.
-This package is discovered through its existing `flyto.modules` entry point, so a
-Flyto2 installation without it stays pure software automation, and one with it
-gains motion steps on the canvas.
+The package is an optional `flyto-core` builder plugin. It converts authored
+Move / Turn / Stop nodes into canonical capability requests that an external
+adapter can execute.
 
 ## Owned surfaces
 
-- The `robotics.*` module identifiers registered into `flyto-core`'s registry.
-- The capability each of those modules declares to that registry —
-  `robotics.motion.move_relative`, `robotics.motion.turn_relative`,
-  `robotics.safety.safe_stop` — one per step and none shared. These obey
-  `flyto-core`'s registry grammar; the lower device catalog and execution
-  boundary retain the revisioned `@1` identifiers.
-- The plan documents those modules build (`flyto.robotics.plan.v1`).
-- The loopback client that hands a plan to the robot's own gateway.
-- The pure Pi-runner API that derives named-node plans from a verified lower
-  capability catalog and refuses implicit legacy-bound fallback.
+- `robotics.move`, `robotics.turn`, `robotics.stop` authoring nodes.
+- `flyto.capability-request.v1` projection for those nodes.
+- Mapping from authored direction/angle to canonical Space capabilities:
+  `motion.advance`, `motion.retreat`, `motion.rotate`, `motion.halt`.
+- Legacy preview/Gazebo plan helpers while old consumers migrate.
 
 ## Users
 
-An operator authoring a workflow in the Flyto2 builder, and the device-side
-runner that executes one of its steps on a robot.
+- Workflow authors using the Flyto2 builder.
+- AI Space / workflow runtimes consuming the emitted capability request.
+- Maintainers reproducing historical Gazebo evidence through the explicit
+  legacy compatibility path.
 
 ## Non-goals
 
-- **Driving hardware.** No serial port, no ROS topic, no velocity. A step builds
-  a plan and posts it; `flyto-robotics` owns the robot.
-- **Owning safety.** The gateway validates against a frozen capability registry,
-  runs one mission at a time, and sends the final stop if the caller dies. This
-  package must never become the thing that guarantees a stop.
-- **Naming a machine.** A workflow that carried a host would be bound to one
-  robot, which is the duplication the capability model exists to remove.
-- **Being required on a robot.** A machine that only runs robot missions needs
-  `flyto-robotics` and a runner, not this package. This is for *mixed*
-  workflows — crawl a page, then move, then report.
+- Driving hardware or importing ROS 2.
+- Running a Flyto2 daemon on the robot.
+- Choosing the execution computer.
+- Storing credentials or adapter addresses in workflow steps.
+- Owning hardware safety or mission-verification truth.
+- Defining a competing robot hardware protocol.
+
+The physical robot is standard ROS 2 equipment. The execution adapter belongs on
+an external computer.

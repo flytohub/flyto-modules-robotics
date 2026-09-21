@@ -1,58 +1,44 @@
 # Tasks
 
-- [x] Run the unit suite and record the real count — 222 passed in 0.23s via
-      `/Users/chester/flytohub/flyto-ai/.venv/bin/python -m pytest -o pythonpath=src tests/ -q`
-- [x] Run the bottom-up Gazebo verifier on the machine with the
-      `flyto-robot-gazebo` Lima guest — passed, run `mrg-20260809T101631Z-79266`,
-      displacement 0.3716104562185889 m, report SHA-256
-      `a47186f33eb05a1c833185806cdbc5f6b0f522fb1b8691d011ed205be123e25d`
-- [x] Fix the version contract drift and guard it — built wheel
-      `flyto_modules_robotics-0.1.1-py3-none-any.whl` reports `0.1.1` from both
-      `__version__` and `importlib.metadata`, guarded in the unit suite and in
-      the built-wheel CI consumer check
-- [x] **Verify the 2026-08-11 registration-boundary change** — accepted, not
-      inferred from a review pass. Job `job_46d0f9c1892d458eb4e2cd9c` checked
-      the official repository at implementation revision
-      `039d29ae50c5f6b6558ee599b7d8e4958c733b564d60c5b42d2fe75236861a12` and
-      recorded **232 passed** with strict route / Flyto Indexer verification
-      accepted. Registration was exercised against a real `flyto-core` over two
-      discovery cycles; both cycles discovered `robotics.move`, `robotics.turn`
-      and `robotics.stop` with exactly the three declared capabilities. No
-      module executed, nothing contacted.
-- [x] **Route-validation job `job_e3c87cdd21c54c8f9e2e96c0` failed route
-      validation and was not accepted.** Nothing it produced is evidence for
-      any item here.
-- [x] Mirror the accepted registration-boundary result into STATE.md "Last
-      verification" — done. STATE.md now carries job
-      `job_46d0f9c1892d458eb4e2cd9c`, implementation revision
-      `039d29ae50c5f6b6558ee599b7d8e4958c733b564d60c5b42d2fe75236861a12`, the
-      232-passed official repository check and the accepted strict route /
-      Indexer verification, in both "The registration boundary" and "Last
-      verification".
-- [ ] **Revalidate physical motion (0.05 m, then 0.10 m) after the
-      `flyto-robotics` tolerance fix**, once the area is safely cleared. The
-      fresh preflight refused (left and closest 0.2039999962 m) and the robot is
-      stopped. Gazebo evidence does not satisfy this.
-- [x] Add a pure runner-facing named-plan API that requires the verified lower
-      catalog, derives bounds/defaults from it and never implicitly falls back
-      to the separately named legacy preview path (ROADMAP 1 contract slice)
-- [ ] Add the generic `robotics.command` step (ROADMAP 2)
-- [x] **Re-prove registration against the current `flyto-core` 2.27 line** —
-      done. A wheel built from an isolated copy of the current source
-      (`flyto_modules_robotics-0.1.1-py3-none-any.whl`, SHA-256
-      `868805c58bf2dd08b35b0bafd136527cbe0cdbe80facca7eb22b308adc3ffb0b`) was
-      installed and consumed by the actual sibling `flyto-core` 2.27.0 through
-      the public entry point `robotics -> flyto_modules_robotics:register_all`.
-      Plugin owner `robotics` on all three modules;
-      `ModuleRegistry.capabilities()` returned exactly the three canonical
-      capabilities, each mapped to its one module. No module executed, nothing
-      contacted. Recorded in STATE.md.
-- [ ] **Load the Flyto2 builder canvas** with this installed alongside a real
-      `flyto-core` and confirm the three steps are visible and usable there. The
-      2.27 consumer proof closed registration and capability discovery only; it
-      says nothing about the canvas.
-- [ ] Clear the setuptools license deprecation warning emitted by the isolated
-      build (packaging metadata follow-up). It did not fail the build and did not
-      affect registration; it is a packaging cleanup, not a defect in the plugin.
-- [ ] Decide whether to publish to PyPI, and under which account. Nothing has
-      been uploaded; 0.1.0 and 0.1.1 are local builds only.
+## Current external-adapter closure
+
+- [x] Change Move / Turn / Stop runtime output from Pi delivery plans to
+      `flyto.capability-request.v1`.
+- [x] Separate commanded equipment from execution-host placement:
+      `commanded_resource` is now the robot/resource, while AI Space / War Room
+      selects the computer that executes the workflow.
+- [x] Map authored nodes to canonical Space capabilities:
+      `motion.advance`, `motion.retreat`, `motion.rotate`, `motion.halt`.
+- [x] Ensure production capability requests contain no gateway URL, token,
+      execution host, `robot_id` runtime placement or implicit loopback.
+- [x] Remove the legacy gateway's implicit `127.0.0.1:8766` default; historical
+      Gazebo use must opt in through explicit configuration.
+- [x] Mark lower delivery catalog / plan / gateway APIs as legacy
+      simulation/migration compatibility.
+- [ ] Wire the AI Space/workflow runtime to consume
+      `flyto.capability-request.v1` and call the approved Generic ROS 2 Adapter.
+- [ ] Rework builder registration metadata once the host registry can represent
+      a module that may emit more than one execution capability
+      (`robotics.move` can advance or retreat).
+- [ ] Load the real Flyto2 builder with this package installed and confirm the
+      three authoring nodes are visible and emit the canonical request.
+- [ ] Remove legacy `gateway.py`, lower delivery-catalog coupling and
+      `flyto.robotics.plan.v1` after the final downstream/Gazebo consumer
+      migrates.
+- [ ] Decide whether to publish to PyPI and under which account.
+
+## Physical acceptance
+
+Physical TurtleBot3 acceptance belongs to the external-adapter / Cloud closure,
+not to a Pi runner in this repository. A real bounded movement, interruption,
+safe stop and independent evidence verification remain required before physical
+closure can be claimed.
+
+## Historical completed evidence
+
+- 2026-08-09 Gazebo closed-loop run
+  `mrg-20260809T101631Z-79266` passed and remains simulation evidence.
+- `flyto-core` 2.27 registration/capability discovery was proved with the
+  built 0.1.1 wheel; no physical execution was implied.
+- The 2026-08 Pi-runner / delivery-gateway work is retained in historical
+  handoffs only and is superseded for production by the 2026-09-21 architecture.

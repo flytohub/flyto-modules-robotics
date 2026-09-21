@@ -1,9 +1,9 @@
-"""Optional robot-control modules for Flyto2 workflows.
+"""Optional robotics authoring modules for Flyto2 workflows.
 
-flyto-core discovers this package through its ``flyto.modules`` entry point and
-calls :func:`register_all`. Installing the package is therefore the whole
-decision: without it Flyto2 is pure software automation, and with it the builder
-gains motion steps.
+flyto-core discovers this package through its ``flyto.modules`` entry point.
+The registered Move/Turn/Stop nodes emit standard capability requests for
+commanded equipment. Execution placement and ROS 2 transport live outside this
+package and outside the robot.
 """
 
 from __future__ import annotations
@@ -11,8 +11,13 @@ from __future__ import annotations
 import logging
 import os
 
+from .capability_request import (
+    CAPABILITY_REQUEST_VERSION,
+    capability_request_for_step,
+)
 from .catalog import Capability, CapabilityCatalog, CapabilityCatalogError
 
+# Legacy/simulation-only gateway API. Production workflow modules do not call it.
 from .gateway import (
     DEFAULT_GATEWAY_URL,
     GatewayError,
@@ -33,6 +38,7 @@ from .plan import (
 from .steps import plan_for_step, preview_plan_for_step, trusted_plan_for_step
 
 __all__ = [
+    "CAPABILITY_REQUEST_VERSION",
     "DEFAULT_GATEWAY_URL",
     "MAX_DISTANCE_M",
     "MAX_SPEED_MPS",
@@ -44,6 +50,7 @@ __all__ = [
     "PlanBuildError",
     "gateway_url",
     "capability_catalog",
+    "capability_request_for_step",
     "move_plan",
     "plan_for_step",
     "preview_plan_for_step",
