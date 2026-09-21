@@ -2,19 +2,11 @@
 
 """Which step means which plan — the one place that mapping lives.
 
-Two very different callers need to answer the same question, "what does this
-authored step actually ask the robot to do":
-
-* the modules registered into ``flyto-core``, running on a worker or a
-  desktop, which answer it to *declare* the motion;
-* the robot's own job runner, running on a Pi with no execution engine at all,
-  which answers it to *perform* the motion.
-
-If each kept its own answer they would drift, and the drift would be silent
-until a robot moved differently from what the canvas said. So the mapping
-lives here, in a module that imports nothing but the plan builders beside it:
-pure, no engine, no network, no clock. The Pi can import it; so can the
-worker.
+Every caller needs one answer to the same question: "what does this authored
+step ask an external robotics executor to do?" The mapping therefore lives here,
+in a pure module shared by the workflow authoring side and any external adapter
+that chooses to consume these plan documents. It imports no engine, network, ROS
+client, or robot-local transport.
 """
 
 from __future__ import annotations
@@ -353,10 +345,11 @@ def trusted_plan_for_step(
     robot_id: str,
     catalog: CapabilityCatalog | None = None,
 ) -> dict[str, Any] | None:
-    """Build the execution plan a Pi runner may submit to its local gateway.
+    """Build an execution plan for an external robotics adapter.
 
     All runtime names, numeric bounds, defaults, and the appended stop are
-    derived from the already validated immutable lower capability catalog.
+    derived from the already validated immutable capability catalog. This
+    package does not submit the plan or host a robot runtime.
     """
     normalized = str(module_id or "").strip()
     if normalized not in _BUILDERS:
