@@ -1,23 +1,25 @@
 # State
 
-## Legacy runtime retirement — 2026-09-21
+## Runtime capability dispatch closure — 2026-09-21
 
-Organization-wide code search found no production consumer of the explicit
-`legacy_gateway` client outside this repository. The retired robot-local HTTP
-client, its unit tests, and the executable Lima/Gazebo runtime harness are now
-removed. Historical handoffs/results remain immutable evidence only.
+The package now preserves one canonical production contract:
+`flyto.capability-request.v1`.
 
-The production contract remains `flyto.capability-request.v1`. This package
-performs authoring and bounded request construction only; external execution is
-owned by the approved adapter on the selected AI Space computer. No TurtleBot3,
-ROS 2, Raspberry Pi, physical service, or hardware configuration was contacted
-or changed by this cleanup.
+Move / Turn / Stop remain pure authoring modules by default. When the selected
+AI Space computer injects Flyto2's trusted ephemeral runtime dispatcher, the
+same workflow step forwards the canonical request through that opaque host
+capability and returns the execution record. The package still imports no ROS,
+opens no socket, chooses no host, stores no credential, and cannot manufacture a
+dispatcher from workflow data.
 
-One software integration gate remains explicit: Flyto2 Cloud has a Generic ROS 2
-Adapter and this package emits the canonical capability request, but the generic
-execution-host adapter consumption seam is not yet a shared runtime plugin
-contract. Do not claim physical execution closure from these repository changes.
+The retired robot-local HTTP gateway and executable Lima/Gazebo runtime harness
+remain removed. Historical receipts are retained only as audit evidence. No
+TurtleBot3, ROS 2, Raspberry Pi, physical service, or hardware configuration was
+contacted or changed by this software work.
 
+Physical acceptance remains separate: a software path being wired does not
+establish real movement, obstacle handling, camera calibration, or hardware
+recovery.
 
 ## External ROS 2 adapter convergence — 2026-09-21
 

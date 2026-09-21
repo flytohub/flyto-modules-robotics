@@ -28,6 +28,7 @@ __all__ = ["MODULE_MOVE", "MODULE_STOP", "MODULE_TURN", "build_modules"]
 
 CATEGORY = "robotics"
 ICON_COLOR = "#22D3EE"
+RUNTIME_DISPATCHER_CONTEXT_KEY = "_flyto_runtime_external_capability_dispatcher"
 
 # What each step asks a device to be able to do, named in flyto-core's
 # registry vocabulary. Registry identifiers deliberately omit the catalog's
@@ -62,6 +63,41 @@ def _refuse(exc: Exception) -> dict[str, Any]:
         "dispatched": False,
         "commanded_resource": "",
         "error": str(exc)[:300],
+    }
+
+
+async def _dispatch_or_declare(step: Any, request: dict[str, Any]) -> dict[str, Any]:
+    """Execute through a trusted host runtime when one was injected.
+
+    The package never imports or constructs an adapter. In builder/preview
+    contexts no runtime capability exists and the step stays declaration-only.
+    """
+    dispatcher = step.context.get(RUNTIME_DISPATCHER_CONTEXT_KEY)
+    if dispatcher is None:
+        return _declare(request)
+    if (
+        getattr(dispatcher, "_flyto_runtime_opaque", False) is not True
+        or not callable(getattr(dispatcher, "invoke", None))
+    ):
+        raise RuntimeError("untrusted external capability dispatcher")
+    record = await dispatcher.invoke(request)
+    outcome = str(record.get("outcome") or "") if isinstance(record, Mapping) else ""
+    if outcome != "completed":
+        detail = str(record.get("detail") or outcome or "external capability failed")[:300]
+        return {
+            "ok": False,
+            "error": detail,
+            "error_code": "EXTERNAL_CAPABILITY_FAILED",
+            "dispatched": True,
+            "commanded_resource": request["resource_id"],
+        }
+    return {
+        "ok": True,
+        "dispatched": True,
+        "commanded_resource": request["resource_id"],
+        "goal": request["goal"],
+        "capability_request": request,
+        "execution": dict(record),
     }
 
 
@@ -147,7 +183,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
                 request = _request_from_step(self, MODULE_MOVE)
             except (PlanBuildError, ValueError) as exc:
                 return _refuse(exc)
-            return _declare(request)
+            return await _dispatch_or_declare(self, request)
 
 
     @register_module(
@@ -186,7 +222,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
                 request = _request_from_step(self, MODULE_TURN)
             except (PlanBuildError, ValueError) as exc:
                 return _refuse(exc)
-            return _declare(request)
+            return await _dispatch_or_declare(self, request)
 
 
     @register_module(
@@ -225,7 +261,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
                 request = _request_from_step(self, MODULE_STOP)
             except (PlanBuildError, ValueError) as exc:
                 return _refuse(exc)
-            return _declare(request)
+            return await _dispatch_or_declare(self, request)
 
 
     return [
