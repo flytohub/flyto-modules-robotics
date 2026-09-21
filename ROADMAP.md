@@ -2,28 +2,27 @@
 
 ## Near term
 
-1. **Integrate the Pi runner with the trusted named-plan API.** The pure contract
-   is available with fail-closed `require_trusted_catalog` semantics; the next
-   repository can fetch the lower catalog and call it before posting locally.
-2. **A generic escape hatch.** One `robotics.command` step whose capability list
-   and parameter schema come from that catalog, so a robot that gains an arm or a
-   lift works without a new release of this package.
-3. **Confirm the steps on the builder canvas.** Installing alongside a real
-   `flyto-core` is done: 2.27.0 discovers the package through the entry point,
-   owns all three modules and reports their three capabilities. What is left is
-   the canvas itself — load the builder with this installed and confirm the three
-   steps are visible and usable there.
+1. Keep the three named authoring steps compatible with the current
+   `flyto-core` registry and builder.
+2. Add a generic `robotics.command` authoring step only if its capability and
+   parameter schema can be supplied by an approved external adapter without
+   weakening the named Move / Turn / Stop experience.
+3. Add simulator-backed acceptance through the same external adapter contract
+   used by physical robots. Simulator-specific control paths are not allowed.
+4. Confirm the three named steps on the real Flyto2 builder canvas.
 
 ## Later
 
-- Decide whether preview metadata should be refreshed from a cached catalog
-  without making the canvas depend on an online robot.
+- Evaluate MHS / ROS 2 / Nav2 / Open-RMF adapters as interchangeable external
+  execution backends.
+- Decide whether preview metadata may be refreshed from a cached approved
+  adapter catalog while remaining usable offline.
 
 ## Explicitly out of scope
 
-- **Collapsing the three named steps into the generic one.** Three nodes labelled
-  Move / Turn / Stop read at a glance on a canvas; one generic node makes three
-  identical boxes, turns static validation into a runtime fetch from a robot that
-  may be offline while authoring, and cannot vary `icon` or `can_connect_to` per
-  capability.
-- **Driving hardware from this package.** See PROJECT.md.
+- Robot-local Flyto2 runtime.
+- Pi job runner.
+- Direct browser-to-robot WebSocket control.
+- Hard-coded gateway URLs.
+- ROS, serial or motor control in this package.
+- Treating executor success as mission completion.
