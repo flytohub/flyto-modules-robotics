@@ -8,9 +8,9 @@
   no longer returns `requires_device` for the robot.
 - Remove module credential requirements: workflow authoring no longer talks to a
   robot-local Flyto2 gateway.
-- Remove the production-facing `gateway.py` and top-level gateway exports. Keep
-  the old HTTP client only as explicitly named `legacy_gateway.py` for
-  Gazebo/historical reproduction, with no implicit loopback default.
+- Remove the production-facing `gateway.py`, then retire the final
+  `legacy_gateway.py` HTTP client and executable Lima/Gazebo runtime harness
+  after organization-wide search found no remaining production consumer.
 - Document TurtleBot3 as standard ROS 2 equipment controlled by an external
   Generic ROS 2 Adapter.
 
