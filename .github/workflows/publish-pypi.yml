@@ -92,20 +92,19 @@ jobs:
         run: pip install dist/*.whl
 
       - name: It imports where there is no execution engine
-        # The property this package is built around: a Raspberry Pi installs it
-        # for the plan builders alone and has no flyto-core at all. Asserted
-        # against the built wheel, in a job that never installs flyto-core.
+        # Pure authoring contract: no flyto-core, ROS, runtime, or robot needed.
         run: |
           python -c "
           from importlib.metadata import version as dist_version
           import flyto_modules_robotics as pkg
-          from flyto_modules_robotics.steps import plan_for_step
           installed = dist_version('flyto-modules-robotics')
           assert pkg.__version__ == installed, (pkg.__version__, installed)
-          plan = plan_for_step('robotics.turn', {'degrees': 90}, robot_id='r1')
-          assert plan['steps'][0]['arguments']['yaw_delta_rad'] > 0
-          assert plan['steps'][-1]['capability'] == 'safe_stop'
-          print('pure import and plan build:', plan['plan_id'], installed)
+          request = pkg.capability_request_for_step(
+              'robotics.turn', {'degrees': 90}, resource_id='r1'
+          )
+          assert request['contract_version'] == 'flyto.capability-request.v1'
+          assert request['capability_id'] == 'motion.rotate'
+          print('pure capability request:', request['capability_id'], installed)
           "
 
       - name: A real flyto-core discovers it through the entry point

@@ -1,16 +1,10 @@
-"""The workflow steps this package adds to the builder.
+"""Robotics authoring nodes for Flyto2 workflows.
 
-A step here declares desired motion; it never performs it. The module executes
-on a normal Flyto2 computer and emits a standard capability request naming the
-*commanded resource*. It does not choose the execution host and it never talks
-to the robot.
-
-AI Space / War Room owns placement of the execution computer. A Generic ROS 2
-Adapter on that computer translates the request to standard ROS 2. The robot
-therefore needs no Flyto2 package, credential, runner or gateway.
-
-flyto-core is imported inside :func:`build_modules`, never at module scope, so
-the pure authoring contract remains importable where flyto-core is absent.
+These nodes produce bounded `flyto.capability-request.v1` requests for
+commanded equipment.  They never import ROS, choose an execution host, or
+construct an adapter.  If a trusted AI Space host injects an opaque capability
+dispatcher, the same canonical request can be executed at the original workflow
+step; otherwise the node remains declaration-only.
 """
 
 from __future__ import annotations
@@ -18,37 +12,79 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from .capability_request import capability_request_for_step
-from .plan import PlanBuildError
-from .steps import MODULE_MOVE, MODULE_STOP, MODULE_TURN, preview_plan_for_step
+from .capability_request import (
+    DEFAULT_SPEED_MPS,
+    MAX_DISTANCE_M,
+    MAX_RETREAT_SPEED_MPS,
+    MAX_TURN_DEGREES,
+    MIN_DISTANCE_M,
+    MIN_SPEED_MPS,
+    MIN_TURN_DEGREES,
+    CapabilityRequestError,
+    capability_request_for_step,
+)
+from .steps import MODULE_MOVE, MODULE_STOP, MODULE_TURN
 
-# Re-exported for callers that used to read these here. The identifiers now
-# live beside the mapping that gives them meaning, in steps.py.
 __all__ = ["MODULE_MOVE", "MODULE_STOP", "MODULE_TURN", "build_modules"]
 
 CATEGORY = "robotics"
 ICON_COLOR = "#22D3EE"
-RUNTIME_DISPATCHER_CONTEXT_KEY = "_flyto_runtime_external_capability_dispatcher"
 
-# What each step asks a device to be able to do, named in flyto-core's
-# registry vocabulary. Registry identifiers deliberately omit the catalog's
-# ``@1`` revision suffix: flyto-core accepts only its safe bounded identifier
-# grammar here, while the execution catalog owns revisioned capability IDs.
-# One capability per step, and no two steps share one: the mapping is how a
-# device's declared abilities are matched to an authored step, so a duplicate
-# would make two different motions indistinguishable at match time.
-#
-# These remain the builder-plugin registration identifiers for backward
-# compatibility. They are not the physical execution vocabulary. Runtime
-# requests emitted below use the canonical Space capability ids:
-# motion.advance / motion.retreat / motion.rotate / motion.halt.
-CAPABILITY_MOVE = "robotics.motion.move_relative"
-CAPABILITY_TURN = "robotics.motion.turn_relative"
-CAPABILITY_STOP = "robotics.safety.safe_stop"
+# Internal Core ABI for an opaque host-created authority.  The spelling predates
+# the host-neutral architecture; Flyto2 Runtime is not required.
+HOST_DISPATCHER_CONTEXT_KEY = "_flyto_runtime_external_capability_dispatcher"
+
+MOVE_PARAMS_SCHEMA = {
+    "distance_m": {
+        "type": "number",
+        "label": "Distance (m)",
+        "description": "Bounded travel distance",
+        "min": MIN_DISTANCE_M,
+        "max": MAX_DISTANCE_M,
+        "required": True,
+    },
+    "speed": {
+        "type": "number",
+        "label": "Speed (m/s)",
+        "description": "Conservative speed valid for forward and reverse motion",
+        "default": DEFAULT_SPEED_MPS,
+        "min": MIN_SPEED_MPS,
+        "max": MAX_RETREAT_SPEED_MPS,
+        "required": False,
+    },
+    "reverse": {
+        "type": "boolean",
+        "label": "Reverse",
+        "description": "Move backward instead of forward",
+        "default": False,
+        "required": False,
+    },
+}
+
+TURN_PARAMS_SCHEMA = {
+    "degrees": {
+        "type": "number",
+        "label": "Angle (degrees)",
+        "description": "Bounded in-place rotation angle",
+        "min": MIN_TURN_DEGREES,
+        "max": MAX_TURN_DEGREES,
+        "required": True,
+    },
+    "clockwise": {
+        "type": "boolean",
+        "label": "Clockwise",
+        "description": "Rotate right instead of left",
+        "default": False,
+        "required": False,
+    },
+}
+
+STOP_PARAMS_SCHEMA: dict[str, Any] = {}
 
 
 def _declare(request: dict[str, Any]) -> dict[str, Any]:
     """Return desired work without selecting or contacting an execution host."""
+
     return {
         "dispatched": False,
         "commanded_resource": request["resource_id"],
@@ -58,7 +94,8 @@ def _declare(request: dict[str, Any]) -> dict[str, Any]:
 
 
 def _refuse(exc: Exception) -> dict[str, Any]:
-    """A step that cannot even be described is a workflow fault, reported."""
+    """Return a bounded authoring failure instead of raising through a workflow."""
+
     return {
         "dispatched": False,
         "commanded_resource": "",
@@ -67,12 +104,9 @@ def _refuse(exc: Exception) -> dict[str, Any]:
 
 
 async def _dispatch_or_declare(step: Any, request: dict[str, Any]) -> dict[str, Any]:
-    """Execute through a trusted host runtime when one was injected.
+    """Execute only through opaque authority supplied by the selected host."""
 
-    The package never imports or constructs an adapter. In builder/preview
-    contexts no runtime capability exists and the step stays declaration-only.
-    """
-    dispatcher = step.context.get(RUNTIME_DISPATCHER_CONTEXT_KEY)
+    dispatcher = step.context.get(HOST_DISPATCHER_CONTEXT_KEY)
     if dispatcher is None:
         return _declare(request)
     if (
@@ -80,10 +114,13 @@ async def _dispatch_or_declare(step: Any, request: dict[str, Any]) -> dict[str, 
         or not callable(getattr(dispatcher, "invoke", None))
     ):
         raise RuntimeError("untrusted external capability dispatcher")
+
     record = await dispatcher.invoke(request)
     outcome = str(record.get("outcome") or "") if isinstance(record, Mapping) else ""
     if outcome != "completed":
-        detail = str(record.get("detail") or outcome or "external capability failed")[:300]
+        detail = str(
+            record.get("detail") or outcome or "external capability failed"
+        )[:300]
         return {
             "ok": False,
             "error": detail,
@@ -102,61 +139,60 @@ async def _dispatch_or_declare(step: Any, request: dict[str, Any]) -> dict[str, 
 
 
 def _resource_id(step: Any) -> str:
-    """The equipment being commanded, never the computer executing the workflow.
+    """Resolve commanded equipment, never the computer executing the workflow."""
 
-    `resource_id` is canonical. `robot_id` remains an input alias for
-    already-authored workflows; neither value is an adapter address or an
-    execution-host selector.
-    """
     named = str(
         step.params.get("resource_id") or step.params.get("robot_id") or ""
     ).strip()
     return named or str(step.context.get("resource_id", "")).strip()
 
 
-def _validate_params(module_id: str, params: Mapping[str, Any]) -> None:
-    """Validate existing canvas parameters without producing executable work."""
-    plan = preview_plan_for_step(module_id, params, robot_id="validation-only")
-    if plan is None:  # pragma: no cover - classes and mapping are defined together
-        raise PlanBuildError(f"no robotics capability request is defined for {module_id}")
-
-
-def _request_from_step(step: Any, module_id: str) -> dict[str, Any]:
+def _request_for(
+    module_id: str,
+    params: Mapping[str, Any],
+    resource_id: str,
+) -> dict[str, Any]:
     request = capability_request_for_step(
         module_id,
-        step.params,
-        resource_id=_resource_id(step),
+        params,
+        resource_id=resource_id,
     )
-    if request is None:  # pragma: no cover - classes and mapping are defined together
-        raise PlanBuildError(f"no robotics capability request is defined for {module_id}")
+    if request is None:  # pragma: no cover - declarations and ids are co-owned
+        raise CapabilityRequestError(
+            f"no robotics capability request is defined for {module_id}"
+        )
     return request
 
 
-# flyto-core awaits execute() (core/modules/base.py: `return await self.execute()`),
-# so these must be coroutines. They were plain functions, and every one of the
-# 36 tests passed anyway because the stand-in base class in test_registration.py
-# calls .execute() synchronously — the engine's own contract was never in the
-# room. Against a real installed flyto-core the step died with "object dict
-# can't be used in 'await' expression", which is not a failure a workflow author
-# can act on.
-def build_modules(base_module, register_module) -> list[tuple[str, type]]:
-    """Define the module classes against whatever flyto-core provides.
+def _validate_params(module_id: str, params: Mapping[str, Any]) -> None:
+    """Validate canvas parameters against the production request contract."""
 
-    The base class and decorator are passed in rather than imported so this
-    function has no import-time dependency on flyto-core, and so a test can
-    exercise the classes against a stand-in.
+    _request_for(module_id, params, "validation-only")
+
+
+def _request_from_step(step: Any, module_id: str) -> dict[str, Any]:
+    return _request_for(module_id, step.params, _resource_id(step))
+
+
+def build_modules(base_module, register_module) -> list[tuple[str, type]]:
+    """Define the three optional builder modules against flyto-core's API.
+
+    `provides_capability` is intentionally unset.  These are authoring nodes,
+    not resource providers, and Move may request either `motion.advance` or
+    `motion.retreat` depending on its parameters.  Resource admission therefore
+    follows the emitted canonical request, not misleading singular registry
+    metadata.
     """
 
     @register_module(
         module_id=MODULE_MOVE,
-        version="1.0.0",
+        version="2.0.0",
         category=CATEGORY,
         subcategory="motion",
-        provides_capability=CAPABILITY_MOVE,
         tags=["robot", "motion", "move", "drive"],
         label="Move Robot",
         label_key="modules.robotics.move.label",
-        description="Drive the robot a fixed distance in a straight line, then stop",
+        description="Move commanded equipment a bounded distance, then stop",
         description_key="modules.robotics.move.description",
         icon="MoveVertical",
         color=ICON_COLOR,
@@ -164,6 +200,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         output_types=["object"],
         can_receive_from=["*"],
         can_connect_to=["*"],
+        params_schema=MOVE_PARAMS_SCHEMA,
         timeout_ms=180000,
         retryable=False,
         concurrent_safe=False,
@@ -173,7 +210,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
     class RoboticsMove(base_module):
         module_id = MODULE_MOVE
         module_name = "Move Robot"
-        module_description = "Drive a fixed distance, then stop safely"
+        module_description = "Move a bounded distance, then stop safely"
 
         def validate_params(self) -> None:
             _validate_params(MODULE_MOVE, self.params)
@@ -181,21 +218,19 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         async def execute(self) -> dict[str, Any]:
             try:
                 request = _request_from_step(self, MODULE_MOVE)
-            except (PlanBuildError, ValueError) as exc:
+            except (CapabilityRequestError, ValueError) as exc:
                 return _refuse(exc)
             return await _dispatch_or_declare(self, request)
 
-
     @register_module(
         module_id=MODULE_TURN,
-        version="1.0.0",
+        version="2.0.0",
         category=CATEGORY,
         subcategory="motion",
-        provides_capability=CAPABILITY_TURN,
         tags=["robot", "motion", "turn", "rotate"],
         label="Turn Robot",
         label_key="modules.robotics.turn.label",
-        description="Turn the robot in place by an angle, then stop",
+        description="Rotate commanded equipment in place by a bounded angle",
         description_key="modules.robotics.turn.description",
         icon="RotateCw",
         color=ICON_COLOR,
@@ -203,6 +238,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         output_types=["object"],
         can_receive_from=["*"],
         can_connect_to=["*"],
+        params_schema=TURN_PARAMS_SCHEMA,
         timeout_ms=180000,
         retryable=False,
         concurrent_safe=False,
@@ -212,7 +248,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
     class RoboticsTurn(base_module):
         module_id = MODULE_TURN
         module_name = "Turn Robot"
-        module_description = "Turn in place, then stop safely"
+        module_description = "Rotate in place by a bounded angle"
 
         def validate_params(self) -> None:
             _validate_params(MODULE_TURN, self.params)
@@ -220,21 +256,19 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         async def execute(self) -> dict[str, Any]:
             try:
                 request = _request_from_step(self, MODULE_TURN)
-            except (PlanBuildError, ValueError) as exc:
+            except (CapabilityRequestError, ValueError) as exc:
                 return _refuse(exc)
             return await _dispatch_or_declare(self, request)
 
-
     @register_module(
         module_id=MODULE_STOP,
-        version="1.0.0",
+        version="2.0.0",
         category=CATEGORY,
         subcategory="motion",
-        provides_capability=CAPABILITY_STOP,
         tags=["robot", "motion", "stop", "safety"],
         label="Stop Robot",
         label_key="modules.robotics.stop.label",
-        description="Bring the robot to a safe stop and hold it",
+        description="Command equipment to halt motion safely",
         description_key="modules.robotics.stop.description",
         icon="Square",
         color="#F87171",
@@ -242,6 +276,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         output_types=["object"],
         can_receive_from=["*"],
         can_connect_to=["*"],
+        params_schema=STOP_PARAMS_SCHEMA,
         timeout_ms=90000,
         retryable=True,
         concurrent_safe=False,
@@ -251,7 +286,7 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
     class RoboticsStop(base_module):
         module_id = MODULE_STOP
         module_name = "Stop Robot"
-        module_description = "Safe stop, held for a bounded time"
+        module_description = "Halt motion safely"
 
         def validate_params(self) -> None:
             _validate_params(MODULE_STOP, self.params)
@@ -259,10 +294,9 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
         async def execute(self) -> dict[str, Any]:
             try:
                 request = _request_from_step(self, MODULE_STOP)
-            except (PlanBuildError, ValueError) as exc:
+            except (CapabilityRequestError, ValueError) as exc:
                 return _refuse(exc)
             return await _dispatch_or_declare(self, request)
-
 
     return [
         (MODULE_MOVE, RoboticsMove),

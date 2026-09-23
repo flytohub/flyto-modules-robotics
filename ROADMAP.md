@@ -1,33 +1,21 @@
 # Roadmap
 
-## Near term
+## Software closure
 
-1. **External adapter consumer integration.**
-   Have the AI Space/workflow runtime consume `flyto.capability-request.v1`
-   directly and route it to the approved external Generic ROS 2 Adapter.
-2. **Canonical capability metadata.**
-   Move builder registration metadata away from the historical
-   `robotics.motion.*` authoring identifiers once the host registry supports a
-   module that may emit more than one execution capability (Move can advance or
-   retreat).
-3. **Builder acceptance.**
-   Load a real Flyto2 builder with this package installed and verify Move /
-   Turn / Stop authoring plus the emitted capability request.
-4. **Finish pure authoring-contract migration.**
-   The robot-local HTTP gateway and executable Gazebo runtime are gone. Remove
-   the remaining lower delivery-catalog / `flyto.robotics.plan.v1` authoring
-   compatibility once the builder no longer reuses it for parameter validation.
+Completed:
+1. Canonical `flyto.capability-request.v1` authoring contract.
+2. Host-neutral execution handoff to the approved external adapter path.
+3. Real `flyto-core` builder-registry acceptance for Move / Turn / Stop.
+4. Explicit builder parameter schemas.
+5. Authoring bounds aligned with the Generic ROS 2 Adapter.
+6. Removal of the retired plan/catalog/gateway authoring path.
 
-## Later
+## Remaining product work
 
-- Add higher-level authoring nodes only when they map to a stable Flyto2
-  capability (for example named navigation), not to a robot vendor API.
-- Allow adapter-discovered capability schemas to improve authoring UI without
-  making an offline canvas depend on a live robot.
+- Add higher-level nodes only when backed by stable Flyto2 capabilities, such as named navigation.
+- Allow adapter-discovered schemas to enrich the authoring UI without making an offline canvas depend on live hardware.
+- Decide separately whether this package should be published to PyPI.
 
-## Explicitly out of scope
+## Physical acceptance
 
-- ROS, serial, motor or `cmd_vel` access in this package.
-- Pi-side Flyto2 runners/gateways.
-- A second scheduler or execution authority.
-- Making action completion equal task completion.
+Physical TurtleBot3 movement, interruption, safe-stop, sensor/evidence verification, and recovery remain separate hardware acceptance work.

@@ -1,5 +1,18 @@
 # Decisions
 
+## 2026-09-23 — One production robotics authoring contract
+
+Decision: `flyto.capability-request.v1` is the only production output of flyto-modules-robotics. The historical delivery plan and capability-catalog APIs are removed rather than retained as parallel compatibility paths.
+
+Decision: builder parameter validation uses the same bounded vocabulary expected by the Generic ROS 2 Adapter. A workflow must not be accepted by the builder when the standard adapter is already known to reject it.
+
+Decision: robotics authoring modules do not declare singular `provides_capability` metadata. Move may emit either `motion.advance` or `motion.retreat`; execution-resource admission follows the emitted request, not a misleading static capability label.
+
+Decision: physical acceptance remains separate from software closure. No green unit/CI result is evidence that a real robot moved safely.
+
+
+## Historical record
+
 ## 2026-09-21 — Robotics modules emit capability requests; robots stay standard ROS 2
 
 Decision: production workflow execution from this package ends at

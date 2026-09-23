@@ -2,35 +2,33 @@
 
 ## Purpose
 
-Make physical-motion intent authorable in Flyto2 workflows without turning a
-robot into a Flyto2 appliance.
+Optional Flyto2 builder plugin for authoring robot motion without making the robot a Flyto2 appliance.
 
-The package is an optional `flyto-core` builder plugin. It converts authored
-Move / Turn / Stop nodes into canonical capability requests that an external
-adapter can execute.
+The package owns three authoring nodes:
+- `robotics.move`
+- `robotics.turn`
+- `robotics.stop`
 
-## Owned surfaces
+Each node emits one bounded `flyto.capability-request.v1` request for commanded equipment. Execution placement, ROS 2 transport, hardware safety, and mission verification live outside this package.
 
-- `robotics.move`, `robotics.turn`, `robotics.stop` authoring nodes.
-- `flyto.capability-request.v1` projection for those nodes.
-- Mapping from authored direction/angle to canonical Space capabilities:
-  `motion.advance`, `motion.retreat`, `motion.rotate`, `motion.halt`.
-- Pure legacy preview/plan helpers while old authoring consumers migrate.
+## Production contract
+
+- Move → `motion.advance` or `motion.retreat`
+- Turn → `motion.rotate`
+- Stop → `motion.halt`
+
+The package contains no production `flyto.robotics.plan.v1`, capability-catalog parser, gateway client, ROS client, runtime daemon, or Pi-side executor.
 
 ## Users
 
 - Workflow authors using the Flyto2 builder.
-- AI Space / workflow runtimes consuming the emitted capability request.
-- Maintainers reading retained historical Gazebo receipts as audit evidence.
+- AI Space / workflow hosts consuming canonical capability requests.
+- Maintainers reading historical Gazebo receipts as audit evidence.
 
 ## Non-goals
 
-- Driving hardware or importing ROS 2.
-- Running a Flyto2 daemon on the robot.
+- Driving hardware directly.
 - Choosing the execution computer.
-- Storing credentials or adapter addresses in workflow steps.
-- Owning hardware safety or mission-verification truth.
-- Defining a competing robot hardware protocol.
-
-The physical robot is standard ROS 2 equipment. The execution adapter belongs on
-an external computer.
+- Shipping credentials, hostnames, or adapter addresses in workflow data.
+- Declaring a physical mission successful.
+- Running Flyto2 Runtime or Core on the robot.
