@@ -1,112 +1,56 @@
 # Architecture
 
-## Product boundary
-
-This repository owns **workflow authoring**, not robot execution.
+## Production path
 
 ```text
-                 Flyto2 Cloud / War Room
-                        |
-                 selects policy/resource
-                        |
-                        v
-               AI Space computer
-               (execution host)
-                        |
-              workflow module emits
-           flyto.capability-request.v1
-                        |
-                        v
-              Generic ROS 2 Adapter
-                        |
-          standard ROS 2 / DDS / Zenoh
-                        |
-                        v
-                  robot resource
-              (commanded equipment)
+Flyto2 Cloud / War Room
+        |
+        | selects workflow host + commanded resource
+        v
+AI Space execution host
+        |
+        | flyto.capability-request.v1
+        v
+Generic ROS 2 Adapter
+        |
+        | standard ROS 2 / DDS / Zenoh / rosbridge
+        v
+robot resource
 ```
 
-The execution host and commanded resource are different concepts. A TurtleBot3
-resource id never means "put the Flyto2 job runner on this Pi".
+This repository owns only the authoring edge between the builder and the canonical capability request.
 
-## Layer 1 — builder plugin
+## Builder plugin
 
-`modules.py` registers Move / Turn / Stop with `flyto-core` through the
-existing `flyto.modules` entry point.
+`modules.py` registers Move / Turn / Stop through the existing `flyto.modules` entry point. Each module has explicit `params_schema` metadata so the real builder can render and validate its inputs.
 
-The module:
+The module validates against the production capability contract, then emits one canonical request. It does not emit `requires_device`, choose an execution host, open a network connection, or import ROS.
 
-1. validates existing canvas parameters;
-2. resolves the commanded equipment id from `resource_id` (with
-   `robot_id` accepted only as a backward-compatible authoring alias);
-3. builds one canonical capability request;
-4. remains declaration-only unless the selected AI Space host injected the
-   trusted ephemeral runtime dispatcher;
-5. performs no network or ROS operation itself.
+`provides_capability` is intentionally unset. These classes are authoring nodes, not resource providers, and `robotics.move` can emit either `motion.advance` or `motion.retreat` depending on parameters. Resource admission follows the emitted request.
 
-The result deliberately has no `requires_device` execution-placement field.
-It carries `commanded_resource` instead.
+## Canonical bounds
 
-## Layer 2 — capability request
+The authoring contract is aligned with the Generic ROS 2 Adapter:
+- distance: 0.05–2.0 m
+- speed: 0.02–0.25 m/s forward
+- speed: 0.02–0.20 m/s reverse
+- rotation: 1–180 degrees
+- stop: no legacy dwell argument
 
-`capability_request.py` is the production contract of this package.
+The builder exposes the conservative 0.20 m/s move maximum so the same authored Move node remains valid if the user switches it to reverse.
 
-| Authored node | Capability |
-|---|---|
-| Move forward | `motion.advance` |
-| Move reverse | `motion.retreat` |
-| Turn | `motion.rotate` |
-| Stop | `motion.halt` |
+## Host dispatch
 
-The request contains:
+In ordinary builder/preview contexts the node is declaration-only. A selected execution host may inject an opaque trusted dispatcher. The package cannot construct that authority from workflow data.
 
-- contract version;
-- commanded resource id;
-- capability id;
-- bounded arguments;
-- human-readable goal.
+## Removed legacy path
 
-It contains no host, gateway, token, execution-computer identity or ROS node
-name.
-
-The current Move/Turn/Stop parameter validation reuses the existing pure preview
-plan builders so authored bounds have one implementation while migration is in
-progress. The lower gateway plan never crosses the production request boundary.
-
-## Layer 3 — external adapter
-
-This repository does not implement the Generic ROS 2 Adapter. That adapter runs
-on the selected AI Space computer and maps approved capabilities to standard ROS
-2, for example Nav2 actions and `/cmd_vel`. The module sees only an opaque
-runtime dispatcher in its execution context; it never imports the adapter or
-knows its transport.
-
-The adapter returns execution observations/evidence; it does not decide the
-mission verdict. Cloud verification remains authoritative.
-
-## Legacy authoring compatibility
-
-`plan.py` and `catalog.py` remain pure, offline compatibility helpers while
-the builder contract migrates away from the historical
-`flyto.robotics.plan.v1` vocabulary. They open no socket and are outside the
-production execution authority path.
-
-The retired robot-local HTTP gateway client and Gazebo runtime harness are no
-longer shipped by this repository. Historical evidence remains in committed
-handoffs/results only.
-
-## flyto-core import boundary
-
-`flyto-core` is imported only inside `register_all`. An absent or
-incompatible registration API is logged and skipped; failures inside a present
-plugin continue to raise so discovery does not silently lose robotics nodes.
+The old `flyto.robotics.plan.v1`, delivery capability catalog, robot-local HTTP gateway, and executable Gazebo runtime path are not part of the production package anymore. Historical files in handoffs/results remain evidence only.
 
 ## Safety invariants
 
-- No hardware access in this package.
-- No `rclpy`, serial, velocity or device driver.
-- No host/address in workflow parameters.
-- No robot-side Flyto2 runtime assumption.
-- No implicit legacy gateway address.
-- Capability discovery/authoring never grants execution authority.
-- Robot execution success never equals mission completion.
+- no `rclpy`, serial access, motor driver, or `cmd_vel` publication here;
+- no host/address/token in capability requests;
+- commanded equipment and execution host remain separate identities;
+- execution success is not mission verification;
+- physical acceptance remains outside software closure.

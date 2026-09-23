@@ -1,158 +1,81 @@
 # flyto-modules-robotics
 
-Optional robotics **authoring** modules for Flyto2 workflows.
+Optional robotics authoring modules for Flyto2 workflows.
 
-Installing this package adds human-readable Move / Turn / Stop nodes to
-`flyto-core`. Those nodes never choose an execution computer and never import
-ROS or a robot transport. In ordinary authoring/preview contexts they emit a
-canonical capability request for commanded equipment. On an AI Space computer,
-Flyto2 may inject one trusted ephemeral runtime dispatcher; only then does the
-same step execute that canonical request through the host-owned adapter.
+Installing this package beside `flyto-core` adds Move / Turn / Stop nodes to the builder. The nodes emit bounded `flyto.capability-request.v1` requests for commanded equipment; they never choose an execution computer, import ROS, or talk directly to a robot.
 
-## Production architecture
+## Architecture
 
-```text
-Workflow / Space Task
-        |
-        v
-AI Space computer selected by Flyto2
-        |
-        |  capability_request
-        v
-Generic ROS 2 Adapter
-        |
-        |  DDS / Zenoh / rosbridge / standard ROS 2
-        v
-TurtleBot3 or other ROS 2 resource
-```
+Workflow / Space Task → AI Space execution host → `flyto.capability-request.v1` → Generic ROS 2 Adapter → robot resource.
 
 The robot is equipment, not a Flyto2 execution host.
 
-A normal TurtleBot3 therefore needs only its upstream ROS 2 stack: TurtleBot3
-packages, Nav2/SLAM as needed, LiDAR/camera drivers, odometry/TF and a standard
-ROS transport. It does **not** need this package, `flyto-core`, a Flyto2
-credential, job runner, scheduler or gateway.
-
-## Installed workflow nodes
-
-| Step ID | Author meaning | Runtime capability request |
-|---|---|---|
-| `robotics.move` | bounded straight-line movement | `motion.advance` or `motion.retreat` |
-| `robotics.turn` | bounded in-place yaw | `motion.rotate` |
-| `robotics.stop` | immediate safe stop | `motion.halt` |
-
-Forward/reverse is decided from the authored Move parameters. A workflow node
-does not carry an adapter URL or execution host.
-
-Example result:
-
-```json
-{
-  "dispatched": false,
-  "commanded_resource": "tb3-lab",
-  "goal": "move forward 0.40 m then stop safely",
-  "capability_request": {
-    "contract_version": "flyto.capability-request.v1",
-    "resource_id": "tb3-lab",
-    "capability_id": "motion.advance",
-    "arguments": {
-      "distance_m": 0.4,
-      "speed_mps": 0.12
-    }
-  }
-}
-```
-
-`resource_id` is the equipment being commanded. It is not the Mac/Laptop/
-Steam Deck executing the workflow. AI Space / War Room owns execution placement.
-
 ## Usage
 
-A workflow author places Move / Turn / Stop on the canvas. AI Space / War Room
-separately chooses which computer runs the workflow and which approved adapter
-may command the resource. The selected computer may inject a trusted runtime
-dispatcher into the workflow context; the module forwards only its canonical
-capability request to that opaque dispatcher and receives the execution record.
+Install the package beside `flyto-core`, then author Move / Turn / Stop nodes in the normal builder. The builder uses schemas shipped by this plugin; AI Space chooses execution placement independently.
 
-Without that trusted runtime capability the exact same module remains
-declaration-only. No robot-local Flyto2 process participates in this handoff.
+| Step | Canonical capability |
+|---|---|
+| `robotics.move` forward | `motion.advance` |
+| `robotics.move` reverse | `motion.retreat` |
+| `robotics.turn` | `motion.rotate` |
+| `robotics.stop` | `motion.halt` |
 
-## Public authoring API
+Move validates 0.05–2.0 m. The builder exposes 0.02–0.20 m/s so one authored Move remains valid in both directions; the pure request API accepts forward speeds up to 0.25 m/s. Turn validates 1–180 degrees. Stop has no retired dwell argument.
 
-`flyto_modules_robotics.capability_request_for_step(...)` is the canonical
-runtime-facing API for this package.
+## API
 
-```python
-from flyto_modules_robotics import capability_request_for_step
+The public production API is `capability_request_for_step`.
 
-request = capability_request_for_step(
-    "robotics.move",
-    {"distance_m": 0.4},
-    resource_id="tb3-lab",
-)
-```
+    from flyto_modules_robotics import capability_request_for_step
 
-The request contains no hostname, bearer token, Pi identity or ROS
-implementation detail.
+    request = capability_request_for_step(
+        "robotics.move",
+        {"distance_m": 0.4},
+        resource_id="tb3-lab",
+    )
 
-## Safety boundary
+The result contains the commanded resource, canonical capability, bounded arguments, and goal. It contains no gateway URL, token, execution host, Pi identity, or ROS implementation detail.
 
-This package never:
+## Builder integration
 
-- opens a serial device;
-- imports `rclpy`;
-- publishes `cmd_vel`;
-- selects a Flyto2 runner;
-- constructs or discovers an adapter;
-- stores a robot credential;
-- decides that a mission objective is complete.
+The package is discovered through the existing `flyto.modules` entry point. The three nodes publish explicit `params_schema` metadata to the real `flyto-core` registry.
 
-The external adapter is responsible for translating an approved capability to a
-standard ROS 2 interface. Flyto2 Cloud independently evaluates returned evidence
-before declaring the task complete.
+`provides_capability` is deliberately unset on the authoring classes because Move can produce two different execution capabilities. Resource admission follows the emitted canonical request.
 
-## Legacy authoring compatibility
+## Host execution
 
-The historical `flyto.robotics.plan.v1` and capability-catalog parser remain
-only as pure authoring/preview compatibility while the builder migration
-finishes. They perform no network I/O and are not an execution path.
+Without host authority, execution is declaration-only. A selected AI Space host may inject one opaque trusted dispatcher; the module then forwards the exact canonical request and returns the execution record. The package cannot manufacture that dispatcher from workflow data.
 
-The robot-local HTTP gateway client and Gazebo runtime harness have been
-retired. Historical simulation receipts remain under handoffs/results as audit
-evidence; new production integration must use
-`capability_request_for_step(...)` and an external adapter.
+## Configuration
+
+There is no robot hostname, gateway URL, credential, or runtime address to configure in this package. The execution host and external adapter are selected elsewhere in Flyto2.
+
+## Removed legacy path
+
+The retired `flyto.robotics.plan.v1`, delivery capability catalog, robot-local HTTP gateway, and executable Gazebo runtime path are no longer production APIs in this package. Historical receipts remain in handoffs/results only.
 
 ## Installation
 
-```bash
-pip install flyto-modules-robotics
-```
+    pip install flyto-modules-robotics
 
-The package remains optional. It is not currently published to PyPI; build a
-wheel locally when testing.
-
-Installing it beside `flyto-core` makes the robotics authoring nodes visible
-through the existing `flyto.modules` entry point.
+The package is optional and is installed on the authoring/execution computer, not on the robot.
 
 ## Testing
 
-```bash
-PYTHONPATH=src python3 -m pytest tests/ -q
-ruff check src tests
-flyto-index verify . --strict
-```
+    PYTHONPATH=src python3.11 -m pytest tests/ -q
+    ruff check src tests
+    flyto-index verify . --strict
 
-The unit suite is pure Python. No unit test needs ROS, a physical robot or
-`flyto-core`.
+Software verification requires no physical robot. Physical TurtleBot3 movement remains a separate acceptance step.
 
-Historical Gazebo receipts remain in the repository as simulation evidence.
-There is no executable robot-local gateway/Gazebo runtime path in this package.
+## Development
 
-## Releasing
+Keep the package pure: no ROS imports, no robot-local runtime, no gateway client, and no execution-host selection. Update project-memory files when changing contract boundaries.
 
-The project is not on PyPI. If publishing is approved, the existing Trusted
-Publishing workflow is used; no long-lived PyPI token belongs in this
-repository.
+## Release
+
+The package is currently not published to PyPI. The repository contains a Trusted Publishing workflow for a future explicit release decision.
 
 ## License
 

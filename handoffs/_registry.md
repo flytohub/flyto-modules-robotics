@@ -14,3 +14,4 @@ New handoffs use `YYYY-MM-DD-topic.md`.
 The work that created this package is recorded in
 `flyto-cloud/handoffs/2026-08-05-space-task-closed-loop.md`, because it spans
 three repositories.
+- [2026-09-23 software closure](2026-09-23-software-closure.md) — canonical authoring contract closed; only physical acceptance remains.

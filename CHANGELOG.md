@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0 — software closure (2026-09-23)
+
+- Make `flyto.capability-request.v1` the sole production authoring contract.
+- Align Move/Turn validation with the Generic ROS 2 Adapter contract.
+- Add explicit builder parameter schemas and real flyto-core registry acceptance.
+- Remove misleading singular resource capability metadata from robotics authoring nodes.
+- Remove retired plan/catalog authoring APIs and their executable release smoke path.
+- Keep physical TurtleBot3 acceptance explicitly separate.
+
+
+## Historical record
+
 ## Unreleased — external ROS 2 adapter architecture (2026-09-21)
 
 - Change Move/Turn/Stop runtime output to `flyto.capability-request.v1` with a

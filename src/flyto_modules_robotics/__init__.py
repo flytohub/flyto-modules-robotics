@@ -1,9 +1,9 @@
 """Optional robotics authoring modules for Flyto2 workflows.
 
-flyto-core discovers this package through its ``flyto.modules`` entry point.
-The registered Move/Turn/Stop nodes emit standard capability requests for
-commanded equipment. Execution placement and ROS 2 transport live outside this
-package and outside the robot.
+flyto-core discovers this package through its `flyto.modules` entry point.
+Move / Turn / Stop emit bounded `flyto.capability-request.v1` requests for
+commanded equipment.  Execution placement and physical transport live outside
+this package and outside the robot.
 """
 
 from __future__ import annotations
@@ -12,58 +12,69 @@ import logging
 import os
 
 from .capability_request import (
+    CAPABILITY_ADVANCE,
+    CAPABILITY_HALT,
     CAPABILITY_REQUEST_VERSION,
+    CAPABILITY_RETREAT,
+    CAPABILITY_ROTATE,
+    DEFAULT_SPEED_MPS,
+    MAX_ADVANCE_SPEED_MPS,
+    MAX_DISTANCE_M,
+    MAX_RETREAT_SPEED_MPS,
+    MAX_TURN_DEGREES,
+    MIN_DISTANCE_M,
+    MIN_SPEED_MPS,
+    MIN_TURN_DEGREES,
+    CapabilityRequestError,
+    PlanBuildError,
     capability_request_for_step,
 )
-from .catalog import Capability, CapabilityCatalog, CapabilityCatalogError
-from .plan import (
-    MAX_DISTANCE_M,
-    MAX_SPEED_MPS,
-    PlanBuildError,
-    move_plan,
-    run_request,
-    stop_plan,
-    turn_plan,
+from .steps import (
+    MODULE_IDS,
+    MODULE_MOVE,
+    MODULE_STOP,
+    MODULE_TURN,
+    is_robotics_step,
+    step_module_id,
 )
-from .steps import plan_for_step, preview_plan_for_step, trusted_plan_for_step
 
 __all__ = [
+    "CAPABILITY_ADVANCE",
+    "CAPABILITY_HALT",
     "CAPABILITY_REQUEST_VERSION",
+    "CAPABILITY_RETREAT",
+    "CAPABILITY_ROTATE",
+    "DEFAULT_SPEED_MPS",
+    "MAX_ADVANCE_SPEED_MPS",
     "MAX_DISTANCE_M",
-    "MAX_SPEED_MPS",
-    "Capability",
-    "CapabilityCatalog",
-    "CapabilityCatalogError",
+    "MAX_RETREAT_SPEED_MPS",
+    "MAX_TURN_DEGREES",
+    "MIN_DISTANCE_M",
+    "MIN_SPEED_MPS",
+    "MIN_TURN_DEGREES",
+    "MODULE_IDS",
+    "MODULE_MOVE",
+    "MODULE_STOP",
+    "MODULE_TURN",
+    "CapabilityRequestError",
     "PlanBuildError",
     "capability_request_for_step",
-    "move_plan",
-    "plan_for_step",
-    "preview_plan_for_step",
+    "is_robotics_step",
     "register_all",
-    "run_request",
-    "stop_plan",
-    "trusted_plan_for_step",
-    "turn_plan",
+    "step_module_id",
 ]
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 logger = logging.getLogger(__name__)
 
-# The flyto-core names this package imports directly, and the packages they sit
-# in. An ImportError naming one of these, raised by this file's own import
-# statement, is the one expected outcome: flyto-core is not installed on this
-# machine, or the installed one no longer offers the API this package registers
-# through. Everything else -- a dependency missing inside flyto-core, a broken
-# module in this package, a decorator that raises -- is a real plugin failure
-# and belongs to flyto-core's discovery boundary, which is what can report
-# *which* plugin failed and why.
 _CORE_API_MODULES = frozenset({"core.modules.base", "core.modules.registry"})
 _CORE_API_PACKAGES = frozenset({"core", "core.modules"})
 
 
 def _is_import_machinery(filename: str) -> bool:
     """Whether a traceback frame belongs to the import system itself."""
+
     if filename.startswith(("<frozen importlib", "<frozen zipimport")):
         return True
     marker = os.sep + "importlib" + os.sep + "_bootstrap"
@@ -71,19 +82,8 @@ def _is_import_machinery(filename: str) -> bool:
 
 
 def _raised_by_our_own_import(exc: ImportError) -> bool:
-    """Whether this ImportError is *this file's* import statement failing.
+    """Whether an ImportError is this package's own Core import failing."""
 
-    An import that reached flyto-core's code and failed inside it leaves that
-    code's frame in the traceback. CPython removes the import machinery's own
-    frames for ImportError, and the few that survive are recognised above. So a
-    traceback holding nothing but this file and the machinery means the import
-    itself did not resolve -- not that something behind it blew up.
-
-    Without this check the name test below is forgeable: flyto-core failing on
-    its own ``from core.modules.registry import ...`` would arrive here naming a
-    module in ``_CORE_API_MODULES`` and would be mislabelled "flyto-core is
-    absent", hiding a real breakage behind a reassuring warning.
-    """
     here = os.path.normcase(os.path.abspath(__file__))
     tb = exc.__traceback__
     while tb is not None:
@@ -98,11 +98,8 @@ def _raised_by_our_own_import(exc: ImportError) -> bool:
 
 
 def _core_unusable_reason(exc: ImportError) -> str | None:
-    """Why flyto-core cannot be registered into here, or None to re-raise.
+    """Return the two expected Core incompatibility cases, else re-raise."""
 
-    Returns a reason only for the two cases this package is entitled to
-    swallow, and None for every other ImportError so it keeps travelling.
-    """
     if not _raised_by_our_own_import(exc):
         return None
     name = exc.name
@@ -116,31 +113,14 @@ def _core_unusable_reason(exc: ImportError) -> str | None:
 
 
 def register_all() -> None:
-    """Register the robotics modules with flyto-core's registry.
+    """Register the robotics authoring modules with flyto-core.
 
-    Imports flyto-core here rather than at module scope: this package must stay
-    importable — and its plan building testable — where flyto-core is absent.
-
-    A flyto-core that is absent, or present on a contract without the API this
-    package imports, is logged and returns rather than raising. flyto-core loads
-    every plugin in one loop, so raising for the ordinary "not installed here"
-    case would take module discovery down for every other plugin as well.
-
-    Every other failure is re-raised, deliberately. A dependency missing *inside*
-    flyto-core, a broken import in this package's own ``modules``, a decorator or
-    a ``build_modules`` that raises — those are this plugin failing, and only
-    flyto-core's discovery boundary can say so. Reporting them as "flyto-core is
-    absent" would leave an installed engine silently short three robot steps with
-    a warning pointing at the wrong machine.
-
-    Registration is redone on every call and nothing is remembered between them.
-    That is what makes it survive a registry that was cleared or hot-reloaded: a
-    process-global "already registered" flag would skip the second call and leave
-    the fresh registry permanently empty. Repeating is safe because the registry
-    is keyed by module id — the same three ids, in the same order, carrying the
-    same capability metadata, and the plugin ownership the host stamps around
-    this call is re-stamped with them.
+    Core is imported only here so the pure capability-request API remains
+    importable without an execution engine.  A missing/incompatible Core API is
+    logged; failures inside Core or this plugin continue to propagate.
+    Registration is intentionally repeatable for registry reloads.
     """
+
     try:
         from core.modules.base import BaseModule
         from core.modules.registry import register_module

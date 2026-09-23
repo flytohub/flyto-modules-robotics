@@ -1,20 +1,14 @@
 # Docs
 
-This package is small enough that the durable documentation lives in the
-project-memory files at the repository root:
+Durable project documentation lives in the repository root:
 
-| File | What it answers |
+| File | Purpose |
 |---|---|
-| `PROJECT.md` | what this is for, and what it deliberately is not |
-| `ARCHITECTURE.md` | builder → capability request → external ROS 2 adapter boundary |
-| `STATE.md` | what is verified and what is not |
-| `ROADMAP.md` | what is next, and what is out of scope |
-| `DECISIONS.md` | the decisions that shaped it, and what each one rejected |
-| `README.md` | installing and configuring it |
+| `PROJECT.md` | product boundary |
+| `ARCHITECTURE.md` | builder → capability request → external adapter |
+| `STATE.md` | verified state and remaining physical acceptance |
+| `ROADMAP.md` | completed software closure and future work |
+| `DECISIONS.md` | architecture decisions |
+| `tasks.md` | closure checklist |
 
-Production integrations should consume `capability_request_for_step`, which emits
-`flyto.capability-request.v1` without a host, credential or robot-local runtime.
-`plan_for_step` / `trusted_plan_for_step` and the delivery catalog remain pure
-legacy authoring/preview compatibility only while old consumers migrate. The
-robot-local HTTP gateway and executable Gazebo harness are retired; historical
-handoffs/results are evidence, not a runtime path.
+Production integrations consume `capability_request_for_step`, which emits `flyto.capability-request.v1`. The historical plan/catalog/gateway execution path has been retired from the package; historical handoffs/results remain evidence only.

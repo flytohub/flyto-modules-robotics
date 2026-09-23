@@ -1,47 +1,24 @@
 # Tasks
 
-## Current external-adapter closure
+## Software closure
 
-- [x] Change Move / Turn / Stop runtime output from Pi delivery plans to
-      `flyto.capability-request.v1`.
-- [x] Separate commanded equipment from execution-host placement:
-      `commanded_resource` is now the robot/resource, while AI Space / War Room
-      selects the computer that executes the workflow.
-- [x] Map authored nodes to canonical Space capabilities:
-      `motion.advance`, `motion.retreat`, `motion.rotate`, `motion.halt`.
-- [x] Ensure production capability requests contain no gateway URL, token,
-      execution host, `robot_id` runtime placement or implicit loopback.
-- [x] Remove the legacy robot-local HTTP gateway and executable Gazebo runtime
-      harness; historical receipts remain evidence only.
-- [x] Keep lower plan/catalog helpers pure and outside the production execution
-      authority path while authoring compatibility remains.
-- [ ] Wire the AI Space/workflow runtime to consume
-      `flyto.capability-request.v1` and call the approved Generic ROS 2 Adapter.
-- [ ] Rework builder registration metadata once the host registry can represent
-      a module that may emit more than one execution capability
-      (`robotics.move` can advance or retreat).
-- [ ] Load the real Flyto2 builder with this package installed and confirm the
-      three authoring nodes are visible and emit the canonical request.
-- [x] Remove the production-facing gateway API and the final
-      `legacy_gateway.py` / Gazebo runtime consumer after organization-wide
-      search found no remaining downstream production dependency.
-- [ ] Remove the remaining pure lower delivery-catalog /
-      `flyto.robotics.plan.v1` authoring compatibility after the builder no
-      longer uses it for parameter validation.
-- [ ] Decide whether to publish to PyPI and under which account.
+- [x] Emit `flyto.capability-request.v1` from Move / Turn / Stop.
+- [x] Separate commanded equipment from workflow execution host.
+- [x] Route canonical requests through opaque host authority when supplied.
+- [x] Map to `motion.advance`, `motion.retreat`, `motion.rotate`, `motion.halt`.
+- [x] Align authoring validation with Generic ROS 2 Adapter bounds.
+- [x] Add explicit builder `params_schema` metadata.
+- [x] Verify the real `flyto-core` registry exposes all three nodes and executes a declaration-only canonical request.
+- [x] Remove misleading singular `provides_capability` metadata from multi-capability authoring nodes.
+- [x] Remove the retired `flyto.robotics.plan.v1`, capability catalog, gateway, and executable Gazebo authoring/runtime path.
+- [x] Keep workflow data free of gateway URLs, credentials, execution-host identities, and Pi-runner assumptions.
+- [ ] Decide separately whether to publish to PyPI.
 
 ## Physical acceptance
 
-Physical TurtleBot3 acceptance belongs to the external-adapter / Cloud closure,
-not to a Pi runner in this repository. A real bounded movement, interruption,
-safe stop and independent evidence verification remain required before physical
-closure can be claimed.
+- [ ] Run bounded physical movement only after the area meets the safety clearance floor.
+- [ ] Verify interruption and safe stop.
+- [ ] Verify independent physical evidence and mission outcome.
+- [ ] Verify recovery/reconnect behavior.
 
-## Historical completed evidence
-
-- 2026-08-09 Gazebo closed-loop run
-  `mrg-20260809T101631Z-79266` passed and remains simulation evidence.
-- `flyto-core` 2.27 registration/capability discovery was proved with the
-  built 0.1.1 wheel; no physical execution was implied.
-- The 2026-08 Pi-runner / delivery-gateway work is retained in historical
-  handoffs only and is superseded for production by the 2026-09-21 architecture.
+Historical Gazebo and earlier TurtleBot3 evidence remains audit history and does not substitute for the pending physical acceptance above.

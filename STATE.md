@@ -1,5 +1,18 @@
 # State
 
+## Software closure — 2026-09-23
+
+The production authoring path is now singular:
+
+`builder node -> flyto.capability-request.v1 -> selected AI Space host -> external Generic ROS 2 Adapter -> robot resource`.
+
+Move / Turn / Stop validate directly against the canonical adapter-facing contract. The retired `flyto.robotics.plan.v1`, lower capability catalog, gateway client, and executable Gazebo authoring/runtime path are removed from the package. The real flyto-core registry is part of acceptance, including visible node metadata and canonical request emission.
+
+No physical motion is claimed by this software closure. TurtleBot3 bounded movement, interruption, safe stop, independent evidence, and recovery remain the only remaining acceptance category.
+
+
+## Historical record
+
 ## Runtime capability dispatch closure — 2026-09-21
 
 The package now preserves one canonical production contract:
