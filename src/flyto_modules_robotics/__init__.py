@@ -1,9 +1,11 @@
-"""Optional robotics authoring modules for Flyto2 workflows.
+"""Robot capabilities for Flyto2, contributed through ``@register_module`` alone.
 
-flyto-core discovers this package through its `flyto.modules` entry point.
-Move / Turn / Stop emit bounded `flyto.capability-request.v1` requests for
-commanded equipment.  Execution placement and physical transport live outside
-this package and outside the robot.
+flyto-core discovers this package through its ``flyto.modules`` entry point and
+calls :func:`register_all`.  Each capability (advance, retreat, rotate, halt,
+navigate, observe, map) is one registered module carrying
+``provides_capability`` and a ``flyto.capability-contract.v1`` contract.  Steps
+execute on the AI Space host through its dispatcher, which calls the
+flyto-robotics ROS 2 adapter; nothing from this package runs on the robot.
 """
 
 from __future__ import annotations
@@ -11,60 +13,60 @@ from __future__ import annotations
 import logging
 import os
 
-from .capability_request import (
+from .capabilities import (
     CAPABILITY_ADVANCE,
     CAPABILITY_HALT,
-    CAPABILITY_REQUEST_VERSION,
+    CAPABILITY_MAP,
+    CAPABILITY_NAVIGATE,
+    CAPABILITY_OBSERVE,
     CAPABILITY_RETREAT,
     CAPABILITY_ROTATE,
-    DEFAULT_SPEED_MPS,
-    MAX_ADVANCE_SPEED_MPS,
-    MAX_DISTANCE_M,
-    MAX_RETREAT_SPEED_MPS,
-    MAX_TURN_DEGREES,
-    MIN_DISTANCE_M,
-    MIN_SPEED_MPS,
-    MIN_TURN_DEGREES,
+    CONTRACT_SCHEMA,
+    MODULE_ADVANCE,
+    MODULE_HALT,
+    MODULE_MAP,
+    MODULE_NAVIGATE,
+    MODULE_OBSERVE,
+    MODULE_RETREAT,
+    MODULE_ROTATE,
+    SPECS,
+    CapabilitySpec,
+)
+from .capability_request import (
+    CAPABILITY_REQUEST_VERSION,
     CapabilityRequestError,
-    PlanBuildError,
     capability_request_for_step,
 )
-from .steps import (
-    MODULE_IDS,
-    MODULE_MOVE,
-    MODULE_STOP,
-    MODULE_TURN,
-    is_robotics_step,
-    step_module_id,
-)
+from .steps import MODULE_IDS, is_robotics_step, step_module_id
 
 __all__ = [
     "CAPABILITY_ADVANCE",
     "CAPABILITY_HALT",
+    "CAPABILITY_MAP",
+    "CAPABILITY_NAVIGATE",
+    "CAPABILITY_OBSERVE",
     "CAPABILITY_REQUEST_VERSION",
     "CAPABILITY_RETREAT",
     "CAPABILITY_ROTATE",
-    "DEFAULT_SPEED_MPS",
-    "MAX_ADVANCE_SPEED_MPS",
-    "MAX_DISTANCE_M",
-    "MAX_RETREAT_SPEED_MPS",
-    "MAX_TURN_DEGREES",
-    "MIN_DISTANCE_M",
-    "MIN_SPEED_MPS",
-    "MIN_TURN_DEGREES",
+    "CONTRACT_SCHEMA",
+    "MODULE_ADVANCE",
+    "MODULE_HALT",
     "MODULE_IDS",
-    "MODULE_MOVE",
-    "MODULE_STOP",
-    "MODULE_TURN",
+    "MODULE_MAP",
+    "MODULE_NAVIGATE",
+    "MODULE_OBSERVE",
+    "MODULE_RETREAT",
+    "MODULE_ROTATE",
+    "SPECS",
     "CapabilityRequestError",
-    "PlanBuildError",
+    "CapabilitySpec",
     "capability_request_for_step",
     "is_robotics_step",
     "register_all",
     "step_module_id",
 ]
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 
 logger = logging.getLogger(__name__)
 
@@ -113,9 +115,9 @@ def _core_unusable_reason(exc: ImportError) -> str | None:
 
 
 def register_all() -> None:
-    """Register the robotics authoring modules with flyto-core.
+    """Register the robotics capability steps with flyto-core.
 
-    Core is imported only here so the pure capability-request API remains
+    Core is imported only here so the pure capability and request API remains
     importable without an execution engine.  A missing/incompatible Core API is
     logged; failures inside Core or this plugin continue to propagate.
     Registration is intentionally repeatable for registry reloads.
@@ -129,7 +131,7 @@ def register_all() -> None:
         if reason is None:
             raise
         logger.warning(
-            "flyto-modules-robotics registered no robot steps because flyto-core "
+            "flyto-modules-robotics registered no robotics steps because flyto-core "
             "%s: %s",
             reason,
             exc,
@@ -140,7 +142,7 @@ def register_all() -> None:
 
     registered = build_modules(BaseModule, register_module)
     logger.info(
-        "flyto-modules-robotics registered %d robot steps: %s",
+        "flyto-modules-robotics registered %d robotics steps: %s",
         len(registered),
         ", ".join(module_id for module_id, _ in registered),
     )

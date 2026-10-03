@@ -2,14 +2,15 @@
 
 ## Software closure
 
-- [x] Emit `flyto.capability-request.v1` from Move / Turn / Stop.
+- [x] Emit `flyto.capability-request.v1` from every step.
 - [x] Separate commanded equipment from workflow execution host.
 - [x] Route canonical requests through opaque host authority when supplied.
 - [x] Map to `motion.advance`, `motion.retreat`, `motion.rotate`, `motion.halt`.
 - [x] Align authoring validation with Generic ROS 2 Adapter bounds.
 - [x] Add explicit builder `params_schema` metadata.
-- [x] Verify the real `flyto-core` registry exposes all three nodes and executes a declaration-only canonical request.
-- [x] Remove misleading singular `provides_capability` metadata from multi-capability authoring nodes.
+- [x] Verify the real `flyto-core` registry exposes every step and executes a declaration-only canonical request.
+- [x] One module per capability (advance, retreat, rotate, halt, navigate, observe, map), each with `provides_capability` and a `flyto.capability-contract.v1` contract.
+- [x] Register without contracts, with one warning, on a flyto-core older than 2.35.0.
 - [x] Remove the retired `flyto.robotics.plan.v1`, capability catalog, gateway, and executable Gazebo authoring/runtime path.
 - [x] Keep workflow data free of gateway URLs, credentials, execution-host identities, and Pi-runner assumptions.
 - [ ] Decide separately whether to publish to PyPI.

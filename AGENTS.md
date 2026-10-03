@@ -6,19 +6,21 @@ changing anything here.
 ## Constraints
 
 - **Never drive hardware from this package.** No serial port, no ROS topic, no
-  velocity, no `rclpy`. A production step emits a canonical capability request
-  for commanded equipment; an external adapter executes it. The reason is in
-  DECISIONS.md and it is a safety property, not a preference.
+  velocity, no `rclpy`, no socket. A step hands one bounded request to the
+  host's opaque dispatcher; the flyto-robotics adapter executes it. The reason
+  is in DECISIONS.md and it is a safety property, not a preference.
 - **Never put an execution host, gateway URL or credential in a step parameter.**
   AI Space / War Room chooses the execution computer. The request names only the
   commanded resource. Tests assert the production request contains no host,
   gateway, token or Pi-runner assumption.
-- **Canonical production output is `flyto.capability-request.v1`.** Historical
-  `flyto.robotics.plan.v1` builders remain only as pure authoring/preview
-  compatibility until they are removed.
-- **`flyto-core` is imported inside `register_all`, never at module scope.** Pure
-  authoring/preview helpers stay importable without it. No robot-local gateway
-  client or execution transport belongs in this package.
+- **One `@register_module` per capability, with `provides_capability` and a
+  `flyto.capability-contract.v1` contract.** Parameters and bounds equal the
+  flyto-robotics adapter's `ARGUMENTS`; out-of-range values are refused, never
+  clamped. Change the adapter table copy in `tests/test_capabilities.py` and
+  `capabilities.py` together or not at all.
+- **`flyto-core` is imported inside `register_all`, never at module scope.** The
+  pure capability and request API stays importable without it. An older core
+  without `contract=` gets the steps without contracts, never a failure.
 - **A missing `flyto-core` is logged, not raised.** Discovery loads every plugin in
   one loop; raising would take down the others.
 
@@ -33,8 +35,8 @@ is what shows the other file.
   are about to change, before you change it. `impact(mode='unstaged')` for what
   you have already touched.
 
-`plan_for_step` and the bounds in `plan.py` have callers outside this package;
-`impact` is how you see them.
+The module ids and capability ids in `capabilities.py` are read by Cloud and
+the builder; `impact` and a cross-repo search are how you see them.
 
 ## Verification
 
@@ -44,8 +46,8 @@ Every change is verified bottom-up: the tests first, then the repository gate.
 PYTHONPATH=src python3 -m pytest tests/ -q
 ```
 
-Tests, none needing a robot or `flyto-core`. Any change to bounds or request
-shape needs a test that would fail without it.
+Tests, none needing a robot or `flyto-core`. Any change to bounds, contracts or
+request shape needs a test that would fail without it.
 
 `search` and `impact` are the pre-change gate; the strict verifier below is the
 mandatory post-change gate. Run it after the edit, and hand nothing off until it passes:
