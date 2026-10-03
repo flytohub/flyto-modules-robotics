@@ -332,6 +332,31 @@ def test_a_step_output_keeps_the_artifact_digest_not_its_bytes():
     assert encoded not in json.dumps(result)
 
 
+@pytest.mark.parametrize(
+    ("capture", "field"),
+    [
+        ({"kind": "photo", "media_type": "image/jpeg"}, "data"),
+        ({"kind": "map", "width": 2, "height": 2, "resolution": 0.05}, "cells"),
+    ],
+)
+def test_a_step_output_drops_the_legacy_capture_bytes_too(capture, field):
+    raw = b"\xff\xd8 legacy capture bytes"
+    encoded = base64.b64encode(raw).decode("ascii")
+    record = {
+        "call_id": "c",
+        "outcome": "completed",
+        "adapter_evidence": {"capture": {**capture, f"{field}_base64": encoded}},
+    }
+    result, _ = run_step(robotics()["robotics.observe"], {}, record)
+    kept = result["execution"]["adapter_evidence"]["capture"]
+    assert encoded not in json.dumps(result)
+    assert kept[f"{field}_bytes"] == len(raw)
+    assert kept[f"{field}_sha256"] == hashlib.sha256(raw).hexdigest()
+    assert kept["kind"] == capture["kind"]
+    # The dispatcher's own record is left as it was.
+    assert record["adapter_evidence"]["capture"][f"{field}_base64"] == encoded
+
+
 # -- the fleet pack -------------------------------------------------------------
 
 
@@ -544,7 +569,7 @@ def test_core_capability_host_runs_both_packs_end_to_end():
     assert photo["ok"] is True
     kept = photo["execution"]["artifacts"]
     assert kept[0]["kind"] == "photo" and kept[0]["media_type"] == "image/jpeg"
-    assert "data_base64" not in json.dumps(photo["execution"]["adapter_evidence"]["artifacts"])
+    assert "data_base64" not in json.dumps(photo["execution"]["adapter_evidence"])
 
     # The blocked advance: failed, safe-stopped by the host, recovery offered.
     blocked = observed["blocked"]

@@ -4,6 +4,7 @@ New handoffs use `YYYY-MM-DD-topic.md`.
 
 | Date | Topic | File | Status | Owner | Branch |
 |---|---|---|---|---|---|
+| 2026-10-04 | Step output drops the legacy capture's bytes as well as the artifacts' | `2026-10-04-strip-legacy-capture-bytes.md` | Active | claude | `claude/strip-capture-bytes` |
 | 2026-10-04 | Provider-declared artifacts, safe-stop role and detour recovery; Open-RMF `fleet` pack | `2026-10-04-evidence-recovery-fleet.md` | Active — PR open; fakes only | claude | `claude/evidence-recovery-fleet` |
 | 2026-10-04 | One module per capability, each with a declared capability contract | `2026-10-04-capability-contract.md` | Merged (#9); superseded in part by 2026-10-04 evidence-recovery-fleet | claude | `claude/capability-contract` |
 | 2026-09-21 | External ROS 2 adapter architecture | `2026-09-21-external-ros2-adapter.md` | Active — production modules emit canonical capability requests; Pi delivery path is legacy only | ChatGPT | `fix/external-ros2-adapter-architecture` |

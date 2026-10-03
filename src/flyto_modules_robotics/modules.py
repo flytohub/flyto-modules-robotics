@@ -251,33 +251,57 @@ async def _dispatch_or_declare(step: Any, request: dict[str, Any]) -> dict[str, 
     return failed
 
 
+# Encoded picture fields of the legacy ``capture`` (flyto-robotics before the
+# artifact transport, still sent beside ``artifacts``): the photo's JPEG and the
+# map's occupancy cells.
+_CAPTURE_BYTE_FIELDS = ("data_base64", "cells_base64")
+
+
+def _digest(data: Any) -> dict[str, Any] | None:
+    """``{bytes, sha256}`` of a base64 string, or None when it is not one."""
+    if not isinstance(data, str):
+        return None
+    try:
+        raw = base64.b64decode(data, validate=True)
+    except (ValueError, binascii.Error):
+        return {}
+    return {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
 def _without_artifact_bytes(record: Mapping[str, Any]) -> dict[str, Any]:
     """The execution record as a step output, without the pictures' bytes.
 
     The host keeps returned artifacts itself (and uploads them); a step output
     travels with the run's progress, so each artifact is reduced to its kind,
-    media type, size and digest there.
+    media type, size and digest there. The legacy ``capture`` the adapter
+    still sends beside them carries the same picture (or the map's cells) and
+    is reduced the same way: a host that reads ``capture`` reads it from the
+    adapter's result, before the step output exists.
     """
     execution = dict(record)
     evidence = execution.get("adapter_evidence")
-    if not isinstance(evidence, Mapping) or not isinstance(evidence.get("artifacts"), list):
+    if not isinstance(evidence, Mapping):
         return execution
-    summaries = []
-    for item in evidence["artifacts"]:
-        if not isinstance(item, Mapping):
-            continue
-        summary = {key: item[key] for key in ("kind", "media_type") if key in item}
-        data = item.get("data_base64")
-        if isinstance(data, str):
-            try:
-                raw = base64.b64decode(data, validate=True)
-            except (ValueError, binascii.Error):
-                raw = None
-            if raw is not None:
-                summary["bytes"] = len(raw)
-                summary["sha256"] = hashlib.sha256(raw).hexdigest()
-        summaries.append(summary)
-    execution["adapter_evidence"] = {**evidence, "artifacts": summaries}
+    reduced = dict(evidence)
+    if isinstance(evidence.get("artifacts"), list):
+        summaries = []
+        for item in evidence["artifacts"]:
+            if not isinstance(item, Mapping):
+                continue
+            summary = {key: item[key] for key in ("kind", "media_type") if key in item}
+            summary.update(_digest(item.get("data_base64")) or {})
+            summaries.append(summary)
+        reduced["artifacts"] = summaries
+    capture = evidence.get("capture")
+    if isinstance(capture, Mapping) and any(field in capture for field in _CAPTURE_BYTE_FIELDS):
+        kept = {key: value for key, value in capture.items() if key not in _CAPTURE_BYTE_FIELDS}
+        for field in _CAPTURE_BYTE_FIELDS:
+            if field in capture:
+                stem = field[: -len("_base64")]
+                for key, value in (_digest(capture[field]) or {}).items():
+                    kept[f"{stem}_{key}"] = value
+        reduced["capture"] = kept
+    execution["adapter_evidence"] = reduced
     return execution
 
 
