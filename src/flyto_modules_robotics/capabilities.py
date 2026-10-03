@@ -139,16 +139,17 @@ def _coordinate(axis: str) -> dict[str, Any]:
 _PHASES = ["before", "after", "settled"]
 
 
-def _displacement_evidence() -> list[dict[str, Any]]:
+def _displacement_evidence(scale: int) -> list[dict[str, Any]]:
     return [
         {
-            # Distance travelled matches the commanded distance, and the
-            # equipment stopped moving once it was told to.
+            # Signed travel along the starting heading equals the commanded
+            # distance (negative for a retreat), and the equipment stopped
+            # moving once it was told to.  A sideways slide is not progress.
             "kind": "displacement",
             "observe": "pose",
             "phases": list(_PHASES),
-            "measure": {"op": "distance", "fields": ["x", "y"]},
-            "expect": {"argument": "distance_m"},
+            "measure": {"op": "along", "fields": ["x", "y"], "heading_field": "yaw"},
+            "expect": {"argument": "distance_m", "scale": scale},
             "tolerance": {
                 "absolute": DISTANCE_TOLERANCE_MIN_M,
                 "relative": DISTANCE_TOLERANCE_FRACTION,
@@ -159,7 +160,7 @@ def _displacement_evidence() -> list[dict[str, Any]]:
             # A straight move keeps its heading.
             "kind": "heading.hold",
             "observe": "pose",
-            "phases": ["before", "settled"],
+            "phases": list(_PHASES),
             "measure": {"op": "abs_angle_delta", "fields": ["yaw"]},
             "expect": {"value": 0.0},
             "tolerance": {"absolute": HEADING_TOLERANCE_RAD, "relative": 0.0},
@@ -173,9 +174,9 @@ def _rotation_evidence() -> list[dict[str, Any]]:
             # Signed and wrapped: turning the wrong way is not a pass.
             "kind": "rotation",
             "observe": "pose",
-            "phases": ["before", "settled"],
+            "phases": list(_PHASES),
             "measure": {"op": "angle_delta", "fields": ["yaw"]},
-            "expect": {"argument": "yaw_radians"},
+            "expect": {"argument": "yaw_radians", "scale": 1},
             "tolerance": {
                 "absolute": ROTATION_TOLERANCE_MIN_RAD,
                 "relative": ROTATION_TOLERANCE_FRACTION,
@@ -205,6 +206,7 @@ def _contract(
     evidence: list[dict[str, Any]],
 ) -> dict[str, Any]:
     return {
+        "schema": CONTRACT_SCHEMA,
         "actuates": actuates,
         "safety_class": safety_class,
         "requires_safe_stop": requires_safe_stop,
@@ -285,7 +287,7 @@ SPECS: tuple[CapabilitySpec, ...] = (
             "distance_m": _distance(),
             "speed_mps": _speed(MAX_ADVANCE_SPEED_MPS, DEFAULT_ADVANCE_SPEED_MPS),
         },
-        contract=_motion(_displacement_evidence(), requires=_MOTION_REQUIRES),
+        contract=_motion(_displacement_evidence(1), requires=_MOTION_REQUIRES),
         timeout_ms=180000,
         retryable=False,
     ),
@@ -301,7 +303,7 @@ SPECS: tuple[CapabilitySpec, ...] = (
             "distance_m": _distance(),
             "speed_mps": _speed(MAX_RETREAT_SPEED_MPS, DEFAULT_RETREAT_SPEED_MPS),
         },
-        contract=_motion(_displacement_evidence(), requires=_MOTION_REQUIRES),
+        contract=_motion(_displacement_evidence(-1), requires=_MOTION_REQUIRES),
         timeout_ms=180000,
         retryable=False,
     ),

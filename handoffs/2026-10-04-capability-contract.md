@@ -37,50 +37,62 @@ The declaration is the whole integration: Cloud can read actuation, safety
 class, safe stop, cancellation, bounds and evidence tolerances as data instead
 of a robot-specific table.
 
-Deviations from the spec table, deliberate:
-- Rotation evidence uses signed `angle_delta`, not `abs_angle_delta`, because
-  Cloud's current verdict is signed (wrong-direction turn fails); abs would
-  change verdicts. `abs_angle_delta` is used for advance/retreat heading hold.
-- Advance/retreat carry a second evidence item `heading.hold` (abs_angle_delta
-  yaw, expect 0, abs 0.15) so Cloud's heading constant is declared too.
-- Rotation's 0.02 m settle sits on the `position.drift` evidence (a distance),
-  not on the rotation evidence (an angle), matching Cloud.
-- Navigate declares no evidence: v1 measure ops compare phases; arrival at an
-  absolute coordinate is not expressible.
-- Linear displacement is euclidean `distance(x,y)` per spec; Cloud today
-  projects onto the starting heading. Equal for straight motion; Cloud's
-  `contract_verification.py` port must decide whether that difference matters.
+Evidence (revised after flyto-core PR #122 added `along` and `expect.scale`),
+chosen so verdicts equal Cloud's current `motion_verification.judge`; every item
+lists phases `before`, `after`, `settled`:
+- advance: `along` (x, y, heading_field yaw) expect `distance_m` scale 1,
+  abs 0.03 / rel 0.3, settle 0.02; `heading.hold` abs_angle_delta yaw, value 0,
+  abs 0.15.
+- retreat: same with `scale: -1`.
+- rotate: signed `angle_delta` yaw expect `yaw_radians`, abs 0.1 / rel 0.2;
+  `position.drift` distance (x, y) value 0, abs 0.05, settle 0.02.
+- navigate declares no evidence (v1 ops compare phases; arrival at an absolute
+  coordinate is not expressible). halt/observe/map: none.
+- Contracts carry `schema` and are already in Core's normalized form, so the
+  registered metadata equals the spec row.
+- Deviations from the original spec table: rotation uses signed `angle_delta`
+  (not `abs_angle_delta`); advance/retreat use `along` (not `distance`) and add
+  `heading.hold`. All three were then adopted in Core's reference section.
 - `concurrent_safe=False` on all seven, including read-only (one adapter
   session per job).
 
 ## Verified
 
-Python 3.11 venv with released flyto-core 2.33.0 (no `contract=`):
-- `ruff check src tests` (ruff 0.15.15): All checks passed.
-- `PYTHONPATH=src python -m pytest tests -q -o addopts=""`: 114 passed,
-  7 skipped (the 7 skips are `core.capability_contract` not installed). This
-  includes the real flyto-core registry subprocess test, which exercised the
-  register-without-contract path and `ModuleRegistry.capabilities()` mapping
-  each of the 7 capabilities to exactly one step.
-Python 3.12 venv without flyto-core: 113 passed, 8 skipped.
+- ruff 0.15.15 `check src tests`: All checks passed.
+- Python 3.11 venv with the flyto-core worktree `claude/capability-contract`
+  at 0af4da8 (2.35.0) installed editable: `PYTHONPATH=src pytest tests -q
+  -o addopts=""` → 152 passed, 0 skipped. This includes Core's own
+  `validate_contract` on all 7 contracts (and equality with its normalized
+  form), Core's `judge` on the Cloud cases (advance 0.10 asked, settled
+  (0.119, 0, yaw 0.02) usable; retreat 0.2 asked, measured −0.19 usable; settle
+  drift 0.03 unusable; rotate drift 0.06 unusable; plus wrong-direction,
+  sideways-slide, heading and ±π cases), a 2,000-case seeded random comparison
+  per motion of Core's `judge` against a transcription of Cloud's judge (all
+  verdicts equal, both outcomes present), and the real registry run with
+  `contract=` accepted (metadata contract equals the spec row).
+- Python 3.11 venv with released flyto-core 2.33.0: 125 passed, 27 skipped
+  (the Core-validator/judge tests); the real registry run exercised
+  register-without-contract.
+- Python 3.12 without flyto-core: 124 passed, 28 skipped.
 - `flyto-index verify . --strict`: PASS, 20 pass / 0 warn / 0 fail.
 - Pre-change: `flyto-index outline/context/impact` on this worktree; MCP
   `task(plan)` and both gates passed.
 
 ## Not verified
 
-- Registration against a flyto-core that accepts `contract=` (2.35.0 not yet
-  available; its `core.capability_contract` did not exist when this was built).
-  The 7 parametrized core-validator tests will run once it is installed.
 - MCP `task(action='validate')`: the MCP server is pinned to flyto-indexer's
   root, so it ran that repo's ruff and could not import this package; it
   reported fail. The equivalent ruff + pytest above were run directly.
+- Against a released flyto-core 2.35.0 from PyPI (only the PR #122 worktree).
+- Core's capability manifest `contracts` key for these modules.
 - Cloud consuming the contracts; no robot, simulator or ROS graph contacted.
+- The Cloud oracle in `tests/test_capabilities.py` is a transcription; if
+  Cloud's `motion_verification.py` changes, it must be updated by hand.
 
 ## Follow-ups
 
-- After flyto-core 2.35.0: install it, rerun the suite (expect 0 skips for the
-  core validator), and confirm `get_all_metadata()["robotics.advance"]["contract"]`.
-- Section 3 (flyto-cloud): re-pin this package for Desktop, port the evidence
-  arithmetic, decide on the euclidean vs along-heading point above.
+- After flyto-core 2.35.0 is released: CI's `pip install flyto-core` picks it
+  up and the Core-validator/judge tests run there too.
+- Section 3 (flyto-cloud): re-pin this package for Desktop and port the
+  evidence arithmetic (`contract_verification.py`) with identical verdicts.
 - Publishing to PyPI remains a separate decision.

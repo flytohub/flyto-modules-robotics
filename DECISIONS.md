@@ -15,10 +15,12 @@ the contract instead of keeping a robot-specific table. Parameters use the
 adapter's own names (`speed_mps`, `yaw_radians`), so no translation layer
 exists between the step and the adapter.
 
-Decision: rotation evidence uses the signed `angle_delta`, not
-`abs_angle_delta`. Cloud's current verdict is signed (turning the wrong way
-fails); an absolute comparison would let it pass. `abs_angle_delta` is used for
-heading hold, where the expected change is zero.
+Decision: the evidence reproduces Cloud's existing verdicts exactly.
+Advance/retreat measure `along` the starting heading (retreat expects
+`distance_m` with `scale: -1`), so a sideways slide or a move in the wrong
+direction fails; rotation uses the signed `angle_delta`, so a turn the wrong
+way fails. `abs_angle_delta` is used only for heading hold, where the expected
+change is zero. Every item lists `before`, `after`, `settled`.
 
 Decision: when flyto-core's `register_module` does not accept `contract=`
 (before 2.35.0), the steps register without contracts and one warning is

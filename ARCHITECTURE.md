@@ -49,9 +49,11 @@ them to a copy of that table. Out-of-range values are refused, never clamped.
 
 Every contract satisfies the v1 rules in flyto-core
 `docs/CAPABILITY_CONTRACT.md`. Evidence tolerances equal Cloud's
-`motion_verification.py` constants (distance max(0.03 m, 0.3·d), heading
-0.15 rad, rotation max(0.1 rad, 0.2·|yaw|), rotation drift 0.05 m, settle
-0.02 m). Cloud reads the contract as data and judges the host's observations
+`motion_verification.py` constants (travel along the starting heading
+within max(0.03 m, 0.3·d), signed, retreat as `scale: -1`; heading 0.15 rad;
+signed rotation max(0.1 rad, 0.2·|yaw|); rotation drift 0.05 m; settle
+0.02 m), measured from `before` to `settled`. Tests run flyto-core's `judge`
+against a transcription of Cloud's check and require identical verdicts. Cloud reads the contract as data and judges the host's observations
 against it; this package never judges its own outcome.
 
 When the installed flyto-core predates `contract=` (before 2.35.0), the steps

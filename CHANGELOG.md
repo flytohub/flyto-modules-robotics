@@ -12,7 +12,10 @@ adapter's own parameter names.
 - Parameters and bounds equal the flyto-robotics adapter's `ARGUMENTS`
   (`distance_m`, `speed_mps`, `yaw_radians`, `x`, `y`); out-of-range values are
   refused, never clamped. Speed defaults equal the adapter's (0.12 / 0.10 m/s).
-- Evidence tolerances equal Cloud's current motion verification constants.
+- Evidence reproduces Cloud's current motion verdicts: `along` the starting
+  heading for advance/retreat (retreat `scale: -1`), signed `angle_delta` for
+  rotate, heading hold, rotation drift and settle; verified with flyto-core's
+  `judge` against a transcription of Cloud's check.
 - The host dispatcher now receives exactly `{resource_id, capability_id,
   arguments}`; adapter outcomes map to `EXTERNAL_CAPABILITY_REFUSED`,
   `_TIMEOUT`, `_CANCELLED` or `_FAILED`, keeping the execution record.

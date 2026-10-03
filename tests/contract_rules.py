@@ -12,7 +12,9 @@ import re
 from typing import Any, Mapping
 
 IDENTIFIER = re.compile(r"^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$")
+CONTRACT_SCHEMA = "flyto.capability-contract.v1"
 CONTRACT_KEYS = {
+    "schema",
     "actuates",
     "safety_class",
     "requires_safe_stop",
@@ -27,7 +29,8 @@ SAFETY_CLASSES = {"read_only", "controlled", "movement", "dangerous"}
 EVIDENCE_KEYS = {"kind", "observe", "phases", "measure", "expect", "tolerance", "settle"}
 PHASES = ("before", "after", "settled")
 SINGLE_FIELD_OPS = {"delta", "angle_delta", "abs_angle_delta"}
-OPS = {"distance", *SINGLE_FIELD_OPS}
+ANGLE_OPS = {"angle_delta", "abs_angle_delta"}
+OPS = {"distance", "along", *SINGLE_FIELD_OPS}
 
 
 class ContractInvalid(ValueError):
@@ -68,28 +71,46 @@ def _evidence(item: Any, params_schema: Mapping[str, Any]) -> None:
     phases = item["phases"]
     if (
         type(phases) is not list
-        or len(phases) < 2
+        or not {"before", "after"} <= set(phases)
         or not set(phases) <= set(PHASES)
         or phases != sorted(set(phases), key=PHASES.index)
     ):
-        raise ContractInvalid("evidence.phases must be an ordered subset of before|after|settled")
+        raise ContractInvalid(
+            "evidence.phases must be an ordered subset of before|after|settled with before and after"
+        )
     measure = item["measure"]
-    if type(measure) is not dict or set(measure) != {"op", "fields"} or measure["op"] not in OPS:
+    if type(measure) is not dict or measure.get("op") not in OPS:
         raise ContractInvalid("evidence.measure is invalid")
+    expected_keys = {"op", "fields", "heading_field"} if measure["op"] == "along" else {"op", "fields"}
+    if set(measure) != expected_keys:
+        raise ContractInvalid("evidence.measure keys do not fit its op")
     fields = measure["fields"]
     if type(fields) is not list or not 1 <= len(fields) <= 3:
         raise ContractInvalid("evidence.measure.fields must have 1..3 identifiers")
     for name in fields:
         _identifier(name, "evidence.measure.fields")
+    if len(set(fields)) != len(fields):
+        raise ContractInvalid("evidence.measure.fields has duplicates")
     if measure["op"] in SINGLE_FIELD_OPS and len(fields) != 1:
         raise ContractInvalid(f"{measure['op']} measures exactly one field")
+    if measure["op"] == "along":
+        if len(fields) != 2:
+            raise ContractInvalid("along measures exactly two position fields")
+        _identifier(measure["heading_field"], "evidence.measure.heading_field")
+        if measure["heading_field"] in fields:
+            raise ContractInvalid("heading_field is not one of the position fields")
     expect = item["expect"]
-    if type(expect) is not dict or len(expect) != 1:
-        raise ContractInvalid("evidence.expect names one argument or one value")
+    if type(expect) is not dict:
+        raise ContractInvalid("evidence.expect is invalid")
     if "argument" in expect:
-        if expect["argument"] not in params_schema:
-            raise ContractInvalid("evidence.expect.argument is not a declared parameter")
-    elif "value" in expect:
+        if not set(expect) <= {"argument", "scale"}:
+            raise ContractInvalid("evidence.expect has unknown keys")
+        if params_schema.get(expect["argument"], {}).get("type") not in ("number", "integer"):
+            raise ContractInvalid("evidence.expect.argument is not a declared numeric parameter")
+        scale = expect.get("scale", 1)
+        if isinstance(scale, bool) or not isinstance(scale, (int, float)) or not math.isfinite(scale) or scale == 0:
+            raise ContractInvalid("evidence.expect.scale must be finite and non-zero")
+    elif set(expect) == {"value"}:
         value = expect["value"]
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
             raise ContractInvalid("evidence.expect.value must be finite")
@@ -105,13 +126,15 @@ def _evidence(item: Any, params_schema: Mapping[str, Any]) -> None:
         if type(settle) is not dict or set(settle) != {"max_drift"}:
             raise ContractInvalid("evidence.settle is invalid")
         _non_negative(settle["max_drift"], "evidence.settle.max_drift")
-        if not {"after", "settled"} <= set(phases):
-            raise ContractInvalid("evidence.settle needs the after and settled phases")
+        if "settled" not in phases:
+            raise ContractInvalid("evidence.settle needs the settled phase")
 
 
 def validate_contract(contract: Any, params_schema: Mapping[str, Any]) -> None:
     if type(contract) is not dict or not set(contract) <= CONTRACT_KEYS:
         raise ContractInvalid("contract has unknown keys")
+    if contract.get("schema", CONTRACT_SCHEMA) != CONTRACT_SCHEMA:
+        raise ContractInvalid("contract schema is not v1")
     if not REQUIRED_KEYS <= set(contract):
         raise ContractInvalid("contract is missing required keys")
     for key in ("actuates", "requires_safe_stop", "cancellable", "idempotent"):
@@ -119,6 +142,8 @@ def validate_contract(contract: Any, params_schema: Mapping[str, Any]) -> None:
             raise ContractInvalid(f"{key} must be a boolean")
     if contract["safety_class"] not in SAFETY_CLASSES:
         raise ContractInvalid("safety_class is not known")
+    if contract["actuates"] and contract["safety_class"] == "read_only":
+        raise ContractInvalid("an actuating contract cannot be read_only")
     _identifiers(contract.get("effects", []), "effects", 16)
     _identifiers(contract.get("requires", []), "requires", 16)
     evidence = contract.get("evidence", [])
@@ -132,19 +157,43 @@ def validate_contract(contract: Any, params_schema: Mapping[str, Any]) -> None:
                 raise ContractInvalid(f"actuating parameter {name} must declare min and max")
 
 
-def _wrap(angle: float) -> float:
-    return math.atan2(math.sin(angle), math.cos(angle))
+def wrap(angle: float) -> float:
+    """Wrap into (-pi, pi]."""
+
+    r = math.remainder(angle, 2 * math.pi)
+    return r + 2 * math.pi if r <= -math.pi else r
 
 
-def _measure(op: str, fields: list[str], start: Mapping[str, float], end: Mapping[str, float]) -> float:
+def _euclidean(fields, start, end) -> float:
+    return math.sqrt(sum((end[name] - start[name]) ** 2 for name in fields))
+
+
+def _measure(measure: Mapping[str, Any], start: Mapping[str, float], end: Mapping[str, float]) -> float:
+    op, fields = measure["op"], measure["fields"]
     if op == "distance":
-        return math.sqrt(sum((end[name] - start[name]) ** 2 for name in fields))
+        return _euclidean(fields, start, end)
+    if op == "along":
+        heading = start[measure["heading_field"]]
+        first, second = fields
+        return (end[first] - start[first]) * math.cos(heading) + (end[second] - start[second]) * math.sin(
+            heading
+        )
     (name,) = fields
     if op == "delta":
         return end[name] - start[name]
     if op == "angle_delta":
-        return _wrap(end[name] - start[name])
-    return abs(_wrap(end[name] - start[name]))
+        return wrap(end[name] - start[name])
+    return abs(wrap(end[name] - start[name]))
+
+
+def _drift(measure: Mapping[str, Any], after: Mapping[str, float], settled: Mapping[str, float]) -> float:
+    op, fields = measure["op"], measure["fields"]
+    if op in ("distance", "along"):
+        return _euclidean(fields, after, settled)
+    (name,) = fields
+    if op == "delta":
+        return abs(settled[name] - after[name])
+    return abs(wrap(settled[name] - after[name]))
 
 
 def judge(
@@ -152,20 +201,27 @@ def judge(
     arguments: Mapping[str, float],
     observations: Mapping[str, Mapping[str, float]],
 ) -> dict[str, Any]:
-    """|measured - expected| <= max(absolute, relative*|expected|), plus settle drift."""
+    """The arithmetic of flyto-core docs/CAPABILITY_CONTRACT.md "Judging evidence"."""
 
-    phases = spec["phases"]
-    op, fields = spec["measure"]["op"], spec["measure"]["fields"]
-    measured = _measure(op, fields, observations[phases[0]], observations[phases[-1]])
+    measure, phases = spec["measure"], spec["phases"]
+    measured = _measure(measure, observations["before"], observations[phases[-1]])
     expect = spec["expect"]
-    expected = float(arguments[expect["argument"]]) if "argument" in expect else float(expect["value"])
+    if "argument" in expect:
+        expected = float(expect.get("scale", 1)) * float(arguments[expect["argument"]])
+        if measure["op"] == "abs_angle_delta":
+            expected = abs(expected)
+    else:
+        expected = float(expect["value"])
     tolerance = spec["tolerance"]
     allowed = max(tolerance.get("absolute", 0.0), tolerance.get("relative", 0.0) * abs(expected))
-    usable = abs(measured - expected) <= allowed
+    if measure["op"] in ANGLE_OPS:
+        error = abs(wrap(measured - expected))
+    else:
+        error = abs(measured - expected)
     drift = None
     if "settle" in spec:
-        drift = _measure(op, fields, observations["after"], observations["settled"])
-        usable = usable and abs(drift) <= spec["settle"]["max_drift"]
+        drift = _drift(measure, observations["after"], observations["settled"])
+    usable = error <= allowed and (drift is None or drift <= spec["settle"]["max_drift"])
     return {
         "usable": usable,
         "measured": measured,

@@ -19,6 +19,7 @@ declarations as data. Nothing in them knows what a robot is.
         "speed_mps": {"type": "number", "min": 0.02, "max": 0.25, "unit": "m/s", "default": 0.12},
     },
     contract={
+        "schema": "flyto.capability-contract.v1",
         "actuates": True,
         "safety_class": "movement",
         "requires_safe_stop": True,
@@ -30,8 +31,8 @@ declarations as data. Nothing in them knows what a robot is.
             "kind": "displacement",
             "observe": "pose",
             "phases": ["before", "after", "settled"],
-            "measure": {"op": "distance", "fields": ["x", "y"]},
-            "expect": {"argument": "distance_m"},
+            "measure": {"op": "along", "fields": ["x", "y"], "heading_field": "yaw"},
+            "expect": {"argument": "distance_m", "scale": 1},
             "tolerance": {"absolute": 0.03, "relative": 0.3},
             "settle": {"max_drift": 0.02},
         }, ...],
@@ -84,8 +85,8 @@ robot (stock ROS 2, no Flyto2 software)
 
 | Step | Provides | Parameters (bounds) | Contract |
 |---|---|---|---|
-| `robotics.advance` | `motion.advance` | `distance_m` 0.05–2.0 m (required), `speed_mps` 0.02–0.25 m/s (default 0.12) | actuates, movement, safe stop, cancellable; evidence: displacement within max(0.03 m, 30%), settle ≤ 0.02 m, heading held within 0.15 rad |
-| `robotics.retreat` | `motion.retreat` | `distance_m` 0.05–2.0 m (required), `speed_mps` 0.02–0.20 m/s (default 0.10) | same as advance |
+| `robotics.advance` | `motion.advance` | `distance_m` 0.05–2.0 m (required), `speed_mps` 0.02–0.25 m/s (default 0.12) | actuates, movement, safe stop, cancellable; evidence: travel along the starting heading within max(0.03 m, 30%) of `distance_m`, settle ≤ 0.02 m, heading held within 0.15 rad |
+| `robotics.retreat` | `motion.retreat` | `distance_m` 0.05–2.0 m (required), `speed_mps` 0.02–0.20 m/s (default 0.10) | same as advance, expecting backward travel (`scale: -1`) |
 | `robotics.rotate` | `motion.rotate` | `yaw_radians` −π..π (required, signed) | actuates, movement, safe stop, cancellable; evidence: signed rotation within max(0.1 rad, 20%), position drift ≤ 0.05 m, settle ≤ 0.02 m |
 | `robotics.halt` | `motion.halt` | none | actuates, controlled; it is the stop itself, so no safe stop and not cancellable |
 | `robotics.navigate` | `motion.navigate` | `x`, `y` −1000..1000 m (required), `yaw_radians` −π..π | actuates, movement, safe stop, cancellable; requires LiDAR clearance and a localised map |
@@ -96,8 +97,10 @@ Parameters and bounds are the adapter's own declared arguments
 (`generic_ros2_adapter.ARGUMENTS` in flyto-robotics), and a test pins them
 equal. A value outside them is refused, never clamped, so the builder never
 accepts a step the adapter is known to reject. The evidence tolerances are the
-ones Cloud has judged motion with since 2026-10-02, so declaring them here
-changes no verdict.
+ones Cloud has judged motion with since 2026-10-02, and the suite runs
+flyto-core's own `judge` over them against a transcription of Cloud's check
+(fixed cases plus 2,000 seeded random motions per capability): every verdict
+is the same.
 
 ## Safety invariants, and where each is enforced
 
@@ -152,10 +155,11 @@ flyto-index verify . --strict
 ```
 
 No robot, simulator or flyto-core is needed. The suite validates every
-contract against the v1 rules (and against flyto-core's own validator when it
-is installed), pins parameters and bounds to the adapter's table, checks the
-declared tolerances reproduce Cloud's verdicts, and exercises the dispatch,
-declare-only and refusal paths. A real flyto-core registry run is included
+contract against the v1 rules (a vendored copy, and flyto-core's own
+`validate_contract` and `judge` when flyto-core 2.35.0+ is installed), pins
+parameters and bounds to the adapter's table, checks the declared evidence
+reproduces Cloud's verdicts, and exercises the dispatch, declare-only and
+refusal paths. A real flyto-core registry run is included
 when flyto-core is installed. Physical robot acceptance is a separate step.
 
 ## Development
