@@ -1,12 +1,39 @@
 # Decisions
 
+## 2026-10-04 — One module per capability, each with a declared contract
+
+Decision: the package registers one `@register_module` per adapter capability
+(`robotics.advance`, `.retreat`, `.rotate`, `.halt`, `.navigate`, `.observe`,
+`.map`), each with `provides_capability` and a `flyto.capability-contract.v1`
+`contract=`. Move / Turn / Stop are removed.
+
+Reason: the 2026-09-23 decision left `provides_capability` unset because Move
+could emit two capabilities. With one step per capability that objection is
+gone, and the declaration becomes the whole integration: Cloud reads safety
+class, safe stop, cancellation, actuation, bounds and evidence tolerances from
+the contract instead of keeping a robot-specific table. Parameters use the
+adapter's own names (`speed_mps`, `yaw_radians`), so no translation layer
+exists between the step and the adapter.
+
+Decision: the evidence reproduces Cloud's existing verdicts exactly.
+Advance/retreat measure `along` the starting heading (retreat expects
+`distance_m` with `scale: -1`), so a sideways slide or a move in the wrong
+direction fails; rotation uses the signed `angle_delta`, so a turn the wrong
+way fails. `abs_angle_delta` is used only for heading hold, where the expected
+change is zero. Every item lists `before`, `after`, `settled`.
+
+Decision: when flyto-core's `register_module` does not accept `contract=`
+(before 2.35.0), the steps register without contracts and one warning is
+logged per registration pass. `flyto-core>=2.35.0` is an optional extra, not a
+dependency, so the package still installs without the engine.
+
 ## 2026-09-23 — One production robotics authoring contract
 
 Decision: `flyto.capability-request.v1` is the only production output of flyto-modules-robotics. The historical delivery plan and capability-catalog APIs are removed rather than retained as parallel compatibility paths.
 
 Decision: builder parameter validation uses the same bounded vocabulary expected by the Generic ROS 2 Adapter. A workflow must not be accepted by the builder when the standard adapter is already known to reject it.
 
-Decision: robotics authoring modules do not declare singular `provides_capability` metadata. Move may emit either `motion.advance` or `motion.retreat`; execution-resource admission follows the emitted request, not a misleading static capability label.
+Decision (superseded 2026-10-04 by one module per capability): robotics authoring modules do not declare singular `provides_capability` metadata. Move may emit either `motion.advance` or `motion.retreat`; execution-resource admission follows the emitted request, not a misleading static capability label.
 
 Decision: physical acceptance remains separate from software closure. No green unit/CI result is evidence that a real robot moved safely.
 

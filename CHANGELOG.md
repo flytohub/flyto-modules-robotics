@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.0 — capability contract (2026-10-04)
+
+Breaking: Move / Turn / Stop are replaced by one step per capability, with the
+adapter's own parameter names.
+
+- Register `robotics.advance`, `.retreat`, `.rotate`, `.halt`, `.navigate`,
+  `.observe` and `.map`, each with `provides_capability` and a
+  `flyto.capability-contract.v1` contract (actuation, safety class, safe stop,
+  cancellation, idempotency, effects, preconditions, evidence).
+- Parameters and bounds equal the flyto-robotics adapter's `ARGUMENTS`
+  (`distance_m`, `speed_mps`, `yaw_radians`, `x`, `y`); out-of-range values are
+  refused, never clamped. Speed defaults equal the adapter's (0.12 / 0.10 m/s).
+- Evidence reproduces Cloud's current motion verdicts: `along` the starting
+  heading for advance/retreat (retreat `scale: -1`), signed `angle_delta` for
+  rotate, heading hold, rotation drift and settle; verified with flyto-core's
+  `judge` against a transcription of Cloud's check.
+- The host dispatcher now receives exactly `{resource_id, capability_id,
+  arguments}`; adapter outcomes map to `EXTERNAL_CAPABILITY_REFUSED`,
+  `_TIMEOUT`, `_CANCELLED` or `_FAILED`, keeping the execution record.
+- Dispatcher trust is checked on the dispatcher's type, as flyto-core does.
+- A flyto-core without `contract=` gets the steps without contracts and one
+  warning. New optional extra `core = ["flyto-core>=2.35.0"]`.
+
 ## 0.2.0 — software closure (2026-09-23)
 
 - Make `flyto.capability-request.v1` the sole production authoring contract.

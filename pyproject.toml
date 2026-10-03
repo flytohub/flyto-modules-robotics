@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flyto-modules-robotics"
-version = "0.2.0"
-description = "Optional robot-control modules for Flyto2 workflows"
+version = "1.0.0"
+description = "Robot capabilities for Flyto2, contributed through @register_module alone"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
@@ -21,10 +21,12 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-# None, and that is the point: the package is pure authoring/contract code.
-# A production robot does not install it. flyto-core discovers it on an
-# execution computer, but is imported only inside register_all so the pure
-# request/preview APIs remain importable without the engine.
+# None, and that is the point: the package is pure capability/contract code.
+# A robot never installs it. flyto-core discovers it on the AI Space execution
+# host, but is imported only inside register_all, so the package installs and
+# its pure request API imports without the engine. The `core` extra states the
+# floor that understands `contract=`; an older core still registers the steps
+# without their contracts.
 dependencies = []
 
 [project.urls]
@@ -33,12 +35,13 @@ Source = "https://github.com/flytohub/flyto-modules-robotics"
 Issues = "https://github.com/flytohub/flyto-modules-robotics/issues"
 
 # Discovered by flyto-core's ModuleRegistry.discover_plugins(). Installing this
-# package is the only thing that makes robot motion authorable in the builder;
-# a Flyto2 install without it stays pure software.
+# package is the only thing that makes the robot capabilities available; a
+# Flyto2 install without it stays pure software.
 [project.entry-points."flyto.modules"]
 robotics = "flyto_modules_robotics:register_all"
 
 [project.optional-dependencies]
+core = ["flyto-core>=2.35.0"]
 dev = ["pytest>=8"]
 
 [tool.setuptools.packages.find]

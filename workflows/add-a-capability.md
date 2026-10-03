@@ -1,17 +1,18 @@
-# Adding support for a new robot capability
+# Adding a capability
 
-The robot already lists its own capabilities, so most of this is confirming
-rather than authoring.
+A capability is one row and one decorator. Nothing outside this package
+changes.
 
-1. **Check whether you need a step at all.** If the capability is one the generic
-   step can carry (see ROADMAP 2), nothing here changes.
-2. **Read the robot's own definition.** `flyto-robotics`'s `CapabilityDefinition`
-   carries the argument specs and bounds. Do not invent bounds that disagree with
-   it — that is the duplication STATE.md already flags.
-3. **Add a builder in `plan.py`.** Pure, bounded, ending in a safe stop. Assert
-   the exact plan bytes in a test.
-4. **Add the step class in `modules.py`.** `validate_params` builds the plan so a
-   bad value fails on the canvas rather than at the wheels.
-5. **Register it in `build_modules`** and give it a label, an icon and a colour —
-   a step with no label cannot be found on the canvas.
-6. **Run the suite.** No test may need a robot.
+1. **Start from the adapter.** The flyto-robotics adapter must already declare
+   the capability in `generic_ros2_adapter.ARGUMENTS`. Copy its argument names,
+   bounds and units exactly; never invent bounds that disagree with it.
+2. **Add the row in `capabilities.py`.** `params_schema` carries the bounds as
+   `min`/`max`/`unit`. Write the `flyto.capability-contract.v1` contract: safety
+   class and safe-stop/cancel flags equal the adapter's
+   `adapter_contract._CAPABILITY_METADATA`; evidence only if the host reports
+   an observation a v1 measure op can compare.
+3. **Register it in `modules.py`** with one `@register_module(...)` carrying
+   `provides_capability` and the contract.
+4. **Pin it in tests.** Add the adapter arguments to the table in
+   `tests/test_capabilities.py`; the contract must pass `contract_rules.py`.
+5. **Run the suite.** No test may need a robot.

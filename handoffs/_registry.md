@@ -4,6 +4,7 @@ New handoffs use `YYYY-MM-DD-topic.md`.
 
 | Date | Topic | File | Status | Owner | Branch |
 |---|---|---|---|---|---|
+| 2026-10-04 | One module per capability, each with a declared capability contract | `2026-10-04-capability-contract.md` | Active — PR open; awaiting flyto-core 2.35.0 and the Cloud consumer | claude | `claude/capability-contract` |
 | 2026-09-21 | External ROS 2 adapter architecture | `2026-09-21-external-ros2-adapter.md` | Active — production modules emit canonical capability requests; Pi delivery path is legacy only | ChatGPT | `fix/external-ros2-adapter-architecture` |
 | 2026-08-28 | Safe-stop client that cancels the original gateway session | `2026-08-28-safe-stop-session-cancellation.md` | Historical — superseded for production by the 2026-09-21 external ROS 2 adapter architecture | codex | main |
 | 2026-08-13 | Trusted catalog plan wiring using the lower runtime argument names | `2026-08-13-trusted-catalog-plan-wiring.md` | Historical — lower delivery-plan compatibility only; Pi runner integration is no longer a production goal | flyto_coding | main |

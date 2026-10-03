@@ -1,12 +1,28 @@
 # State
 
+## Capability contract — 2026-10-04 (branch `claude/capability-contract`, 1.0.0)
+
+Seven steps, one per adapter capability, each registered with
+`provides_capability` and a `flyto.capability-contract.v1` contract:
+advance, retreat, rotate, halt, navigate, observe, map. Parameters and bounds
+equal flyto-robotics `generic_ros2_adapter.ARGUMENTS` (origin/main ab252f1);
+evidence tolerances equal Cloud's `motion_verification.py` constants. A step
+hands `{resource_id, capability_id, arguments}` to the host dispatcher and maps
+the adapter outcome; without a dispatcher it only declares.
+
+Verified in software only: the pure suite, and a real flyto-core 2.33.0
+registry run (which predates `contract=`, so it exercised the register-without-
+contract path). Not yet verified: registration against a flyto-core that
+accepts `contract=` (flyto-core 2.35.0 was in progress on its own branch), and
+Cloud consuming the contracts. No robot was contacted.
+
 ## Software closure — 2026-09-23
 
 The production authoring path is now singular:
 
 `builder node -> flyto.capability-request.v1 -> selected AI Space host -> external Generic ROS 2 Adapter -> robot resource`.
 
-Move / Turn / Stop validate directly against the canonical adapter-facing contract. The retired `flyto.robotics.plan.v1`, lower capability catalog, gateway client, and executable Gazebo authoring/runtime path are removed from the package. The real flyto-core registry is part of acceptance, including visible node metadata and canonical request emission.
+Move / Turn / Stop (replaced on 2026-10-04 by one step per capability) validated directly against the canonical adapter-facing contract. The retired `flyto.robotics.plan.v1`, lower capability catalog, gateway client, and executable Gazebo authoring/runtime path are removed from the package. The real flyto-core registry is part of acceptance, including visible node metadata and canonical request emission.
 
 No physical motion is claimed by this software closure. TurtleBot3 bounded movement, interruption, safe stop, independent evidence, and recovery remain the only remaining acceptance category.
 
