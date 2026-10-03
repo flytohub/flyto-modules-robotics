@@ -8,6 +8,7 @@ import pytest
 from contract_rules import ContractInvalid, judge, validate_contract
 
 from flyto_modules_robotics.capabilities import (
+    OPTIONAL_CONTRACT_KEYS,
     SPECS,
     SPECS_BY_CAPABILITY,
     SPECS_BY_MODULE,
@@ -104,10 +105,17 @@ def test_every_contract_satisfies_the_v1_rules(spec):
     validate_contract(dict(spec.contract), spec.params_schema)
 
 
+def _as_registered(spec, module):
+    """The contract as this flyto-core registers it (2.36.0 keys only from 2.36.0)."""
+    accepted = frozenset(getattr(module, "OPTIONAL_FIELDS", ()))
+    dropped = OPTIONAL_CONTRACT_KEYS - accepted
+    return {key: value for key, value in spec.contract.items() if key not in dropped}
+
+
 @pytest.mark.parametrize("spec", SPECS, ids=lambda spec: spec.module_id)
 def test_every_contract_satisfies_flyto_core_when_installed(spec):
     module = pytest.importorskip("core.capability_contract")
-    module.validate_contract(dict(spec.contract), dict(spec.params_schema))
+    module.validate_contract(_as_registered(spec, module), dict(spec.params_schema))
 
 
 def test_actuation_matches_the_spec_table():
@@ -313,5 +321,6 @@ def test_vendored_rules_reject_what_v1_forbids():
 @pytest.mark.parametrize("spec", SPECS, ids=lambda spec: spec.module_id)
 def test_contracts_are_already_in_core_normalized_form(spec):
     module = pytest.importorskip("core.capability_contract")
-    normalized = module.validate_contract(dict(spec.contract), dict(spec.params_schema))
-    assert normalized == spec.contract
+    registered = _as_registered(spec, module)
+    normalized = module.validate_contract(registered, dict(spec.params_schema))
+    assert normalized == registered

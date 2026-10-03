@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.1.0 — provider evidence, declared recovery, Open-RMF fleet pack (2026-10-04)
+
+- flyto-core 2.36.0 optional contract keys, feature-detected
+  (`core.capability_contract.OPTIONAL_FIELDS`) and dropped with one warning on
+  an older core: `robotics.halt` declares `role: safe_stop`;
+  `robotics.observe` and `robotics.map` declare the `artifacts` the adapter
+  returns (photo JPEG; map JPEG or PNG); `robotics.advance` and
+  `robotics.retreat` declare `recovery` (rotate / advance / retreat, observe
+  `recovery_context`, planner guidance).
+- `recovery.py`: Cloud's obstacle-detour sectors, moved into the pack. A failed
+  or timed-out step whose capability declares recovery returns `recovery`
+  (declared capabilities and guidance, the adapter's distances and the
+  nearest return per sector). Sectors equal Cloud's on 300 seeded random
+  sweeps.
+- A step's output reduces returned artifacts to kind, media type, size and
+  SHA-256; the host keeps the bytes.
+- New `fleet` entry point (`fleet_pack.register_fleet`): `fleet.navigate`
+  (`motion.navigate_to_waypoint`), `fleet.dock` (`motion.dock`), `fleet.load`
+  (`transport.load`), `fleet.unload` (`transport.unload`), each with a
+  waypoint parameter and a contract, driven through flyto-robotics'
+  `open_rmf.fleet` adapter. Text parameters are trimmed and length-bounded.
+- `PACK_DESCRIPTION` for both packs.
+
 ## 1.0.0 — capability contract (2026-10-04)
 
 Breaking: Move / Turn / Stop are replaced by one step per capability, with the
