@@ -10,6 +10,7 @@ Completed:
 5. Authoring bounds aligned with the Generic ROS 2 Adapter.
 6. Removal of the retired plan/catalog/gateway authoring path.
 7. One module per capability with a declared `flyto.capability-contract.v1` contract (1.0.0).
+8. Provider-declared artifacts, safe-stop role and detour recovery; Open-RMF fleet pack (1.1.0).
 
 ## Remaining product work
 

@@ -5,7 +5,8 @@
 Pure: no ROS, no network, no flyto-core.  Every parameter is checked against
 the capability's ``params_schema`` (which equals the adapter's declared
 arguments).  Unknown, missing, non-finite and out-of-range values are refused;
-nothing is clamped.
+nothing is clamped.  Text (a fleet waypoint) is trimmed and must fit its
+declared length; control characters are refused.
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ import math
 from collections.abc import Mapping
 from typing import Any
 
-from .capabilities import SPECS_BY_MODULE, CapabilitySpec
+from .capabilities import ALL_SPECS_BY_MODULE, CapabilitySpec
 
 CAPABILITY_REQUEST_VERSION = "flyto.capability-request.v1"
 
@@ -53,7 +54,25 @@ def _bounded_number(name: str, value: Any, field: Mapping[str, Any]) -> float:
     return number
 
 
-def arguments_for(spec: CapabilitySpec, params: Mapping[str, Any]) -> dict[str, float]:
+def _bounded_text(name: str, value: Any, field: Mapping[str, Any]) -> str:
+    if not isinstance(value, str):
+        raise CapabilityRequestError(f"{name} must be text")
+    text = value.strip()
+    if any(ord(character) < 32 or ord(character) == 127 for character in text):
+        raise CapabilityRequestError(f"{name} must not contain control characters")
+    low, high = int(field.get("minLength", 0)), int(field["maxLength"])
+    if not low <= len(text) <= high:
+        raise CapabilityRequestError(f"{name} must be {low} to {high} characters")
+    return text
+
+
+def _argument(name: str, value: Any, field: Mapping[str, Any]) -> Any:
+    if field.get("type") == "string":
+        return _bounded_text(name, value, field)
+    return _bounded_number(name, value, field)
+
+
+def arguments_for(spec: CapabilitySpec, params: Mapping[str, Any]) -> dict[str, Any]:
     """Validated adapter arguments for one capability, defaults made explicit."""
 
     if not isinstance(params, Mapping):
@@ -66,10 +85,10 @@ def arguments_for(spec: CapabilitySpec, params: Mapping[str, Any]) -> dict[str, 
         raise CapabilityRequestError(
             f"{spec.module_id} does not take: " + ", ".join(unknown)
         )
-    arguments: dict[str, float] = {}
+    arguments: dict[str, Any] = {}
     for name, field in schema.items():
         if name in params and params[name] is not None:
-            arguments[name] = _bounded_number(name, params[name], field)
+            arguments[name] = _argument(name, params[name], field)
         elif "default" in field:
             arguments[name] = float(field["default"])
         elif field.get("required"):
@@ -89,7 +108,7 @@ def capability_request_for_step(
     computer executes it is chosen by the control plane, never here.
     """
 
-    spec = SPECS_BY_MODULE.get(str(module_id or "").strip())
+    spec = ALL_SPECS_BY_MODULE.get(str(module_id or "").strip())
     if spec is None:
         return None
     return {

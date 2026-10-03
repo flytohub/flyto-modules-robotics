@@ -6,6 +6,9 @@ navigate, observe, map) is one registered module carrying
 ``provides_capability`` and a ``flyto.capability-contract.v1`` contract.  Steps
 execute on the AI Space host through its dispatcher, which calls the
 flyto-robotics ROS 2 adapter; nothing from this package runs on the robot.
+
+A second entry point, ``fleet`` (:mod:`flyto_modules_robotics.fleet_pack`),
+registers Open-RMF fleet steps through the same contract.
 """
 
 from __future__ import annotations
@@ -15,6 +18,11 @@ import os
 
 from .capabilities import (
     CAPABILITY_ADVANCE,
+    CAPABILITY_DOCK,
+    CAPABILITY_LOAD,
+    CAPABILITY_NAVIGATE_TO_WAYPOINT,
+    CAPABILITY_UNLOAD,
+    FLEET_SPECS,
     CAPABILITY_HALT,
     CAPABILITY_MAP,
     CAPABILITY_NAVIGATE,
@@ -37,10 +45,17 @@ from .capability_request import (
     CapabilityRequestError,
     capability_request_for_step,
 )
-from .steps import MODULE_IDS, is_robotics_step, step_module_id
+from .steps import FLEET_MODULE_IDS, MODULE_IDS, is_robotics_step, step_module_id
 
 __all__ = [
     "CAPABILITY_ADVANCE",
+    "CAPABILITY_DOCK",
+    "CAPABILITY_LOAD",
+    "CAPABILITY_NAVIGATE_TO_WAYPOINT",
+    "CAPABILITY_UNLOAD",
+    "FLEET_MODULE_IDS",
+    "FLEET_SPECS",
+    "PACK_DESCRIPTION",
     "CAPABILITY_HALT",
     "CAPABILITY_MAP",
     "CAPABILITY_NAVIGATE",
@@ -66,7 +81,10 @@ __all__ = [
     "step_module_id",
 ]
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
+
+#: What flyto-core reports for this pack (``PluginInfo.description``).
+PACK_DESCRIPTION = "Robot motion, camera and map through a standard ROS 2 adapter"
 
 logger = logging.getLogger(__name__)
 
@@ -114,13 +132,12 @@ def _core_unusable_reason(exc: ImportError) -> str | None:
     return None
 
 
-def register_all() -> None:
-    """Register the robotics capability steps with flyto-core.
+def _core_api(what: str):
+    """flyto-core's ``(BaseModule, register_module)``, or None when unusable.
 
     Core is imported only here so the pure capability and request API remains
     importable without an execution engine.  A missing/incompatible Core API is
     logged; failures inside Core or this plugin continue to propagate.
-    Registration is intentionally repeatable for registry reloads.
     """
 
     try:
@@ -131,16 +148,28 @@ def register_all() -> None:
         if reason is None:
             raise
         logger.warning(
-            "flyto-modules-robotics registered no robotics steps because flyto-core "
-            "%s: %s",
+            "flyto-modules-robotics registered no %s steps because flyto-core %s: %s",
+            what,
             reason,
             exc,
         )
+        return None
+    return BaseModule, register_module
+
+
+def register_all() -> None:
+    """Register the robotics capability steps with flyto-core.
+
+    Registration is intentionally repeatable for registry reloads.
+    """
+
+    api = _core_api("robotics")
+    if api is None:
         return
 
     from .modules import build_modules
 
-    registered = build_modules(BaseModule, register_module)
+    registered = build_modules(*api)
     logger.info(
         "flyto-modules-robotics registered %d robotics steps: %s",
         len(registered),

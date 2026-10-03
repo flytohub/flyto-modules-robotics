@@ -60,6 +60,23 @@ When the installed flyto-core predates `contract=` (before 2.35.0), the steps
 register without contracts and one warning is logged; Cloud then falls back to
 its built-in capability rows.
 
+## Recovery and artifacts
+
+Advance and retreat declare `recovery` (flyto-core 2.36.0): substitutes, the
+`recovery_context` observation and guidance. The adapter reports the facts;
+`recovery.py` turns its sweep into six nearest-return sectors, and a failed
+step returns the result as `recovery`. Captures declare `artifacts`; the
+adapter returns them in the contract's transport and a step's output keeps
+only their digests.
+
+## Fleet pack
+
+`fleet_pack.register_fleet` (entry point `fleet`) registers `fleet.navigate`
+(`motion.navigate_to_waypoint`), `fleet.dock`, `fleet.load`, `fleet.unload`
+through the same `_capability_step` and dispatcher boundary. The resource is a
+fleet (`fleet:<name>`), the adapter is flyto-robotics' `open_rmf.fleet`, and
+Open-RMF picks the robot.
+
 ## Host dispatch
 
 With no dispatcher in the step context the step only declares its request. An

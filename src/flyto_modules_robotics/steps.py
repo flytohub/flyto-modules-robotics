@@ -11,9 +11,11 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from .capabilities import SPECS
+from .capabilities import FLEET_SPECS, SPECS
 
 MODULE_IDS = tuple(spec.module_id for spec in SPECS)
+# The ``fleet`` pack's steps (Open-RMF); not robotics steps.
+FLEET_MODULE_IDS = tuple(spec.module_id for spec in FLEET_SPECS)
 NAMESPACE = "robotics."
 
 

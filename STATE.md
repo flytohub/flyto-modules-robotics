@@ -1,5 +1,15 @@
 # State
 
+## Provider evidence, recovery, fleet pack — 2026-10-04 (branch `claude/evidence-recovery-fleet`, 1.1.0)
+
+The seven robotics contracts carry the 2.36.0 optional keys (halt `role`,
+capture `artifacts`, advance/retreat `recovery`); a failed advance/retreat
+step returns `recovery` with Cloud's detour sectors; step outputs carry
+artifact digests, not bytes. The `fleet` entry point registers four Open-RMF
+steps. Verified in software only, with fakes: flyto-core main (2.36.0) incl.
+its capability host end to end, flyto-core 2.35.0, released 2.33.0, and no
+core. No robot, fleet or simulator contacted.
+
 ## Capability contract — 2026-10-04 (branch `claude/capability-contract`, 1.0.0)
 
 Seven steps, one per adapter capability, each registered with

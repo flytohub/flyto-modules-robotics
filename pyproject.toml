@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flyto-modules-robotics"
-version = "1.0.0"
+version = "1.1.0"
 description = "Robot capabilities for Flyto2, contributed through @register_module alone"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -39,6 +39,8 @@ Issues = "https://github.com/flytohub/flyto-modules-robotics/issues"
 # Flyto2 install without it stays pure software.
 [project.entry-points."flyto.modules"]
 robotics = "flyto_modules_robotics:register_all"
+# Open-RMF fleets through the same contract (flyto-robotics open_rmf.fleet).
+fleet = "flyto_modules_robotics.fleet_pack:register_fleet"
 
 [project.optional-dependencies]
 core = ["flyto-core>=2.35.0"]

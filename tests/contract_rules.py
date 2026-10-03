@@ -23,7 +23,15 @@ CONTRACT_KEYS = {
     "effects",
     "requires",
     "evidence",
+    # flyto-core 2.36.0
+    "role",
+    "artifacts",
+    "recovery",
+    "expected_duration_ms",
 }
+OPTIONAL_KEYS = {"role", "artifacts", "recovery", "expected_duration_ms"}
+MEDIA_TYPE = re.compile(r"^[a-z0-9][a-z0-9!#$&^_.+-]{0,63}/[a-z0-9][a-z0-9!#$&^_.+-]{0,63}$")
+ARTIFACT_MAX_BYTES = 20 * 1024 * 1024
 REQUIRED_KEYS = {"actuates", "safety_class", "requires_safe_stop", "cancellable", "idempotent"}
 SAFETY_CLASSES = {"read_only", "controlled", "movement", "dangerous"}
 EVIDENCE_KEYS = {"kind", "observe", "phases", "measure", "expect", "tolerance", "settle"}
@@ -155,6 +163,55 @@ def validate_contract(contract: Any, params_schema: Mapping[str, Any]) -> None:
         for name, field in params_schema.items():
             if field.get("type") == "number" and not {"min", "max"} <= set(field):
                 raise ContractInvalid(f"actuating parameter {name} must declare min and max")
+    _optional(contract)
+
+
+def _optional(contract: Mapping[str, Any]) -> None:
+    """The four keys flyto-core 2.36.0 added, checked only when declared."""
+    if "role" in contract:
+        if contract["role"] != "safe_stop":
+            raise ContractInvalid("role must be safe_stop")
+        if contract["cancellable"] or contract["requires_safe_stop"] or not contract["idempotent"]:
+            raise ContractInvalid("a safe_stop is uncancellable, idempotent and needs no stop")
+    if "artifacts" in contract:
+        artifacts = contract["artifacts"]
+        if type(artifacts) is not list or not 1 <= len(artifacts) <= 8:
+            raise ContractInvalid("artifacts must be 1..8 declarations")
+        kinds = []
+        for item in artifacts:
+            if type(item) is not dict or set(item) != {"kind", "media_types", "max_bytes"}:
+                raise ContractInvalid("an artifact declares exactly kind, media_types, max_bytes")
+            _identifier(item["kind"], "artifacts.kind")
+            kinds.append(item["kind"])
+            media = item["media_types"]
+            if type(media) is not list or not 1 <= len(media) <= 8 or len(set(media)) != len(media):
+                raise ContractInvalid("artifacts.media_types must be 1..8 distinct types")
+            for media_type in media:
+                if type(media_type) is not str or not MEDIA_TYPE.fullmatch(media_type):
+                    raise ContractInvalid("artifacts.media_types holds lower-case type/subtype")
+            size = item["max_bytes"]
+            if type(size) is not int or not 1 <= size <= ARTIFACT_MAX_BYTES:
+                raise ContractInvalid("artifacts.max_bytes is out of range")
+        if len(set(kinds)) != len(kinds):
+            raise ContractInvalid("artifacts declare a kind twice")
+    if "recovery" in contract:
+        recovery = contract["recovery"]
+        if type(recovery) is not dict or "capabilities" not in recovery:
+            raise ContractInvalid("recovery needs capabilities")
+        if not set(recovery) <= {"capabilities", "observe", "guidance"}:
+            raise ContractInvalid("recovery has unknown keys")
+        _identifiers(recovery["capabilities"], "recovery.capabilities", 8)
+        if not recovery["capabilities"]:
+            raise ContractInvalid("recovery.capabilities is empty")
+        if "observe" in recovery:
+            _identifier(recovery["observe"], "recovery.observe")
+        guidance = recovery.get("guidance", "x")
+        if type(guidance) is not str or not guidance.strip() or len(guidance) > 500:
+            raise ContractInvalid("recovery.guidance is 1..500 characters")
+    if "expected_duration_ms" in contract:
+        duration = contract["expected_duration_ms"]
+        if type(duration) is not int or not 1 <= duration <= 3_600_000:
+            raise ContractInvalid("expected_duration_ms is out of range")
 
 
 def wrap(angle: float) -> float:

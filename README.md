@@ -88,10 +88,55 @@ robot (stock ROS 2, no Flyto2 software)
 | `robotics.advance` | `motion.advance` | `distance_m` 0.05–2.0 m (required), `speed_mps` 0.02–0.25 m/s (default 0.12) | actuates, movement, safe stop, cancellable; evidence: travel along the starting heading within max(0.03 m, 30%) of `distance_m`, settle ≤ 0.02 m, heading held within 0.15 rad |
 | `robotics.retreat` | `motion.retreat` | `distance_m` 0.05–2.0 m (required), `speed_mps` 0.02–0.20 m/s (default 0.10) | same as advance, expecting backward travel (`scale: -1`) |
 | `robotics.rotate` | `motion.rotate` | `yaw_radians` −π..π (required, signed) | actuates, movement, safe stop, cancellable; evidence: signed rotation within max(0.1 rad, 20%), position drift ≤ 0.05 m, settle ≤ 0.02 m |
-| `robotics.halt` | `motion.halt` | none | actuates, controlled; it is the stop itself, so no safe stop and not cancellable |
+| `robotics.halt` | `motion.halt` | none | actuates, controlled; `role: safe_stop`: it is the stop itself, so no safe stop, not cancellable, and a host runs it at once |
 | `robotics.navigate` | `motion.navigate` | `x`, `y` −1000..1000 m (required), `yaw_radians` −π..π | actuates, movement, safe stop, cancellable; requires LiDAR clearance and a localised map |
-| `robotics.observe` | `vision.observe` | none | read only: one camera photo |
-| `robotics.map` | `sensing.map` | none | read only: the occupancy map built so far |
+| `robotics.observe` | `vision.observe` | none | read only: one camera photo; `artifacts`: `photo`, `image/jpeg`, ≤ 2,000,000 bytes |
+| `robotics.map` | `sensing.map` | none | read only: the occupancy map built so far; `artifacts`: `map`, `image/jpeg` or `image/png`, ≤ 8 MiB |
+
+Advance and retreat also declare `recovery`: after a failure or timeout a
+planner may use `motion.rotate`, `motion.advance` and `motion.retreat`
+instead, guided by the contract's text, and the adapter reports
+`recovery_context` (why it stopped, distance asked / travelled / remaining,
+the LiDAR sweep at the stop). A failed step's output carries `recovery`:
+the declared capabilities and guidance plus that context with the nearest
+return in six sectors of the robot's view (ahead, ahead-left, left,
+ahead-right, right, behind; `recovery.py`, the detour logic Cloud used to run
+itself). The four optional keys (`role`, `artifacts`, `recovery`,
+`expected_duration_ms`) need flyto-core 2.36.0; an older core gets the
+contracts without them and one warning.
+
+A step's output keeps each returned artifact's kind, media type, size and
+SHA-256, never its bytes: the host keeps the picture itself.
+
+## OpenRMF through the same contract
+
+A second `flyto.modules` entry point, `fleet`
+(`flyto_modules_robotics.fleet_pack:register_fleet`), registers Open-RMF fleet
+steps with the same `@register_module` + contract shape. The commanded resource
+is a fleet, `fleet:<name>`; the host's dispatcher calls flyto-robotics'
+`open_rmf.fleet` adapter, which names the fleet and never a robot, so
+Open-RMF's own dispatcher still picks the machine.
+
+| Step | Provides | Parameters | Contract |
+|---|---|---|---|
+| `fleet.navigate` | `motion.navigate_to_waypoint` | `waypoint` (text, 1–128) | actuates, movement, cancellable, `requires_safe_stop: false`, `expected_duration_ms` 600,000 |
+| `fleet.dock` | `motion.dock` | `waypoint` | same |
+| `fleet.load` | `transport.load` | `waypoint` | same, effect `payload.loaded` |
+| `fleet.unload` | `transport.unload` | `waypoint` | same, effect `payload.unloaded` |
+
+- Why not `motion.navigate`: a single robot's navigate takes a map coordinate
+  and needs LiDAR and a localised map; a fleet's takes a waypoint and has no
+  stop of its own. Two different contracts under one capability id are
+  ambiguous to a contract host (flyto-core's host then fails closed and drops
+  the declared deadline), so the fleet's navigation has its own id. The
+  adapter still accepts `motion.navigate` for the conformance kit.
+- `requires_safe_stop: false` is the honest value: Open-RMF has no fleet-wide
+  stop and the adapter refuses `safe_stop` rather than claim every machine is
+  at rest. Stop a machine on its own path (`robotics.halt`).
+- A call returns when Open-RMF reports the task `completed`, `failed` /
+  `canceled` / `killed`, or still running at the deadline (timeout; the host's
+  cancel withdraws it by RMF's task id). A finished navigate or dock reports a
+  `robot.arrival` evidence item stating it is Open-RMF's claim.
 
 Parameters and bounds are the adapter's own declared arguments
 (`generic_ros2_adapter.ARGUMENTS` in flyto-robotics), and a test pins them
@@ -110,7 +155,8 @@ is the same.
 | Only the host can execute; workflow data cannot forge that authority | The dispatcher must be a host type marked `_flyto_runtime_opaque` (checked here and in flyto-core's `capability.invoke`) |
 | One commanded resource per job, and only approved capabilities | The host dispatcher (flyto-cloud `local/external_capability_dispatch.py`) refuses any other resource or a capability outside the job's allowlist |
 | Motion needs fresh odometry and a safety basis: LiDAR clearance ≥ 0.35 m, or a declared present operator with tighter limits | The adapter's motion preflight (flyto-robotics) |
-| A timeout or failure ends in a safe stop | The host dispatcher cancels the call and commands the adapter's safe stop |
+| A timeout or failure ends in a safe stop | The host dispatcher cancels the call and commands the adapter's safe stop (a fleet has none: the Open-RMF adapter refuses it, and the fleet contracts say `requires_safe_stop: false`) |
+| The stop is never queued | `robotics.halt` declares `role: safe_stop`; a contract host runs it without an approval queue |
 | A retry never repeats an effect | The adapter keeps each call's result by call id (`idempotent: true`) |
 | Physical and simulated robots are not confused | The adapter refuses motion when the ROS graph is not the configured deployment mode |
 | Success means the effect was observed, not that a call returned | Cloud judges the declared evidence against the host's before / after / settled poses |
@@ -125,7 +171,8 @@ pip install "flyto-modules-robotics[core]"
 Install it on the AI Space execution host, never on the robot. The package has
 no hard dependencies. The `core` extra states the floor that understands
 `contract=` (`flyto-core>=2.35.0`). With an older flyto-core the steps still
-register, without their contracts, and one warning says so. Without flyto-core
+register, without their contracts, and one warning says so; on 2.35 they
+register without the 2.36.0 optional keys, also with one warning. Without flyto-core
 at all, `register_all` logs and returns; the pure request API still imports.
 
 ## API

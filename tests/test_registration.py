@@ -15,10 +15,11 @@ from pathlib import Path
 import pytest
 
 import flyto_modules_robotics as pkg
-from flyto_modules_robotics.capabilities import SPECS, SPECS_BY_MODULE
+from flyto_modules_robotics.capabilities import OPTIONAL_CONTRACT_KEYS, SPECS, SPECS_BY_MODULE
 from flyto_modules_robotics.modules import (
     HOST_DISPATCHER_CONTEXT_KEY,
     build_modules,
+    core_optional_contract_keys,
     supports_contract,
 )
 
@@ -277,7 +278,11 @@ def test_each_module_declares_its_capability_and_contract():
         assert item["module_id"] == module_id
         assert item["provides_capability"] == spec.capability_id
         assert item["params_schema"] == spec.params_schema
-        assert item["contract"] == spec.contract
+        # The 2.36.0 optional keys only where this flyto-core accepts them.
+        dropped = OPTIONAL_CONTRACT_KEYS - core_optional_contract_keys()
+        assert item["contract"] == {
+            key: value for key, value in spec.contract.items() if key not in dropped
+        }
         assert item["category"] == "robotics"
         assert item["label"]
         assert item["requires_credentials"] is False
@@ -330,7 +335,11 @@ sys.path.insert(0, sys.argv[1])
 
 from core.modules.base import BaseModule
 from core.modules.registry import ModuleRegistry, register_module
-from flyto_modules_robotics.modules import build_modules, supports_contract
+from flyto_modules_robotics.modules import (
+    build_modules,
+    core_optional_contract_keys,
+    supports_contract,
+)
 
 ModuleRegistry.clear()
 try:
@@ -345,6 +354,7 @@ try:
             if any(m.startswith("robotics.") for m in v)
         },
         "contract_supported": supports_contract(register_module),
+        "optional_keys": sorted(core_optional_contract_keys()),
         "advance": metadata["robotics.advance"],
         "result": result,
     }, sort_keys=True, default=str))
@@ -373,9 +383,13 @@ finally:
     assert advance["params_schema"]["distance_m"]["min"] == 0.05
     assert advance["provides_capability"] == "motion.advance"
     if observed["contract_supported"]:
-        assert advance["contract"] == json.loads(
-            json.dumps(SPECS_BY_MODULE["robotics.advance"].contract)
-        )
+        dropped = OPTIONAL_CONTRACT_KEYS - set(observed["optional_keys"])
+        expected = {
+            key: value
+            for key, value in SPECS_BY_MODULE["robotics.advance"].contract.items()
+            if key not in dropped
+        }
+        assert advance["contract"] == json.loads(json.dumps(expected))
     request = observed["result"]["capability_request"]
     assert request["resource_id"] == "robot-1"
     assert request["capability_id"] == "motion.advance"

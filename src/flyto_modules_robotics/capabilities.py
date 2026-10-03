@@ -44,6 +44,26 @@ CAPABILITY_NAVIGATE = "motion.navigate"
 CAPABILITY_OBSERVE = "vision.observe"
 CAPABILITY_MAP = "sensing.map"
 
+# The fleet pack: the same contract, driven through flyto-robotics'
+# Open-RMF adapter (``open_rmf.fleet``). The commanded resource is a fleet.
+MODULE_FLEET_NAVIGATE = "fleet.navigate"
+MODULE_FLEET_DOCK = "fleet.dock"
+MODULE_FLEET_LOAD = "fleet.load"
+MODULE_FLEET_UNLOAD = "fleet.unload"
+
+# Not ``motion.navigate``: a single robot's navigate takes a map coordinate and
+# needs a localised map and LiDAR; a fleet's takes a waypoint and has no stop
+# of its own. Two contracts under one capability id are ambiguous to a
+# contract host (flyto-core fails closed on them), so the fleet's has its own.
+CAPABILITY_NAVIGATE_TO_WAYPOINT = "motion.navigate_to_waypoint"
+CAPABILITY_DOCK = "motion.dock"
+CAPABILITY_LOAD = "transport.load"
+CAPABILITY_UNLOAD = "transport.unload"
+
+# Keys flyto-core 2.36.0 added to the contract. An older core's closed schema
+# rejects them, so ``modules.py`` registers without them there.
+OPTIONAL_CONTRACT_KEYS = frozenset(("role", "artifacts", "recovery", "expected_duration_ms"))
+
 # Generic ROS 2 adapter bounds (flyto-robotics generic_ros2_adapter.ARGUMENTS).
 MIN_DISTANCE_M = 0.05
 MAX_DISTANCE_M = 2.0
@@ -55,6 +75,15 @@ DEFAULT_ADVANCE_SPEED_MPS = 0.12
 DEFAULT_RETREAT_SPEED_MPS = 0.10
 MAX_YAW_RADIANS = math.pi
 MAX_COORDINATE_M = 1000.0
+
+# What a capture returns (flyto-robotics adapter MAX_PHOTO_BYTES; the map is
+# drawn from at most 4,000,000 cells).
+MAX_PHOTO_BYTES = 2_000_000
+MAX_MAP_PICTURE_BYTES = 8 * 1024 * 1024
+# A waypoint on an Open-RMF fleet's shared map.
+MAX_WAYPOINT_LENGTH = 128
+# An Open-RMF task's deadline: a fleet robot may queue behind others first.
+FLEET_TASK_MS = 600_000
 
 # Cloud motion_verification.py constants, now declared by the provider.
 DISTANCE_TOLERANCE_MIN_M = 0.03
@@ -135,6 +164,17 @@ def _coordinate(axis: str) -> dict[str, Any]:
     )
 
 
+def _waypoint() -> dict[str, Any]:
+    return {
+        "type": "string",
+        "label": "Waypoint",
+        "description": "A named waypoint on the fleet's shared map",
+        "minLength": 1,
+        "maxLength": MAX_WAYPOINT_LENGTH,
+        "required": True,
+    }
+
+
 # Evidence the execution host reports as odometry poses at three phases.
 _PHASES = ["before", "after", "settled"]
 
@@ -204,8 +244,9 @@ def _contract(
     effects: list[str],
     requires: list[str],
     evidence: list[dict[str, Any]],
+    **optional: Any,
 ) -> dict[str, Any]:
-    return {
+    contract = {
         "schema": CONTRACT_SCHEMA,
         "actuates": actuates,
         "safety_class": safety_class,
@@ -218,9 +259,16 @@ def _contract(
         "requires": requires,
         "evidence": evidence,
     }
+    unknown = set(optional) - OPTIONAL_CONTRACT_KEYS
+    if unknown:  # pragma: no cover - a typo in this table
+        raise ValueError(f"unknown contract keys: {sorted(unknown)}")
+    contract.update(optional)
+    return contract
 
 
-def _motion(evidence: list[dict[str, Any]], *, requires: list[str]) -> dict[str, Any]:
+def _motion(
+    evidence: list[dict[str, Any]], *, requires: list[str], **optional: Any
+) -> dict[str, Any]:
     return _contract(
         actuates=True,
         safety_class="movement",
@@ -229,10 +277,11 @@ def _motion(evidence: list[dict[str, Any]], *, requires: list[str]) -> dict[str,
         effects=["position.changed"],
         requires=requires,
         evidence=evidence,
+        **optional,
     )
 
 
-def _read_only() -> dict[str, Any]:
+def _read_only(**optional: Any) -> dict[str, Any]:
     return _contract(
         actuates=False,
         safety_class="read_only",
@@ -241,12 +290,57 @@ def _read_only() -> dict[str, Any]:
         effects=[],
         requires=[],
         evidence=[],
+        **optional,
+    )
+
+
+def _fleet_task(effects: list[str]) -> dict[str, Any]:
+    """An Open-RMF task: the fleet's dispatcher picks the robot.
+
+    ``requires_safe_stop`` is false because it cannot be honoured: Open-RMF has
+    no fleet-wide stop, and the adapter refuses ``safe_stop`` rather than claim
+    every machine is at rest. A machine is stopped on its own path
+    (``robotics.halt``). Cancelling withdraws the task by the id RMF gave it.
+    The call waits for RMF's terminal task state, so the deadline is long.
+    """
+    return _contract(
+        actuates=True,
+        safety_class="movement",
+        requires_safe_stop=False,
+        cancellable=True,
+        effects=effects,
+        requires=["fleet.dispatcher-reachable"],
+        evidence=[],
+        expected_duration_ms=FLEET_TASK_MS,
     )
 
 
 # Preconditions the adapter checks before any motion: fresh odometry, and the
 # robot's declared safety basis (LiDAR clearance, or a present operator).
 _MOTION_REQUIRES = ["observation.fresh", "safety-basis.met"]
+
+# What a planner may use instead after a straight motion stops short, and how.
+# The adapter reports ``recovery_context`` (flyto-robotics 0.2.0): why it
+# stopped, how far it went, and the LiDAR sweep at the stop; ``recovery.py``
+# turns that into nearest-return sectors for the planner.
+DETOUR_CAPABILITIES = [CAPABILITY_ROTATE, CAPABILITY_ADVANCE, CAPABILITY_RETREAT]
+RECOVERY_OBSERVATION = "recovery_context"
+DETOUR_GUIDANCE = (
+    "If it stopped because something was in the way (reason obstacle_blocked), go "
+    "round on the side whose sector shows more room: turn 90 degrees "
+    "(yaw_radians 1.5708 left, -1.5708 right), go far enough to clear it, turn "
+    "back, go past it, return to the original line and go the remaining distance. "
+    "Keep every move at least 0.35 m short of anything in its way or the robot "
+    "refuses it. At most 8 moves. If no side has room, stop and say why."
+)
+
+
+def _detour() -> dict[str, Any]:
+    return {
+        "capabilities": list(DETOUR_CAPABILITIES),
+        "observe": RECOVERY_OBSERVATION,
+        "guidance": DETOUR_GUIDANCE,
+    }
 
 
 @dataclass(frozen=True)
@@ -287,7 +381,9 @@ SPECS: tuple[CapabilitySpec, ...] = (
             "distance_m": _distance(),
             "speed_mps": _speed(MAX_ADVANCE_SPEED_MPS, DEFAULT_ADVANCE_SPEED_MPS),
         },
-        contract=_motion(_displacement_evidence(1), requires=_MOTION_REQUIRES),
+        contract=_motion(
+            _displacement_evidence(1), requires=_MOTION_REQUIRES, recovery=_detour()
+        ),
         timeout_ms=180000,
         retryable=False,
     ),
@@ -303,7 +399,9 @@ SPECS: tuple[CapabilitySpec, ...] = (
             "distance_m": _distance(),
             "speed_mps": _speed(MAX_RETREAT_SPEED_MPS, DEFAULT_RETREAT_SPEED_MPS),
         },
-        contract=_motion(_displacement_evidence(-1), requires=_MOTION_REQUIRES),
+        contract=_motion(
+            _displacement_evidence(-1), requires=_MOTION_REQUIRES, recovery=_detour()
+        ),
         timeout_ms=180000,
         retryable=False,
     ),
@@ -331,7 +429,8 @@ SPECS: tuple[CapabilitySpec, ...] = (
         color=_STOP_COLOR,
         tags=("robot", "motion", "halt", "stop", "safety"),
         params_schema={},
-        # Halt is the stop itself: it needs no safe stop and is not cancelled.
+        # Halt is the stop itself: it needs no safe stop and is not cancelled,
+        # and a host runs it at once, with no approval queue.
         contract=_contract(
             actuates=True,
             safety_class="controlled",
@@ -340,6 +439,7 @@ SPECS: tuple[CapabilitySpec, ...] = (
             effects=["motion.stopped"],
             requires=[],
             evidence=[],
+            role="safe_stop",
         ),
         timeout_ms=90000,
         retryable=True,
@@ -374,7 +474,11 @@ SPECS: tuple[CapabilitySpec, ...] = (
         color=_SENSE_COLOR,
         tags=("robot", "vision", "camera", "photo"),
         params_schema={},
-        contract=_read_only(),
+        contract=_read_only(
+            artifacts=[
+                {"kind": "photo", "media_types": ["image/jpeg"], "max_bytes": MAX_PHOTO_BYTES}
+            ]
+        ),
         timeout_ms=90000,
         retryable=True,
     ),
@@ -387,9 +491,65 @@ SPECS: tuple[CapabilitySpec, ...] = (
         color=_SENSE_COLOR,
         tags=("robot", "sensing", "map"),
         params_schema={},
-        contract=_read_only(),
+        # Drawn by the adapter: JPEG where Pillow is installed, PNG otherwise.
+        contract=_read_only(
+            artifacts=[
+                {
+                    "kind": "map",
+                    "media_types": ["image/jpeg", "image/png"],
+                    "max_bytes": MAX_MAP_PICTURE_BYTES,
+                }
+            ]
+        ),
         timeout_ms=90000,
         retryable=True,
+    ),
+)
+
+_FLEET_COLOR = "#34D399"
+
+
+def _fleet_spec(
+    module_id: str, capability_id: str, label: str, description: str, icon: str,
+    tags: tuple[str, ...], effects: list[str],
+) -> CapabilitySpec:
+    return CapabilitySpec(
+        module_id=module_id,
+        capability_id=capability_id,
+        label=label,
+        description=description,
+        icon=icon,
+        color=_FLEET_COLOR,
+        tags=("fleet", "open-rmf", *tags),
+        params_schema={"waypoint": _waypoint()},
+        contract=_fleet_task(effects),
+        timeout_ms=FLEET_TASK_MS,
+        retryable=False,
+    )
+
+
+# The fleet pack (entry point ``fleet``): Open-RMF plans between named places,
+# so every step takes a waypoint, never a distance or a robot.
+FLEET_SPECS: tuple[CapabilitySpec, ...] = (
+    _fleet_spec(
+        MODULE_FLEET_NAVIGATE, CAPABILITY_NAVIGATE_TO_WAYPOINT, "Fleet Navigate",
+        "Send a fleet robot, picked by the fleet, to a named waypoint",
+        "Navigation", ("motion", "navigate"), ["position.changed"],
+    ),
+    _fleet_spec(
+        MODULE_FLEET_DOCK, CAPABILITY_DOCK, "Fleet Dock",
+        "Send a fleet robot to a docking waypoint",
+        "BatteryCharging", ("motion", "dock"), ["position.changed"],
+    ),
+    _fleet_spec(
+        MODULE_FLEET_LOAD, CAPABILITY_LOAD, "Fleet Load",
+        "Have a fleet robot collect a payload at a named waypoint",
+        "PackagePlus", ("transport", "load"), ["position.changed", "payload.loaded"],
+    ),
+    _fleet_spec(
+        MODULE_FLEET_UNLOAD, CAPABILITY_UNLOAD, "Fleet Unload",
+        "Have a fleet robot deliver a payload at a named waypoint",
+        "PackageCheck", ("transport", "unload"), ["position.changed", "payload.unloaded"],
     ),
 )
 
@@ -398,4 +558,11 @@ SPECS_BY_MODULE: Mapping[str, CapabilitySpec] = MappingProxyType(
 )
 SPECS_BY_CAPABILITY: Mapping[str, CapabilitySpec] = MappingProxyType(
     {spec.capability_id: spec for spec in SPECS}
+)
+FLEET_SPECS_BY_MODULE: Mapping[str, CapabilitySpec] = MappingProxyType(
+    {spec.module_id: spec for spec in FLEET_SPECS}
+)
+# Every step either pack registers, by module id.
+ALL_SPECS_BY_MODULE: Mapping[str, CapabilitySpec] = MappingProxyType(
+    {**SPECS_BY_MODULE, **FLEET_SPECS_BY_MODULE}
 )

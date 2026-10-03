@@ -16,13 +16,18 @@ dispatcher a step only declares the request it would make.
 
 from __future__ import annotations
 
+import base64
+import binascii
 import copy
+import hashlib
 import inspect
 import logging
 from collections.abc import Callable, Mapping
 from typing import Any
 
 from .capabilities import (
+    ALL_SPECS_BY_MODULE,
+    FLEET_SPECS,
     MODULE_ADVANCE,
     MODULE_HALT,
     MODULE_MAP,
@@ -30,6 +35,7 @@ from .capabilities import (
     MODULE_OBSERVE,
     MODULE_RETREAT,
     MODULE_ROTATE,
+    OPTIONAL_CONTRACT_KEYS,
     SPECS_BY_MODULE,
     CapabilitySpec,
 )
@@ -38,12 +44,21 @@ from .capability_request import (
     CapabilityRequestError,
     capability_request_for_step,
 )
+from .recovery import recovery_for
 
-__all__ = ["HOST_DISPATCHER_CONTEXT_KEY", "build_modules", "supports_contract"]
+__all__ = [
+    "HOST_DISPATCHER_CONTEXT_KEY",
+    "build_fleet_modules",
+    "build_modules",
+    "core_optional_contract_keys",
+    "supports_contract",
+]
 
 logger = logging.getLogger(__name__)
 
 CATEGORY = "robotics"
+FLEET_CATEGORY = "fleet"
+PACK_VERSION = "1.1.0"
 
 # flyto-core's context key for the host-created dispatcher (the same key
 # core's own ``capability.invoke`` reads).  Workflow data cannot create one.
@@ -77,19 +92,59 @@ def supports_contract(register_module: Callable[..., Any]) -> bool:
     )
 
 
-def _registrar(register_module: Callable[..., Any]) -> Callable[..., Any]:
-    if supports_contract(register_module):
-        return register_module
-    logger.warning(
-        "flyto-core's register_module does not accept contract=; robotics steps "
-        "register without their capability contracts (install flyto-core>=2.35.0)"
-    )
+def core_optional_contract_keys() -> frozenset[str]:
+    """The optional contract keys this flyto-core accepts (2.36.0 adds four).
 
-    def without_contract(**metadata: Any) -> Any:
-        metadata.pop("contract", None)
+    Feature-detected as flyto-core documents it: an older core has no
+    ``OPTIONAL_FIELDS`` and its closed schema rejects the keys.
+    """
+    try:
+        from core.capability_contract import OPTIONAL_FIELDS
+    except ImportError:
+        return frozenset()
+    try:
+        return frozenset(str(item) for item in OPTIONAL_FIELDS)
+    except TypeError:
+        return frozenset()
+
+
+def _registrar(
+    register_module: Callable[..., Any], optional_keys: frozenset[str] | None = None
+) -> Callable[..., Any]:
+    if not supports_contract(register_module):
+        logger.warning(
+            "flyto-core's register_module does not accept contract=; robotics steps "
+            "register without their capability contracts (install flyto-core>=2.35.0)"
+        )
+
+        def without_contract(**metadata: Any) -> Any:
+            metadata.pop("contract", None)
+            return register_module(**metadata)
+
+        return without_contract
+
+    accepted = core_optional_contract_keys() if optional_keys is None else optional_keys
+    unsupported = OPTIONAL_CONTRACT_KEYS - frozenset(accepted)
+    if not unsupported:
+        return register_module
+    logged: list[bool] = []
+
+    def without_newer_keys(**metadata: Any) -> Any:
+        contract = metadata.get("contract")
+        if isinstance(contract, Mapping) and unsupported & set(contract):
+            if not logged:
+                logged.append(True)
+                logger.warning(
+                    "flyto-core does not accept the contract keys %s; steps register "
+                    "without them (install flyto-core>=2.36.0)",
+                    ", ".join(sorted(unsupported & set(contract))),
+                )
+            metadata["contract"] = {
+                key: value for key, value in contract.items() if key not in unsupported
+            }
         return register_module(**metadata)
 
-    return without_contract
+    return without_newer_keys
 
 
 def _declared(spec: CapabilitySpec) -> dict[str, Any]:
@@ -99,8 +154,8 @@ def _declared(spec: CapabilitySpec) -> dict[str, Any]:
     """
 
     return {
-        "version": "1.0.0",
-        "category": CATEGORY,
+        "version": PACK_VERSION,
+        "category": CATEGORY if spec.module_id in SPECS_BY_MODULE else FLEET_CATEGORY,
         "subcategory": spec.capability_id.split(".", 1)[0],
         "tags": list(spec.tags),
         "label": spec.label,
@@ -177,23 +232,56 @@ async def _dispatch_or_declare(step: Any, request: dict[str, Any]) -> dict[str, 
         "commanded_resource": request["resource_id"],
         "capability_request": request,
         "outcome": outcome,
-        "execution": dict(record),
+        "execution": _without_artifact_bytes(record),
     }
     if outcome == OUTCOME_COMPLETED:
         return {"ok": True, **result}
-    return {
+    failed = {
         "ok": False,
         "error": str(record.get("detail") or outcome or "external capability failed")[:300],
         "error_code": _OUTCOME_ERRORS.get(outcome, "EXTERNAL_CAPABILITY_FAILED"),
         **result,
     }
+    spec = ALL_SPECS_BY_MODULE.get(step.module_id)
+    recovery = recovery_for(spec, record) if spec is not None else None
+    if recovery is not None:
+        # The contract's declared recovery with the adapter's measurements:
+        # what a planner may try instead, and what it is told about the stop.
+        failed["recovery"] = recovery
+    return failed
 
 
-def build_modules(base_module, register_module) -> list[tuple[str, type]]:
-    """Register the seven capability steps against flyto-core's API."""
+def _without_artifact_bytes(record: Mapping[str, Any]) -> dict[str, Any]:
+    """The execution record as a step output, without the pictures' bytes.
 
-    register = _registrar(register_module)
+    The host keeps returned artifacts itself (and uploads them); a step output
+    travels with the run's progress, so each artifact is reduced to its kind,
+    media type, size and digest there.
+    """
+    execution = dict(record)
+    evidence = execution.get("adapter_evidence")
+    if not isinstance(evidence, Mapping) or not isinstance(evidence.get("artifacts"), list):
+        return execution
+    summaries = []
+    for item in evidence["artifacts"]:
+        if not isinstance(item, Mapping):
+            continue
+        summary = {key: item[key] for key in ("kind", "media_type") if key in item}
+        data = item.get("data_base64")
+        if isinstance(data, str):
+            try:
+                raw = base64.b64decode(data, validate=True)
+            except (ValueError, binascii.Error):
+                raw = None
+            if raw is not None:
+                summary["bytes"] = len(raw)
+                summary["sha256"] = hashlib.sha256(raw).hexdigest()
+        summaries.append(summary)
+    execution["adapter_evidence"] = {**evidence, "artifacts": summaries}
+    return execution
 
+
+def _capability_step(base_module) -> type:
     class CapabilityStep(base_module):
         """Shared behaviour: validate against the spec, then dispatch or declare."""
 
@@ -215,6 +303,41 @@ def build_modules(base_module, register_module) -> list[tuple[str, type]]:
             if request is None:  # pragma: no cover - ids and specs are co-owned
                 return _refused(self.module_id, CapabilityRequestError("unknown step"))
             return await _dispatch_or_declare(self, request)
+
+    return CapabilityStep
+
+
+def build_fleet_modules(
+    base_module, register_module, *, optional_keys: frozenset[str] | None = None
+) -> list[tuple[str, type]]:
+    """Register the Open-RMF fleet steps (the ``fleet`` pack).
+
+    Same contract, same dispatcher: the host routes the request to the
+    flyto-robotics ``open_rmf.fleet`` adapter for a ``fleet:<name>`` resource.
+    """
+
+    register = _registrar(register_module, optional_keys)
+    step = _capability_step(base_module)
+    registered: list[tuple[str, type]] = []
+    for spec in FLEET_SPECS:
+        name = "".join(part.capitalize() for part in spec.module_id.replace(".", "_").split("_"))
+        cls = type(name, (step,), {"module_id": spec.module_id})
+        cls = register(
+            module_id=spec.module_id,
+            provides_capability=spec.capability_id,
+            **_declared(spec),
+        )(cls)
+        registered.append((spec.module_id, cls))
+    return registered
+
+
+def build_modules(
+    base_module, register_module, *, optional_keys: frozenset[str] | None = None
+) -> list[tuple[str, type]]:
+    """Register the seven capability steps against flyto-core's API."""
+
+    register = _registrar(register_module, optional_keys)
+    CapabilityStep = _capability_step(base_module)
 
     def spec(module_id: str) -> CapabilitySpec:
         return SPECS_BY_MODULE[module_id]

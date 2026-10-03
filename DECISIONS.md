@@ -1,5 +1,22 @@
 # Decisions
 
+## 2026-10-04 — The provider declares artifacts and recovery; fleets get their own pack
+
+Decision: the contracts declare what flyto-core 2.36.0 lets a provider say
+instead of a host: halt is the `safe_stop` role, captures declare their
+`artifacts`, and advance/retreat declare `recovery`. Cloud's detour sectors
+move into this package (`recovery.py`) and a failed step returns them, so a
+host passes the step's `recovery` to its planner and holds no robot geometry.
+
+Decision: Open-RMF fleets are a second entry point (`fleet`) in this package,
+not a second package: same contract code, same dispatcher boundary. The fleet
+navigation is `motion.navigate_to_waypoint`, not `motion.navigate`, because a
+second, different contract under one capability id makes a contract host fail
+closed (flyto-core's host reports it `ambiguous` and drops the declared
+deadline) and shadows the robot's entry in the capability manifest. Fleet
+contracts say `requires_safe_stop: false`, because the adapter cannot stop a
+fleet and refuses to pretend it can.
+
 ## 2026-10-04 — One module per capability, each with a declared contract
 
 Decision: the package registers one `@register_module` per adapter capability
