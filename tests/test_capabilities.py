@@ -8,11 +8,14 @@ import pytest
 from contract_rules import ContractInvalid, judge, validate_contract
 
 from flyto_modules_robotics.capabilities import (
-    OPTIONAL_CONTRACT_KEYS,
+    ABSOLUTE_MEASURE_OPS,
+    NAVIGATE_HEADING_TOLERANCE_RAD,
+    NAVIGATE_POSITION_TOLERANCE_M,
     SPECS,
     SPECS_BY_CAPABILITY,
     SPECS_BY_MODULE,
 )
+from flyto_modules_robotics.modules import registrable_contract
 
 # The flyto-robotics Generic ROS 2 adapter's declared arguments, copied from
 # flyto-robotics origin/main ab252f1, flyto_robotics/generic_ros2_adapter.py
@@ -106,10 +109,12 @@ def test_every_contract_satisfies_the_v1_rules(spec):
 
 
 def _as_registered(spec, module):
-    """The contract as this flyto-core registers it (2.36.0 keys only from 2.36.0)."""
-    accepted = frozenset(getattr(module, "OPTIONAL_FIELDS", ()))
-    dropped = OPTIONAL_CONTRACT_KEYS - accepted
-    return {key: value for key, value in spec.contract.items() if key not in dropped}
+    """The contract as this flyto-core registers it (2.36.0 keys, 2.38.0 ops)."""
+    return registrable_contract(
+        spec.contract,
+        frozenset(getattr(module, "OPTIONAL_FIELDS", ())),
+        frozenset(getattr(module, "MEASURE_OPS", ())),
+    )
 
 
 @pytest.mark.parametrize("spec", SPECS, ids=lambda spec: spec.module_id)
@@ -173,10 +178,12 @@ def test_rotation_tolerances_equal_the_spec_table():
     assert drift["settle"] == {"max_drift": 0.02}
 
 
-def _core_judge():
+def _core_judge(*, absolute=False):
     module = pytest.importorskip("core.capability_contract")
     if not hasattr(module, "judge"):  # pragma: no cover - partial core
         pytest.skip("installed flyto-core has no capability_contract.judge")
+    if absolute and not ABSOLUTE_MEASURE_OPS <= set(getattr(module, "MEASURE_OPS", ())):
+        pytest.skip("installed flyto-core predates the absolute measure ops (2.38.0)")
     return module.judge
 
 
@@ -324,3 +331,94 @@ def test_contracts_are_already_in_core_normalized_form(spec):
     registered = _as_registered(spec, module)
     normalized = module.validate_contract(registered, dict(spec.params_schema))
     assert normalized == registered
+
+
+# ---------------------------------------------------------------------------
+# Navigation arrival: the end pose in the map frame against the asked goal
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(params=["vendored", "core"])
+def arrival_judge(request):
+    return judge if request.param == "vendored" else _core_judge(absolute=True)
+
+
+def _map(x, y, yaw=0.0, frame="map"):
+    return {"frame": frame, "x": x, "y": y, "yaw": yaw}
+
+
+def _settled_at(pose):
+    return {"after": pose, "settled": pose}
+
+
+def test_navigate_declares_its_arrival_in_the_map_frame():
+    arrival = _evidence("robotics.navigate", "arrival")
+    assert arrival == {
+        "kind": "arrival",
+        "observe": "map_pose",
+        "phases": ["after", "settled"],
+        "measure": {"op": "distance_to", "fields": ["x", "y"], "frame": "map"},
+        "expect": {"arguments": {"x": "x", "y": "y"}},
+        "tolerance": {"absolute": 0.3, "relative": 0.0},
+    }
+    heading = _evidence("robotics.navigate", "arrival.heading")
+    assert heading["measure"] == {"op": "angle_to", "fields": ["yaw"], "frame": "map"}
+    assert heading["expect"] == {"argument": "yaw_radians", "optional": True}
+    assert heading["tolerance"] == {"absolute": 0.3, "relative": 0.0}
+
+
+def test_arrival_tolerances_are_nav2s_goal_checker_plus_a_small_margin():
+    # turtlebot3_navigation2 burger.yaml, run unchanged on the robot and twin.
+    assert NAVIGATE_POSITION_TOLERANCE_M == pytest.approx(0.25 + 0.05)
+    assert NAVIGATE_HEADING_TOLERANCE_RAD == pytest.approx(0.25 + 0.05)
+    # Never looser than a tenth of a metre beyond what Nav2 accepts.
+    assert NAVIGATE_POSITION_TOLERANCE_M - 0.25 <= 0.1
+
+
+# The twin run of 2026-10-04: Nav2 SUCCEEDED, the robot stopped 0.63 m short.
+SHORT_GOAL = {"x": 1.196, "y": -0.005, "yaw_radians": 0.0028}
+SHORT_STOP = _map(0.566, -0.005, 0.01)
+
+NAVIGATE_CASES = [
+    ("succeeded 0.63 m short", SHORT_GOAL, _settled_at(SHORT_STOP), False),
+    ("inside Nav2's own tolerance", {"x": 1.0, "y": 0.0}, _settled_at(_map(1.2, 0.1)), True),
+    ("just beyond the margin", {"x": 1.0, "y": 0.0}, _settled_at(_map(1.31, 0.0)), False),
+    ("odometry, not the map frame", {"x": 1.0, "y": 0.0}, _settled_at(_map(1.0, 0.0, frame="odom")), False),
+    ("arrived, facing the asked heading", {"x": 1.0, "y": 0.0, "yaw_radians": 1.5},
+     _settled_at(_map(1.0, 0.0, 1.7)), True),
+    ("arrived, facing away", {"x": 1.0, "y": 0.0, "yaw_radians": 1.5},
+     _settled_at(_map(1.0, 0.0, -1.5)), False),
+    ("arrived across +/-pi", {"x": 1.0, "y": 0.0, "yaw_radians": 3.1},
+     _settled_at(_map(1.0, 0.0, -3.1)), True),
+    ("no heading asked", {"x": 1.0, "y": 0.0}, _settled_at(_map(1.0, 0.0, 2.0)), True),
+]
+
+
+@pytest.mark.parametrize(
+    ("arguments", "observations", "usable"),
+    [case[1:] for case in NAVIGATE_CASES],
+    ids=[case[0] for case in NAVIGATE_CASES],
+)
+def test_navigate_is_verified_only_where_it_arrived(arrival_judge, arguments, observations, usable):
+    assert contract_verdict(arrival_judge, "robotics.navigate", arguments, observations) is usable
+
+
+def test_core_judge_numbers_on_the_short_navigation():
+    core_judge = _core_judge(absolute=True)
+    verdict = core_judge(_evidence("robotics.navigate", "arrival"), SHORT_GOAL, _settled_at(SHORT_STOP))
+    assert verdict["usable"] is False
+    assert verdict["measured"] == pytest.approx(0.63)
+    assert verdict["allowed"] == pytest.approx(0.3)
+
+
+def test_vendored_rules_reject_a_malformed_arrival():
+    navigate = SPECS_BY_MODULE["robotics.navigate"]
+    arrival, heading = navigate.contract["evidence"]
+    for bad in (
+        {**arrival, "tolerance": {"absolute": 0.3, "relative": 0.1}},
+        {**arrival, "expect": {"arguments": {"x": "x"}}},
+        {**arrival, "phases": ["before"]},
+        {**heading, "expect": {"argument": "yaw_radians", "optional": "yes"}},
+    ):
+        with pytest.raises(ContractInvalid):
+            validate_contract({**navigate.contract, "evidence": [bad]}, navigate.params_schema)

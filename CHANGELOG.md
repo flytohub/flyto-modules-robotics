@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.0 — navigation arrival is proven, not reported (2026-10-04)
+
+- `robotics.navigate` declares its arrival as evidence: `distance_to` over
+  `["x", "y"]` in frame `map`, observed as the adapter's `map_pose`
+  (flyto-robotics 03be416) after and once settled, against the call's own
+  `x`/`y`, within 0.30 m; and `angle_to` over `["yaw"]` against an optional
+  `yaw_radians`, within 0.30 rad. Both are Nav2's goal checker (burger.yaml
+  `xy_goal_tolerance` / `yaw_goal_tolerance` 0.25, run unchanged on robot and
+  twin) plus 0.05. A Nav2 SUCCEEDED that left the robot 0.63 m short is not an
+  arrival.
+- The absolute ops need flyto-core 2.38.0; they are feature-detected
+  (`"distance_to" in core.capability_contract.MEASURE_OPS`) and an older core
+  registers navigate without that evidence, with one warning.
+  `modules.registrable_contract` is the one place that reduction is made.
+
 ## 1.1.0 — provider evidence, declared recovery, Open-RMF fleet pack (2026-10-04)
 
 - flyto-core 2.36.0 optional contract keys, feature-detected
