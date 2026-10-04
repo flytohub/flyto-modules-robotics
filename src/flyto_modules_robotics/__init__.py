@@ -81,7 +81,7 @@ __all__ = [
     "step_module_id",
 ]
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 #: What flyto-core reports for this pack (``PluginInfo.description``).
 PACK_DESCRIPTION = "Robot motion, camera and map through a standard ROS 2 adapter"

@@ -18,17 +18,22 @@ from flyto_modules_robotics.capabilities import (
 from flyto_modules_robotics.modules import registrable_contract
 
 # The flyto-robotics Generic ROS 2 adapter's declared arguments, copied from
-# flyto-robotics origin/main ab252f1, flyto_robotics/generic_ros2_adapter.py
-# lines 287-319 (`ARGUMENTS`), as (name, required, minimum, maximum, unit).
-# If the adapter changes, this table and capabilities.py change together.
+# flyto-robotics 0.3.0 (branch claude/robot-places),
+# flyto_robotics/generic_ros2_adapter.py `ARGUMENTS`, as (name, required,
+# minimum, maximum, unit) for numbers and (name, required, "string",
+# max_length) for text. If the adapter changes, this table and
+# capabilities.py change together.
 ADAPTER_ARGUMENTS = {
     "motion.navigate": (
-        ("x", True, -1000.0, 1000.0, "m"),
-        ("y", True, -1000.0, 1000.0, "m"),
+        ("x", False, -1000.0, 1000.0, "m"),
+        ("y", False, -1000.0, 1000.0, "m"),
         ("yaw_radians", False, -math.pi, math.pi, "rad"),
+        ("place", False, "string", 64),
     ),
     "vision.observe": (),
     "sensing.map": (),
+    "places.list": (),
+    "places.mark": (("place", True, "string", 64),),
     "motion.advance": (
         ("distance_m", True, 0.05, 2.0, "m"),
         ("speed_mps", False, 0.02, 0.25, "m/s"),
@@ -53,6 +58,8 @@ ADAPTER_METADATA = {
     "motion.retreat": ("movement", True, True),
     "motion.rotate": ("movement", True, True),
     "motion.halt": ("controlled", False, False),
+    "places.list": ("read_only", False, False),
+    "places.mark": ("controlled", False, False),
 }
 
 EXPECTED_TABLE = {
@@ -63,12 +70,14 @@ EXPECTED_TABLE = {
     "robotics.navigate": "motion.navigate",
     "robotics.observe": "vision.observe",
     "robotics.map": "sensing.map",
+    "robotics.places": "places.list",
+    "robotics.mark_place": "places.mark",
 }
 
 
 def test_one_module_per_capability_exactly_the_spec_table():
     assert {spec.module_id: spec.capability_id for spec in SPECS} == EXPECTED_TABLE
-    assert len(SPECS_BY_MODULE) == len(SPECS_BY_CAPABILITY) == len(SPECS) == 7
+    assert len(SPECS_BY_MODULE) == len(SPECS_BY_CAPABILITY) == len(SPECS) == 9
 
 
 def test_capability_set_equals_the_adapters():
@@ -79,12 +88,14 @@ def test_capability_set_equals_the_adapters():
 def test_parameters_and_bounds_equal_the_adapters(capability_id):
     schema = SPECS_BY_CAPABILITY[capability_id].params_schema
     declared = tuple(
-        (name, field["required"], field["min"], field["max"], field["unit"])
+        (name, field["required"], "string", field["maxLength"])
+        if field["type"] == "string"
+        else (name, field["required"], field["min"], field["max"], field["unit"])
         for name, field in schema.items()
     )
     assert declared == ADAPTER_ARGUMENTS[capability_id]
     for field in schema.values():
-        assert field["type"] == "number"
+        assert field["type"] in ("number", "string")
 
 
 @pytest.mark.parametrize("capability_id", sorted(ADAPTER_SPEED_DEFAULTS))

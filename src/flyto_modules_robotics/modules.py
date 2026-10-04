@@ -22,6 +22,8 @@ import copy
 import hashlib
 import inspect
 import logging
+import math
+import unicodedata
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -32,11 +34,14 @@ from .capabilities import (
     MODULE_ADVANCE,
     MODULE_HALT,
     MODULE_MAP,
+    MODULE_MARK_PLACE,
     MODULE_NAVIGATE,
     MODULE_OBSERVE,
+    MODULE_PLACES,
     MODULE_RETREAT,
     MODULE_ROTATE,
     OPTIONAL_CONTRACT_KEYS,
+    RESOLVED_ARGUMENTS,
     SPECS_BY_MODULE,
     CapabilitySpec,
 )
@@ -54,6 +59,7 @@ __all__ = [
     "core_measure_ops",
     "core_optional_contract_keys",
     "registrable_contract",
+    "resolved_arguments",
     "supports_contract",
 ]
 
@@ -61,7 +67,7 @@ logger = logging.getLogger(__name__)
 
 CATEGORY = "robotics"
 FLEET_CATEGORY = "fleet"
-PACK_VERSION = "1.2.0"
+PACK_VERSION = "1.3.0"
 
 # flyto-core's context key for the host-created dispatcher (the same key
 # core's own ``capability.invoke`` reads).  Workflow data cannot create one.
@@ -294,6 +300,7 @@ async def _dispatch_or_declare(step: Any, request: dict[str, Any]) -> dict[str, 
         "outcome": outcome,
         "execution": _without_artifact_bytes(record),
     }
+    result.update(_place_facts(request, record))
     if outcome == OUTCOME_COMPLETED:
         return {"ok": True, **result}
     failed = {
@@ -309,6 +316,78 @@ async def _dispatch_or_declare(step: Any, request: dict[str, Any]) -> dict[str, 
         # what a planner may try instead, and what it is told about the stop.
         failed["recovery"] = recovery
     return failed
+
+
+def _adapter_evidence(record: Mapping[str, Any]) -> Mapping[str, Any]:
+    evidence = record.get("adapter_evidence")
+    return evidence if isinstance(evidence, Mapping) else {}
+
+
+def _finite(value: Any) -> bool:
+    return (
+        not isinstance(value, bool)
+        and isinstance(value, (int, float))
+        and math.isfinite(float(value))
+    )
+
+
+def resolved_arguments(
+    arguments: Mapping[str, Any], record: Mapping[str, Any]
+) -> dict[str, Any] | None:
+    """A navigation by place's arguments with the coordinates it resolved to.
+
+    The arrival evidence reads its target from the call's arguments
+    (``distance_to`` over ``x``/``y``, ``angle_to`` on ``yaw_radians``); a
+    call by place names none of them. The adapter, the one resolver, reports
+    what the place stood for, and this is the call's arguments overlaid with
+    it: what a host judges the contract's evidence against. None unless the
+    call named a place and the adapter reports finite coordinates for that
+    same place; an authored argument is never replaced.
+    """
+    place = arguments.get("place")
+    if not isinstance(place, str):
+        return None
+    evidence = _adapter_evidence(record)
+    resolved = evidence.get(RESOLVED_ARGUMENTS)
+    target = evidence.get("navigation_target")
+    if not isinstance(resolved, Mapping) or not isinstance(target, Mapping):
+        return None
+    # The adapter normalises the name (NFC, case of the stored place), so the
+    # target names the place it found; compare as the adapter does.
+    named = target.get("place")
+    if not isinstance(named, str) or (
+        unicodedata.normalize("NFC", named.casefold())
+        != unicodedata.normalize("NFC", place.strip().casefold())
+    ):
+        return None
+    if not (_finite(resolved.get("x")) and _finite(resolved.get("y"))):
+        return None
+    filled = {
+        key: float(resolved[key])
+        for key in ("x", "y", "yaw_radians")
+        if _finite(resolved.get(key)) and key not in arguments
+    }
+    return {**dict(arguments), **filled}
+
+
+def _place_facts(request: Mapping[str, Any], record: Mapping[str, Any]) -> dict[str, Any]:
+    """What the places capabilities and a navigation by place add to a step's output."""
+    capability_id = request.get("capability_id")
+    evidence = _adapter_evidence(record)
+    facts: dict[str, Any] = {}
+    if capability_id == SPECS_BY_MODULE[MODULE_NAVIGATE].capability_id:
+        resolved = resolved_arguments(request.get("arguments") or {}, record)
+        if resolved is not None:
+            facts[RESOLVED_ARGUMENTS] = resolved
+        if isinstance(evidence.get("known_places"), list):
+            facts["known_places"] = [str(item) for item in evidence["known_places"]]
+    elif capability_id == SPECS_BY_MODULE[MODULE_PLACES].capability_id:
+        if isinstance(evidence.get("places"), list):
+            facts["places"] = [dict(item) for item in evidence["places"] if isinstance(item, Mapping)]
+    elif capability_id == SPECS_BY_MODULE[MODULE_MARK_PLACE].capability_id:
+        if isinstance(evidence.get("place"), Mapping):
+            facts["place"] = dict(evidence["place"])
+    return facts
 
 
 # Encoded picture fields of the legacy ``capture`` (flyto-robotics before the
@@ -426,7 +505,7 @@ def build_modules(
     optional_keys: frozenset[str] | None = None,
     measure_ops: frozenset[str] | None = None,
 ) -> list[tuple[str, type]]:
-    """Register the seven capability steps against flyto-core's API."""
+    """Register the nine capability steps against flyto-core's API."""
 
     register = _registrar(register_module, optional_keys, measure_ops)
     CapabilityStep = _capability_step(base_module)
@@ -490,6 +569,22 @@ def build_modules(
     class CaptureMap(CapabilityStep):
         module_id = MODULE_MAP
 
+    @register(
+        module_id=MODULE_PLACES,
+        provides_capability=spec(MODULE_PLACES).capability_id,
+        **_declared(spec(MODULE_PLACES)),
+    )
+    class Places(CapabilityStep):
+        module_id = MODULE_PLACES
+
+    @register(
+        module_id=MODULE_MARK_PLACE,
+        provides_capability=spec(MODULE_MARK_PLACE).capability_id,
+        **_declared(spec(MODULE_MARK_PLACE)),
+    )
+    class MarkPlace(CapabilityStep):
+        module_id = MODULE_MARK_PLACE
+
     return [
         (MODULE_ADVANCE, Advance),
         (MODULE_RETREAT, Retreat),
@@ -498,4 +593,6 @@ def build_modules(
         (MODULE_NAVIGATE, Navigate),
         (MODULE_OBSERVE, Observe),
         (MODULE_MAP, CaptureMap),
+        (MODULE_PLACES, Places),
+        (MODULE_MARK_PLACE, MarkPlace),
     ]

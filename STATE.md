@@ -1,5 +1,15 @@
 # State
 
+## Named places — 2026-10-04 (branch `claude/robot-places`, 1.3.0)
+
+`robotics.places`, `robotics.mark_place` and `robotics.navigate(place=...)`
+are declared and bounded; the step output carries `places`, `place`,
+`known_places` and, for a call by place, `resolved_arguments`. Verified with
+fake dispatchers and the flyto-core 2.38.0 judge (from source), not against
+a live adapter, twin or robot. Hosts do not yet judge against
+`resolved_arguments`, so a navigation by place is unprovable there until
+they do (fails closed).
+
 ## Navigation arrival evidence — 2026-10-04 (branch `claude/navigate-arrival-evidence`, 1.2.0)
 
 `robotics.navigate` proves where it arrived: the settled map-frame pose

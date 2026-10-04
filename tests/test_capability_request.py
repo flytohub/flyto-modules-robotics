@@ -112,12 +112,17 @@ def test_non_numbers_are_refused(value):
         ("robotics.advance", {}, "distance_m"),
         ("robotics.retreat", {"speed_mps": 0.1}, "distance_m"),
         ("robotics.rotate", {}, "yaw_radians"),
-        ("robotics.navigate", {"x": 1.0}, "y"),
+        ("robotics.mark_place", {}, "place"),
     ],
 )
 def test_required_arguments(module_id, params, name):
     with pytest.raises(CapabilityRequestError, match=f"{name} is required"):
         request(module_id, params)
+
+
+def test_navigate_without_a_whole_target_says_what_it_needs():
+    with pytest.raises(CapabilityRequestError, match="x and y are required unless a place"):
+        request("robotics.navigate", {"x": 1.0})
 
 
 @pytest.mark.parametrize(

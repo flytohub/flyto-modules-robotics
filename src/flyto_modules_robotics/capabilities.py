@@ -25,9 +25,10 @@ The contract shape is ``flyto.capability-contract.v1``; see flyto-core
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 CONTRACT_SCHEMA = "flyto.capability-contract.v1"
 
@@ -38,6 +39,8 @@ MODULE_HALT = "robotics.halt"
 MODULE_NAVIGATE = "robotics.navigate"
 MODULE_OBSERVE = "robotics.observe"
 MODULE_MAP = "robotics.map"
+MODULE_PLACES = "robotics.places"
+MODULE_MARK_PLACE = "robotics.mark_place"
 
 CAPABILITY_ADVANCE = "motion.advance"
 CAPABILITY_RETREAT = "motion.retreat"
@@ -46,6 +49,8 @@ CAPABILITY_HALT = "motion.halt"
 CAPABILITY_NAVIGATE = "motion.navigate"
 CAPABILITY_OBSERVE = "vision.observe"
 CAPABILITY_MAP = "sensing.map"
+CAPABILITY_PLACES = "places.list"
+CAPABILITY_MARK_PLACE = "places.mark"
 
 # The fleet pack: the same contract, driven through flyto-robotics'
 # Open-RMF adapter (``open_rmf.fleet``). The commanded resource is a fleet.
@@ -125,6 +130,21 @@ NAVIGATE_HEADING_TOLERANCE_RAD = NAV2_YAW_GOAL_TOLERANCE_RAD + ARRIVAL_MARGIN_RA
 MAP_POSE_OBSERVATION = "map_pose"
 MAP_FRAME = "map"
 
+# Named places (flyto-robotics 0.3.0 ``places.py``): kept on the execution
+# host beside the adapter, never on the robot and never in Cloud. A name is
+# free text of at most this many characters.
+MAX_PLACE_NAME_LENGTH = 64
+# What ``places.list`` returns as a contract artifact: the list as JSON. The
+# adapter keeps at most 200 places per map, well inside this.
+PLACES_ARTIFACT_KIND = "places"
+PLACES_MEDIA_TYPE = "application/json"
+MAX_PLACES_BYTES = 256 * 1024
+# A navigation by place reports, from the adapter, the x, y and yaw_radians the
+# place resolved to. They are the call's arguments for its arrival evidence:
+# a host judges ``arrival`` against the authored arguments overlaid with these.
+RESOLVED_ARGUMENTS = "resolved_arguments"
+PLACE_EFFECT = "places.written"
+
 
 def _number(
     label: str,
@@ -185,14 +205,26 @@ def _yaw(required: bool, description: str) -> dict[str, Any]:
 
 
 def _coordinate(axis: str) -> dict[str, Any]:
+    # Not required on its own: a navigation names x and y, or a place.
     return _number(
         f"{axis.upper()} (m)",
-        f"Destination {axis} in the map frame",
+        f"Destination {axis} in the map frame (with the other coordinate, instead of a place)",
         minimum=-MAX_COORDINATE_M,
         maximum=MAX_COORDINATE_M,
         unit="m",
-        required=True,
+        required=False,
     )
+
+
+def _place(description: str, *, required: bool) -> dict[str, Any]:
+    return {
+        "type": "string",
+        "label": "Place",
+        "description": description,
+        "minLength": 1,
+        "maxLength": MAX_PLACE_NAME_LENGTH,
+        "required": required,
+    }
 
 
 def _waypoint() -> dict[str, Any]:
@@ -506,17 +538,26 @@ SPECS: tuple[CapabilitySpec, ...] = (
         module_id=MODULE_NAVIGATE,
         capability_id=CAPABILITY_NAVIGATE,
         label="Navigate",
-        description="Travel to a map coordinate and arrive there",
+        description="Travel to a map coordinate or a named place and arrive there",
         icon="Navigation",
         color=_MOTION_COLOR,
-        tags=("robot", "motion", "navigate", "map"),
+        tags=("robot", "motion", "navigate", "map", "place"),
+        # Exactly one target: x and y (heading optional), or a place, which
+        # carries its own heading (``capability_request.navigate_target``).
         params_schema={
             "x": _coordinate("x"),
             "y": _coordinate("y"),
-            "yaw_radians": _yaw(False, "Heading to face on arrival"),
+            "yaw_radians": _yaw(False, "Heading to face on arrival (with x and y only)"),
+            "place": _place(
+                "A named place saved on this robot's map, instead of x and y",
+                required=False,
+            ),
         },
         # Nav2 plans the path; the adapter requires LiDAR clearance and a
         # localised map for it, and refuses navigation on operator_present.
+        # A place is resolved by the adapter before anything moves; the
+        # arrival is judged against the coordinates it resolved to
+        # (``RESOLVED_ARGUMENTS``).
         contract=_motion(
             _arrival_evidence(),
             requires=["observation.fresh", "clearance.verified", "map.localized"],
@@ -561,6 +602,52 @@ SPECS: tuple[CapabilitySpec, ...] = (
             ]
         ),
         timeout_ms=90000,
+        retryable=True,
+    ),
+    CapabilitySpec(
+        module_id=MODULE_PLACES,
+        capability_id=CAPABILITY_PLACES,
+        label="Places",
+        description="List the named places saved on this robot's map",
+        icon="MapPin",
+        color=_SENSE_COLOR,
+        tags=("robot", "map", "place", "places"),
+        params_schema={},
+        # The list comes back as an artifact of kind "places", which a host
+        # keeps and can cite when a plan names a place.
+        contract=_read_only(
+            artifacts=[
+                {
+                    "kind": PLACES_ARTIFACT_KIND,
+                    "media_types": [PLACES_MEDIA_TYPE],
+                    "max_bytes": MAX_PLACES_BYTES,
+                }
+            ]
+        ),
+        timeout_ms=30000,
+        retryable=True,
+    ),
+    CapabilitySpec(
+        module_id=MODULE_MARK_PLACE,
+        capability_id=CAPABILITY_MARK_PLACE,
+        label="Mark Place",
+        description="Save the robot's current map position under a name",
+        icon="MapPinPlus",
+        color=_SENSE_COLOR,
+        tags=("robot", "map", "place", "mark"),
+        params_schema={"place": _place("The name to save the current position under", required=True)},
+        # Writes the host's places file; nothing moves. The adapter keeps the
+        # result by call id, so a retry does not save wherever the robot is now.
+        contract=_contract(
+            actuates=False,
+            safety_class="controlled",
+            requires_safe_stop=False,
+            cancellable=False,
+            effects=[PLACE_EFFECT],
+            requires=["map.localized"],
+            evidence=[],
+        ),
+        timeout_ms=30000,
         retryable=True,
     ),
 )

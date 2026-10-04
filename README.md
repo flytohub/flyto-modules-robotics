@@ -49,7 +49,7 @@ That is the whole integration. The rows live in
 
 1. **Discovery.** `pyproject.toml` declares the `flyto.modules` entry point
    `robotics = flyto_modules_robotics:register_all`. flyto-core's plugin
-   discovery calls it, and the seven steps appear in the builder and in Core's
+   discovery calls it, and the nine steps appear in the builder and in Core's
    capability manifest. A Flyto2 install without this package stays pure
    software.
 2. **Contract.** Each step declares what it does as data
@@ -89,9 +89,22 @@ robot (stock ROS 2, no Flyto2 software)
 | `robotics.retreat` | `motion.retreat` | `distance_m` 0.05–2.0 m (required), `speed_mps` 0.02–0.20 m/s (default 0.10) | same as advance, expecting backward travel (`scale: -1`) |
 | `robotics.rotate` | `motion.rotate` | `yaw_radians` −π..π (required, signed) | actuates, movement, safe stop, cancellable; evidence: signed rotation within max(0.1 rad, 20%), position drift ≤ 0.05 m, settle ≤ 0.02 m |
 | `robotics.halt` | `motion.halt` | none | actuates, controlled; `role: safe_stop`: it is the stop itself, so no safe stop, not cancellable, and a host runs it at once |
-| `robotics.navigate` | `motion.navigate` | `x`, `y` −1000..1000 m (required), `yaw_radians` −π..π | actuates, movement, safe stop, cancellable; requires LiDAR clearance and a localised map; evidence (flyto-core 2.38.0): settled `map_pose` within 0.30 m of `x`/`y` in frame `map`, and within 0.30 rad of `yaw_radians` when asked — Nav2's 0.25 goal tolerances plus 0.05, so a Nav2 SUCCEEDED short of the goal is not an arrival |
+| `robotics.navigate` | `motion.navigate` | either `x`, `y` −1000..1000 m with optional `yaw_radians` −π..π, or `place` (text, 1–64; a named place, carrying its own heading) — exactly one target | actuates, movement, safe stop, cancellable; requires LiDAR clearance and a localised map; evidence (flyto-core 2.38.0): settled `map_pose` within 0.30 m of `x`/`y` in frame `map`, and within 0.30 rad of `yaw_radians` when asked — Nav2's 0.25 goal tolerances plus 0.05, so a Nav2 SUCCEEDED short of the goal is not an arrival |
 | `robotics.observe` | `vision.observe` | none | read only: one camera photo; `artifacts`: `photo`, `image/jpeg`, ≤ 2,000,000 bytes |
 | `robotics.map` | `sensing.map` | none | read only: the occupancy map built so far; `artifacts`: `map`, `image/jpeg` or `image/png`, ≤ 8 MiB |
+| `robotics.places` | `places.list` | none | read only: the named places saved for this robot's map, `[{name, frame, x, y, yaw}]` in the step output as `places`; `artifacts`: `places`, `application/json`, ≤ 256 KiB, which a host keeps and can cite |
+| `robotics.mark_place` | `places.mark` | `place` (text, 1–64, required) | does not actuate; controlled; effect `places.written`; requires a localised map: saves the robot's current `map_pose` under the name. The adapter keeps the result by call id |
+
+Named places live on the execution host, in the flyto-robotics adapter's
+places file (flyto-robotics 0.3.0), never on the robot and never in Cloud.
+A navigation by place is resolved by the adapter before anything moves; an
+unknown name is refused with the known names (`known_places` in the step
+output) and nothing moves. Arrival evidence reads its target from the call's
+arguments (`x`, `y`, `yaw_radians`), which a call by place does not name, so
+the step output carries `resolved_arguments`: the authored arguments overlaid
+with the coordinates the adapter reports the place resolved to. A host judges
+a call by place against those; judged against the authored arguments alone
+the arrival is unprovable, which fails closed.
 
 Advance and retreat also declare `recovery`: after a failure or timeout a
 planner may use `motion.rotate`, `motion.advance` and `motion.retreat`
