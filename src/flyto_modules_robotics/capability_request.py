@@ -5,17 +5,19 @@
 Pure: no ROS, no network, no flyto-core.  Every parameter is checked against
 the capability's ``params_schema`` (which equals the adapter's declared
 arguments).  Unknown, missing, non-finite and out-of-range values are refused;
-nothing is clamped.  Text (a fleet waypoint) is trimmed and must fit its
-declared length; control characters are refused.
+nothing is clamped.  Text (a fleet waypoint, a place name) is trimmed and must
+fit its declared length; control characters are refused.  A navigation names
+exactly one target: x and y (heading optional), or a place.
 """
 
 from __future__ import annotations
 
 import math
+import unicodedata
 from collections.abc import Mapping
 from typing import Any
 
-from .capabilities import ALL_SPECS_BY_MODULE, CapabilitySpec
+from .capabilities import ALL_SPECS_BY_MODULE, CAPABILITY_NAVIGATE, CapabilitySpec
 
 CAPABILITY_REQUEST_VERSION = "flyto.capability-request.v1"
 
@@ -58,7 +60,7 @@ def _bounded_text(name: str, value: Any, field: Mapping[str, Any]) -> str:
     if not isinstance(value, str):
         raise CapabilityRequestError(f"{name} must be text")
     text = value.strip()
-    if any(ord(character) < 32 or ord(character) == 127 for character in text):
+    if any(unicodedata.category(character) in ("Cc", "Zl", "Zp") for character in text):
         raise CapabilityRequestError(f"{name} must not contain control characters")
     low, high = int(field.get("minLength", 0)), int(field["maxLength"])
     if not low <= len(text) <= high:
@@ -70,6 +72,23 @@ def _argument(name: str, value: Any, field: Mapping[str, Any]) -> Any:
     if field.get("type") == "string":
         return _bounded_text(name, value, field)
     return _bounded_number(name, value, field)
+
+
+def navigate_target(arguments: Mapping[str, Any]) -> None:
+    """Exactly one target: x and y, or a place (which carries its own heading).
+
+    The same rule the flyto-robotics adapter enforces, checked here so the
+    builder refuses the step before anything is dispatched.
+    """
+    has_place = "place" in arguments
+    if has_place and ("x" in arguments or "y" in arguments):
+        raise CapabilityRequestError("give either place or x and y, not both")
+    if has_place and "yaw_radians" in arguments:
+        raise CapabilityRequestError(
+            "a place carries its own heading; yaw_radians goes only with x and y"
+        )
+    if not has_place and not ("x" in arguments and "y" in arguments):
+        raise CapabilityRequestError("x and y are required unless a place is named")
 
 
 def arguments_for(spec: CapabilitySpec, params: Mapping[str, Any]) -> dict[str, Any]:
@@ -93,6 +112,8 @@ def arguments_for(spec: CapabilitySpec, params: Mapping[str, Any]) -> dict[str, 
             arguments[name] = float(field["default"])
         elif field.get("required"):
             raise CapabilityRequestError(f"{name} is required")
+    if spec.capability_id == CAPABILITY_NAVIGATE:
+        navigate_target(arguments)
     return arguments
 
 

@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.3.0 — named places (2026-10-04)
+
+- `robotics.places` (`places.list`): read-only; returns the named places on
+  the robot's map as `places` (`[{name, frame, x, y, yaw}]`) and declares an
+  artifact of kind `places` (`application/json`, ≤ 256 KiB) a host can cite.
+- `robotics.mark_place` (`places.mark`): saves the current map pose under a
+  name; does not actuate, `controlled`, effect `places.written`, requires
+  `map.localized`.
+- `robotics.navigate` takes `place` (text, 1–64) as an alternative to
+  `x`/`y`; exactly one target, and `yaw_radians` only with `x`/`y`. `x` and
+  `y` are no longer individually required in `params_schema`.
+- A navigation by place reports `resolved_arguments` (the authored arguments
+  overlaid with the adapter's resolved `x`, `y`, `yaw_radians`, only when the
+  adapter reports finite coordinates for that same place), the arguments its
+  arrival evidence is judged against; a refused one reports `known_places`.
+- Text arguments refuse every Unicode control character and line/paragraph
+  separator (was: ASCII controls only).
+- Needs flyto-robotics 0.3.0; an older adapter refuses `place` and the places
+  capabilities without moving. An older flyto-core (< 2.36.0) registers
+  `robotics.places` without its artifact declaration, as before.
+
 ## 1.2.0 — navigation arrival is proven, not reported (2026-10-04)
 
 - `robotics.navigate` declares its arrival as evidence: `distance_to` over

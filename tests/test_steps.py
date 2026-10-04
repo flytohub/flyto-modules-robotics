@@ -5,7 +5,7 @@ from __future__ import annotations
 from flyto_modules_robotics.steps import MODULE_IDS, is_robotics_step, step_module_id
 
 
-def test_seven_steps_are_stable():
+def test_the_steps_are_stable():
     assert MODULE_IDS == (
         "robotics.advance",
         "robotics.retreat",
@@ -14,6 +14,8 @@ def test_seven_steps_are_stable():
         "robotics.navigate",
         "robotics.observe",
         "robotics.map",
+        "robotics.places",
+        "robotics.mark_place",
     )
 
 

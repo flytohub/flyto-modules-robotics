@@ -38,6 +38,8 @@ discovers them through the `flyto.modules` entry point.
 | `robotics.navigate` | `motion.navigate` |
 | `robotics.observe` | `vision.observe` |
 | `robotics.map` | `sensing.map` |
+| `robotics.places` | `places.list` |
+| `robotics.mark_place` | `places.mark` |
 
 ## Canonical bounds
 

@@ -13,6 +13,8 @@ The robot SDK face of Flyto2, and the proof that a robot needs no robot-specific
 | `robotics.navigate` | `motion.navigate` |
 | `robotics.observe` | `vision.observe` |
 | `robotics.map` | `sensing.map` |
+| `robotics.places` | `places.list` |
+| `robotics.mark_place` | `places.mark` |
 
 Steps run on the AI Space host and hand `{resource_id, capability_id, arguments}` to the host's dispatcher, which calls the flyto-robotics ROS 2 adapter. Execution placement, ROS 2 transport, hardware safety, and mission verification live outside this package.
 

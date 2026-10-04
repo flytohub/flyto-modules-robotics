@@ -1,5 +1,30 @@
 # Decisions
 
+## 2026-10-04 — A navigation by place is judged against what the adapter resolved
+
+The arrival evidence (`distance_to` over `x`/`y`, `angle_to` on
+`yaw_radians`) reads its target from the call's arguments, in flyto-core's
+judge and in Cloud's. A call by place names none of them. Three ways to close
+that were weighed:
+
+- Resolve in this pack's step (a read-only places call, then navigate with
+  `x`/`y`). Rejected: a second resolver beside the adapter's, and a host that
+  dispatches the capability directly would bypass it.
+- Rewrite the request's arguments to the coordinates. Rejected: the request
+  would no longer say what was asked, and an audit could not tell a place
+  from coordinates.
+- Chosen: the adapter, the one resolver and the one that sends the Nav2
+  goal, reports `resolved_arguments`; the step output carries the authored
+  arguments overlaid with them, filling only keys the call did not give and
+  only when the adapter reports finite coordinates for that same place. A
+  host judges the contract's evidence against those. The coordinates judged
+  are exactly the ones the robot was sent to.
+
+Until a host reads `resolved_arguments`, a navigation by place is judged
+against `{place}` alone and the arrival is unprovable: fail closed, never a
+false arrival. Places themselves live on the execution host (flyto-robotics),
+never on the robot and never in Cloud.
+
 ## 2026-10-04 — The provider declares artifacts and recovery; fleets get their own pack
 
 Decision: the contracts declare what flyto-core 2.36.0 lets a provider say

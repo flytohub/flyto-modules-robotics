@@ -14,6 +14,8 @@
 - [x] Declare `role`, `artifacts` and `recovery` (flyto-core 2.36.0); drop them with one warning on an older core.
 - [x] Return the declared detour recovery (Cloud's sectors) from a failed advance/retreat step.
 - [x] `fleet` pack: navigate-to-waypoint, dock, load, unload through the Open-RMF adapter.
+- [x] Named places: `robotics.places`, `robotics.mark_place`, and `robotics.navigate(place=...)` with the resolved target in the step output (1.3.0).
+- [ ] Hosts (Cloud, Desktop): judge a call by place against the step's `resolved_arguments` (or the adapter's), so its arrival can be proven.
 - [ ] Cloud: read a step's `recovery` instead of `services/space_tasks/detour.py`, and adapter `artifacts` instead of rendering the map.
 - [x] Remove the retired `flyto.robotics.plan.v1`, capability catalog, gateway, and executable Gazebo authoring/runtime path.
 - [x] Keep workflow data free of gateway URLs, credentials, execution-host identities, and Pi-runner assumptions.

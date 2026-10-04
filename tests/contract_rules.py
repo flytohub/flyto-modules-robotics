@@ -255,6 +255,10 @@ def wrap(angle: float) -> float:
     return r + 2 * math.pi if r <= -math.pi else r
 
 
+def _is_finite(value: Any) -> bool:
+    return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
+
+
 def _euclidean(fields, start, end) -> float:
     return math.sqrt(sum((end[name] - start[name]) ** 2 for name in fields))
 
@@ -307,6 +311,10 @@ def judge(
     if frame is not None and any(observations[phase].get("frame") != frame for phase in phases):
         return {"usable": False, "measured": None, "expected": None, "allowed": None, "settle_drift": None}
     last = observations[phases[-1]]
+    named = list(expect["arguments"].values()) if op == "distance_to" else [expect.get("argument")]
+    if any(name is not None and not _is_finite(arguments.get(name)) for name in named):
+        # As core: a missing target argument is an unusable verdict, not an error.
+        return {"usable": False, "measured": None, "expected": None, "allowed": None, "settle_drift": None}
     if op == "distance_to":
         measured = math.sqrt(
             sum((last[name] - float(arguments[expect["arguments"][name]])) ** 2 for name in measure["fields"])
