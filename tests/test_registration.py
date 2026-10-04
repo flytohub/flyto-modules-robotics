@@ -19,7 +19,9 @@ from flyto_modules_robotics.capabilities import OPTIONAL_CONTRACT_KEYS, SPECS, S
 from flyto_modules_robotics.modules import (
     HOST_DISPATCHER_CONTEXT_KEY,
     build_modules,
+    core_measure_ops,
     core_optional_contract_keys,
+    registrable_contract,
     supports_contract,
 )
 
@@ -278,11 +280,11 @@ def test_each_module_declares_its_capability_and_contract():
         assert item["module_id"] == module_id
         assert item["provides_capability"] == spec.capability_id
         assert item["params_schema"] == spec.params_schema
-        # The 2.36.0 optional keys only where this flyto-core accepts them.
-        dropped = OPTIONAL_CONTRACT_KEYS - core_optional_contract_keys()
-        assert item["contract"] == {
-            key: value for key, value in spec.contract.items() if key not in dropped
-        }
+        # The 2.36.0 optional keys and the 2.38.0 absolute evidence only
+        # where this flyto-core accepts them.
+        assert item["contract"] == registrable_contract(
+            spec.contract, core_optional_contract_keys(), core_measure_ops()
+        )
         assert item["category"] == "robotics"
         assert item["label"]
         assert item["requires_credentials"] is False
@@ -337,6 +339,7 @@ from core.modules.base import BaseModule
 from core.modules.registry import ModuleRegistry, register_module
 from flyto_modules_robotics.modules import (
     build_modules,
+    core_measure_ops,
     core_optional_contract_keys,
     supports_contract,
 )
@@ -355,7 +358,9 @@ try:
         },
         "contract_supported": supports_contract(register_module),
         "optional_keys": sorted(core_optional_contract_keys()),
+        "measure_ops": sorted(core_measure_ops()),
         "advance": metadata["robotics.advance"],
+        "navigate": metadata["robotics.navigate"],
         "result": result,
     }, sort_keys=True, default=str))
 finally:
@@ -390,6 +395,15 @@ finally:
             if key not in dropped
         }
         assert advance["contract"] == json.loads(json.dumps(expected))
+        navigate = registrable_contract(
+            SPECS_BY_MODULE["robotics.navigate"].contract,
+            frozenset(observed["optional_keys"]),
+            frozenset(observed["measure_ops"]),
+        )
+        assert observed["navigate"]["contract"] == json.loads(json.dumps(navigate))
+        if {"distance_to", "angle_to"} <= set(observed["measure_ops"]):
+            kinds = [item["kind"] for item in observed["navigate"]["contract"]["evidence"]]
+            assert kinds == ["arrival", "arrival.heading"]
     request = observed["result"]["capability_request"]
     assert request["resource_id"] == "robot-1"
     assert request["capability_id"] == "motion.advance"

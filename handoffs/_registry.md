@@ -4,6 +4,7 @@ New handoffs use `YYYY-MM-DD-topic.md`.
 
 | Date | Topic | File | Status | Owner | Branch |
 |---|---|---|---|---|---|
+| 2026-10-04 | Navigation arrival is proven by the contract | `2026-10-04-navigate-arrival-evidence.md` | Done — 1.2.0; needs flyto-core 2.38.0 (feature-detected) | claude | `claude/navigate-arrival-evidence` |
 | 2026-10-04 | Step output drops the legacy capture's bytes as well as the artifacts' | `2026-10-04-strip-legacy-capture-bytes.md` | Active | claude | `claude/strip-capture-bytes` |
 | 2026-10-04 | Provider-declared artifacts, safe-stop role and detour recovery; Open-RMF `fleet` pack | `2026-10-04-evidence-recovery-fleet.md` | Active — PR open; fakes only | claude | `claude/evidence-recovery-fleet` |
 | 2026-10-04 | One module per capability, each with a declared capability contract | `2026-10-04-capability-contract.md` | Merged (#9); superseded in part by 2026-10-04 evidence-recovery-fleet | claude | `claude/capability-contract` |

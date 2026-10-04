@@ -14,6 +14,9 @@ Two sources of truth are mirrored here, and tests pin both:
 * Evidence tolerances equal the constants Cloud has judged motion with since
   2026-10-02 (``services/space_tasks/motion_verification.py``), so moving them
   into a declared contract changes no verdict.
+* Navigation arrival tolerances follow the robot's own Nav2 goal checker
+  (see ``NAVIGATE_POSITION_TOLERANCE_M``): a contract never accepts an end
+  pose Nav2 itself would not have accepted, plus a small margin.
 
 The contract shape is ``flyto.capability-contract.v1``; see flyto-core
 ``docs/CAPABILITY_CONTRACT.md``.
@@ -63,6 +66,10 @@ CAPABILITY_UNLOAD = "transport.unload"
 # Keys flyto-core 2.36.0 added to the contract. An older core's closed schema
 # rejects them, so ``modules.py`` registers without them there.
 OPTIONAL_CONTRACT_KEYS = frozenset(("role", "artifacts", "recovery", "expected_duration_ms"))
+# Measure ops flyto-core 2.38.0 added (with ``measure.frame``). An older core
+# rejects an evidence item using them, so ``modules.py`` registers without
+# that item there.
+ABSOLUTE_MEASURE_OPS = frozenset(("distance_to", "angle_to"))
 
 # Generic ROS 2 adapter bounds (flyto-robotics generic_ros2_adapter.ARGUMENTS).
 MIN_DISTANCE_M = 0.05
@@ -93,6 +100,30 @@ ROTATION_TOLERANCE_MIN_RAD = 0.1
 ROTATION_TOLERANCE_FRACTION = 0.2
 ROTATION_POSITION_TOLERANCE_M = 0.05
 SETTLE_TOLERANCE_M = 0.02
+
+# Navigation arrival, judged in the map frame the goal is given in.
+#
+# Nav2's goal checker decides SUCCEEDED from the same map pose: the robot and
+# its twin run turtlebot3_navigation2's burger.yaml unchanged
+# (``goal_checker: xy_goal_tolerance 0.25, yaw_goal_tolerance 0.25``; read
+# from the twin's live parameters 2026-10-04), and this repository's lab
+# config (flyto-robotics ``config/nav2_params.yaml``) is tighter, 0.20 / 0.25.
+# The contract allows the loosest of those plus 0.05: the map pose is
+# odometry composed with localization's map->odom correction, which moves by
+# a few centimetres between Nav2's last check and the settled observation.
+# Nothing Nav2 itself would refuse is accepted; a SUCCEEDED that left the
+# robot 0.63 m short (twin, 2026-10-04) is not an arrival.
+NAV2_XY_GOAL_TOLERANCE_M = 0.25
+NAV2_YAW_GOAL_TOLERANCE_RAD = 0.25
+ARRIVAL_MARGIN_M = 0.05
+ARRIVAL_MARGIN_RAD = 0.05
+NAVIGATE_POSITION_TOLERANCE_M = NAV2_XY_GOAL_TOLERANCE_M + ARRIVAL_MARGIN_M
+NAVIGATE_HEADING_TOLERANCE_RAD = NAV2_YAW_GOAL_TOLERANCE_RAD + ARRIVAL_MARGIN_RAD
+# The adapter reports the pose in the map frame as ``map_pose``
+# (``{"frame": "map", "x", "y", "yaw"}``, flyto-robotics 03be416), only while
+# localization's transform is fresh; odometry stays ``pose``.
+MAP_POSE_OBSERVATION = "map_pose"
+MAP_FRAME = "map"
 
 
 def _number(
@@ -231,6 +262,33 @@ def _rotation_evidence() -> list[dict[str, Any]]:
             "expect": {"value": 0.0},
             "tolerance": {"absolute": ROTATION_POSITION_TOLERANCE_M, "relative": 0.0},
             "settle": {"max_drift": SETTLE_TOLERANCE_M},
+        },
+    ]
+
+
+def _arrival_evidence() -> list[dict[str, Any]]:
+    """Where a navigation ended, against where it was sent, in the map frame.
+
+    Measured once the robot settled; the start is not read. A Nav2 SUCCEEDED
+    is the adapter's word, not this proof.
+    """
+    return [
+        {
+            "kind": "arrival",
+            "observe": MAP_POSE_OBSERVATION,
+            "phases": ["after", "settled"],
+            "measure": {"op": "distance_to", "fields": ["x", "y"], "frame": MAP_FRAME},
+            "expect": {"arguments": {"x": "x", "y": "y"}},
+            "tolerance": {"absolute": NAVIGATE_POSITION_TOLERANCE_M, "relative": 0.0},
+        },
+        {
+            # Facing the asked heading, when one was asked.
+            "kind": "arrival.heading",
+            "observe": MAP_POSE_OBSERVATION,
+            "phases": ["after", "settled"],
+            "measure": {"op": "angle_to", "fields": ["yaw"], "frame": MAP_FRAME},
+            "expect": {"argument": "yaw_radians", "optional": True},
+            "tolerance": {"absolute": NAVIGATE_HEADING_TOLERANCE_RAD, "relative": 0.0},
         },
     ]
 
@@ -460,7 +518,8 @@ SPECS: tuple[CapabilitySpec, ...] = (
         # Nav2 plans the path; the adapter requires LiDAR clearance and a
         # localised map for it, and refuses navigation on operator_present.
         contract=_motion(
-            [], requires=["observation.fresh", "clearance.verified", "map.localized"]
+            _arrival_evidence(),
+            requires=["observation.fresh", "clearance.verified", "map.localized"],
         ),
         timeout_ms=360000,
         retryable=False,

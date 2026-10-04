@@ -73,15 +73,25 @@ def fake_register_module(module_id, contract=None, **metadata):
 
 
 ALL_KEYS = frozenset(OPTIONAL_CONTRACT_KEYS)
+# flyto-core 2.38.0's measure ops.
+ALL_OPS = frozenset(
+    ("distance", "along", "delta", "angle_delta", "abs_angle_delta", "distance_to", "angle_to")
+)
 
 
-def robotics(optional_keys=ALL_KEYS):
-    return dict(build_modules(StandInModule, fake_register_module, optional_keys=optional_keys))
-
-
-def fleet(optional_keys=ALL_KEYS):
+def robotics(optional_keys=ALL_KEYS, measure_ops=ALL_OPS):
     return dict(
-        build_fleet_modules(StandInModule, fake_register_module, optional_keys=optional_keys)
+        build_modules(
+            StandInModule, fake_register_module, optional_keys=optional_keys, measure_ops=measure_ops
+        )
+    )
+
+
+def fleet(optional_keys=ALL_KEYS, measure_ops=ALL_OPS):
+    return dict(
+        build_fleet_modules(
+            StandInModule, fake_register_module, optional_keys=optional_keys, measure_ops=measure_ops
+        )
     )
 
 
@@ -174,6 +184,21 @@ def test_an_older_core_registers_without_the_newer_keys_and_logs_once(caplog):
         }
         assert registered == expected
     warned = [item.getMessage() for item in caplog.records if "2.36.0" in item.getMessage()]
+    assert len(warned) == 1
+
+
+def test_an_older_core_registers_navigate_without_its_arrival_and_logs_once(caplog):
+    older = ALL_OPS - {"distance_to", "angle_to"}
+    with caplog.at_level(logging.WARNING):
+        steps = robotics(measure_ops=older)
+    for module_id, cls in steps.items():
+        registered = cls._registered_metadata["contract"]
+        spec = SPECS_BY_MODULE[module_id].contract
+        if module_id == "robotics.navigate":
+            assert registered == {**spec, "evidence": []}
+        else:
+            assert registered == spec
+    warned = [item.getMessage() for item in caplog.records if "2.38.0" in item.getMessage()]
     assert len(warned) == 1
 
 

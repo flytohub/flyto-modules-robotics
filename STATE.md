@@ -1,5 +1,12 @@
 # State
 
+## Navigation arrival evidence — 2026-10-04 (branch `claude/navigate-arrival-evidence`, 1.2.0)
+
+`robotics.navigate` proves where it arrived: the settled map-frame pose
+against the asked `x`/`y` (0.30 m) and, when asked, `yaw_radians` (0.30 rad),
+from Nav2's 0.25 goal tolerances plus 0.05. Needs flyto-core 2.38.0 to be
+declared; an older core registers navigate without it. Not released.
+
 ## Provider evidence, recovery, fleet pack — 2026-10-04 (branch `claude/evidence-recovery-fleet`, 1.1.0)
 
 The seven robotics contracts carry the 2.36.0 optional keys (halt `role`,

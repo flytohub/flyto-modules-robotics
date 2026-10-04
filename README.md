@@ -89,7 +89,7 @@ robot (stock ROS 2, no Flyto2 software)
 | `robotics.retreat` | `motion.retreat` | `distance_m` 0.05–2.0 m (required), `speed_mps` 0.02–0.20 m/s (default 0.10) | same as advance, expecting backward travel (`scale: -1`) |
 | `robotics.rotate` | `motion.rotate` | `yaw_radians` −π..π (required, signed) | actuates, movement, safe stop, cancellable; evidence: signed rotation within max(0.1 rad, 20%), position drift ≤ 0.05 m, settle ≤ 0.02 m |
 | `robotics.halt` | `motion.halt` | none | actuates, controlled; `role: safe_stop`: it is the stop itself, so no safe stop, not cancellable, and a host runs it at once |
-| `robotics.navigate` | `motion.navigate` | `x`, `y` −1000..1000 m (required), `yaw_radians` −π..π | actuates, movement, safe stop, cancellable; requires LiDAR clearance and a localised map |
+| `robotics.navigate` | `motion.navigate` | `x`, `y` −1000..1000 m (required), `yaw_radians` −π..π | actuates, movement, safe stop, cancellable; requires LiDAR clearance and a localised map; evidence (flyto-core 2.38.0): settled `map_pose` within 0.30 m of `x`/`y` in frame `map`, and within 0.30 rad of `yaw_radians` when asked — Nav2's 0.25 goal tolerances plus 0.05, so a Nav2 SUCCEEDED short of the goal is not an arrival |
 | `robotics.observe` | `vision.observe` | none | read only: one camera photo; `artifacts`: `photo`, `image/jpeg`, ≤ 2,000,000 bytes |
 | `robotics.map` | `sensing.map` | none | read only: the occupancy map built so far; `artifacts`: `map`, `image/jpeg` or `image/png`, ≤ 8 MiB |
 
@@ -103,7 +103,9 @@ return in six sectors of the robot's view (ahead, ahead-left, left,
 ahead-right, right, behind; `recovery.py`, the detour logic Cloud used to run
 itself). The four optional keys (`role`, `artifacts`, `recovery`,
 `expected_duration_ms`) need flyto-core 2.36.0; an older core gets the
-contracts without them and one warning.
+contracts without them and one warning. Navigate's absolute-target evidence
+(`distance_to`, `angle_to`) needs flyto-core 2.38.0; an older core registers
+navigate without it and one warning.
 
 A step's output keeps each returned artifact's kind, media type, size and
 SHA-256, never its bytes: the host keeps the picture itself.

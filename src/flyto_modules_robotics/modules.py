@@ -26,6 +26,7 @@ from collections.abc import Callable, Mapping
 from typing import Any
 
 from .capabilities import (
+    ABSOLUTE_MEASURE_OPS,
     ALL_SPECS_BY_MODULE,
     FLEET_SPECS,
     MODULE_ADVANCE,
@@ -50,7 +51,9 @@ __all__ = [
     "HOST_DISPATCHER_CONTEXT_KEY",
     "build_fleet_modules",
     "build_modules",
+    "core_measure_ops",
     "core_optional_contract_keys",
+    "registrable_contract",
     "supports_contract",
 ]
 
@@ -58,7 +61,7 @@ logger = logging.getLogger(__name__)
 
 CATEGORY = "robotics"
 FLEET_CATEGORY = "fleet"
-PACK_VERSION = "1.1.0"
+PACK_VERSION = "1.2.0"
 
 # flyto-core's context key for the host-created dispatcher (the same key
 # core's own ``capability.invoke`` reads).  Workflow data cannot create one.
@@ -108,8 +111,51 @@ def core_optional_contract_keys() -> frozenset[str]:
         return frozenset()
 
 
+def core_measure_ops() -> frozenset[str]:
+    """The evidence measure ops this flyto-core judges (2.38.0 adds the absolute ones).
+
+    Feature-detected as flyto-core documents it: ``"distance_to" in
+    core.capability_contract.MEASURE_OPS``.
+    """
+    try:
+        from core.capability_contract import MEASURE_OPS
+    except ImportError:
+        return frozenset()
+    try:
+        return frozenset(str(item) for item in MEASURE_OPS)
+    except TypeError:
+        return frozenset()
+
+
+def registrable_contract(
+    contract: Mapping[str, Any],
+    optional_keys: frozenset[str],
+    measure_ops: frozenset[str],
+) -> dict[str, Any]:
+    """The contract as a flyto-core that accepts these keys and ops registers it.
+
+    Optional keys it does not know are left out; so is an evidence item whose
+    measure uses an absolute op it does not know (its closed schema rejects
+    the whole contract otherwise). The step then still registers, with less
+    declared proof, and a host holds it to what remains.
+    """
+    unsupported_keys = OPTIONAL_CONTRACT_KEYS - frozenset(optional_keys)
+    unsupported_ops = ABSOLUTE_MEASURE_OPS - frozenset(measure_ops)
+    kept = {key: value for key, value in contract.items() if key not in unsupported_keys}
+    evidence = kept.get("evidence")
+    if unsupported_ops and isinstance(evidence, list):
+        kept["evidence"] = [
+            item
+            for item in evidence
+            if not (isinstance(item, Mapping) and (item.get("measure") or {}).get("op") in unsupported_ops)
+        ]
+    return kept
+
+
 def _registrar(
-    register_module: Callable[..., Any], optional_keys: frozenset[str] | None = None
+    register_module: Callable[..., Any],
+    optional_keys: frozenset[str] | None = None,
+    measure_ops: frozenset[str] | None = None,
 ) -> Callable[..., Any]:
     if not supports_contract(register_module):
         logger.warning(
@@ -123,28 +169,42 @@ def _registrar(
 
         return without_contract
 
-    accepted = core_optional_contract_keys() if optional_keys is None else optional_keys
-    unsupported = OPTIONAL_CONTRACT_KEYS - frozenset(accepted)
-    if not unsupported:
+    accepted = frozenset(core_optional_contract_keys() if optional_keys is None else optional_keys)
+    ops = frozenset(core_measure_ops() if measure_ops is None else measure_ops)
+    unsupported = OPTIONAL_CONTRACT_KEYS - accepted
+    unsupported_ops = ABSOLUTE_MEASURE_OPS - ops
+    if not unsupported and not unsupported_ops:
         return register_module
-    logged: list[bool] = []
+    logged: set[str] = set()
 
-    def without_newer_keys(**metadata: Any) -> Any:
+    def warn_once(what: str, message: str, *args: Any) -> None:
+        if what not in logged:
+            logged.add(what)
+            logger.warning(message, *args)
+
+    def without_newer_features(**metadata: Any) -> Any:
         contract = metadata.get("contract")
-        if isinstance(contract, Mapping) and unsupported & set(contract):
-            if not logged:
-                logged.append(True)
-                logger.warning(
+        if isinstance(contract, Mapping):
+            reduced = registrable_contract(contract, accepted, ops)
+            dropped_keys = sorted(set(contract) - set(reduced))
+            if dropped_keys:
+                warn_once(
+                    "keys",
                     "flyto-core does not accept the contract keys %s; steps register "
                     "without them (install flyto-core>=2.36.0)",
-                    ", ".join(sorted(unsupported & set(contract))),
+                    ", ".join(dropped_keys),
                 )
-            metadata["contract"] = {
-                key: value for key, value in contract.items() if key not in unsupported
-            }
+            if reduced.get("evidence") != contract.get("evidence"):
+                warn_once(
+                    "ops",
+                    "flyto-core does not judge the measure ops %s; steps register "
+                    "without that evidence (install flyto-core>=2.38.0)",
+                    ", ".join(sorted(unsupported_ops)),
+                )
+            metadata["contract"] = reduced
         return register_module(**metadata)
 
-    return without_newer_keys
+    return without_newer_features
 
 
 def _declared(spec: CapabilitySpec) -> dict[str, Any]:
@@ -332,7 +392,11 @@ def _capability_step(base_module) -> type:
 
 
 def build_fleet_modules(
-    base_module, register_module, *, optional_keys: frozenset[str] | None = None
+    base_module,
+    register_module,
+    *,
+    optional_keys: frozenset[str] | None = None,
+    measure_ops: frozenset[str] | None = None,
 ) -> list[tuple[str, type]]:
     """Register the Open-RMF fleet steps (the ``fleet`` pack).
 
@@ -340,7 +404,7 @@ def build_fleet_modules(
     flyto-robotics ``open_rmf.fleet`` adapter for a ``fleet:<name>`` resource.
     """
 
-    register = _registrar(register_module, optional_keys)
+    register = _registrar(register_module, optional_keys, measure_ops)
     step = _capability_step(base_module)
     registered: list[tuple[str, type]] = []
     for spec in FLEET_SPECS:
@@ -356,11 +420,15 @@ def build_fleet_modules(
 
 
 def build_modules(
-    base_module, register_module, *, optional_keys: frozenset[str] | None = None
+    base_module,
+    register_module,
+    *,
+    optional_keys: frozenset[str] | None = None,
+    measure_ops: frozenset[str] | None = None,
 ) -> list[tuple[str, type]]:
     """Register the seven capability steps against flyto-core's API."""
 
-    register = _registrar(register_module, optional_keys)
+    register = _registrar(register_module, optional_keys, measure_ops)
     CapabilityStep = _capability_step(base_module)
 
     def spec(module_id: str) -> CapabilitySpec:

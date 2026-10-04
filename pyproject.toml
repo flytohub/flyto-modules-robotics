@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flyto-modules-robotics"
-version = "1.1.0"
+version = "1.2.0"
 description = "Robot capabilities for Flyto2, contributed through @register_module alone"
 readme = "README.md"
 requires-python = ">=3.11"
