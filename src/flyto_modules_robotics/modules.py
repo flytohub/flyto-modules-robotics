@@ -41,6 +41,8 @@ from .capabilities import (
     MODULE_RETREAT,
     MODULE_ROTATE,
     OPTIONAL_CONTRACT_KEYS,
+    RECOVERY_REPORT_KEYS,
+    RECOVERY_SEMANTIC_KEYS,
     RESOLVED_ARGUMENTS,
     SPECS_BY_MODULE,
     CapabilitySpec,
@@ -58,6 +60,7 @@ __all__ = [
     "build_modules",
     "core_measure_ops",
     "core_optional_contract_keys",
+    "core_recovery_fields",
     "registrable_contract",
     "resolved_arguments",
     "supports_contract",
@@ -67,7 +70,7 @@ logger = logging.getLogger(__name__)
 
 CATEGORY = "robotics"
 FLEET_CATEGORY = "fleet"
-PACK_VERSION = "1.3.0"
+PACK_VERSION = "1.4.0"
 
 # flyto-core's context key for the host-created dispatcher (the same key
 # core's own ``capability.invoke`` reads).  Workflow data cannot create one.
@@ -133,21 +136,63 @@ def core_measure_ops() -> frozenset[str]:
         return frozenset()
 
 
+def core_recovery_fields() -> frozenset[str]:
+    """The ``recovery`` keys this flyto-core accepts (2.39.0 adds the semantics).
+
+    Feature-detected as flyto-core documents it: ``"fills" in
+    core.capability_contract.RECOVERY_FIELDS``. An older core has no
+    ``RECOVERY_FIELDS``; if it accepts ``recovery`` at all (2.36.0+), it
+    accepts only the report keys and requires ``capabilities``.
+    """
+    try:
+        from core.capability_contract import RECOVERY_FIELDS
+    except ImportError:
+        return RECOVERY_REPORT_KEYS
+    try:
+        return frozenset(str(item) for item in RECOVERY_FIELDS)
+    except TypeError:
+        return RECOVERY_REPORT_KEYS
+
+
+def _registrable_recovery(recovery: Any, recovery_fields: frozenset[str]) -> Any:
+    """The recovery block without keys this core rejects, or None when nothing is left.
+
+    A core without the semantics requires ``capabilities``, so a block that
+    only stated roles (rotate, navigate) is dropped whole there: the host then
+    sees no declaration, which is what it saw before 1.4.0.
+    """
+    if not isinstance(recovery, Mapping):
+        return recovery
+    kept = {key: value for key, value in recovery.items() if key in recovery_fields}
+    if "fills" not in recovery_fields and "capabilities" not in kept:
+        return None
+    return kept
+
+
 def registrable_contract(
     contract: Mapping[str, Any],
     optional_keys: frozenset[str],
     measure_ops: frozenset[str],
+    recovery_fields: frozenset[str] | None = None,
 ) -> dict[str, Any]:
     """The contract as a flyto-core that accepts these keys and ops registers it.
 
     Optional keys it does not know are left out; so is an evidence item whose
     measure uses an absolute op it does not know (its closed schema rejects
-    the whole contract otherwise). The step then still registers, with less
-    declared proof, and a host holds it to what remains.
+    the whole contract otherwise), and so are recovery keys outside
+    ``recovery_fields`` (``None`` keeps the block as declared). The step then
+    still registers, with less declared proof, and a host holds it to what
+    remains.
     """
     unsupported_keys = OPTIONAL_CONTRACT_KEYS - frozenset(optional_keys)
     unsupported_ops = ABSOLUTE_MEASURE_OPS - frozenset(measure_ops)
     kept = {key: value for key, value in contract.items() if key not in unsupported_keys}
+    if recovery_fields is not None and "recovery" in kept:
+        recovery = _registrable_recovery(kept["recovery"], frozenset(recovery_fields))
+        if recovery is None:
+            del kept["recovery"]
+        else:
+            kept["recovery"] = recovery
     evidence = kept.get("evidence")
     if unsupported_ops and isinstance(evidence, list):
         kept["evidence"] = [
@@ -162,6 +207,7 @@ def _registrar(
     register_module: Callable[..., Any],
     optional_keys: frozenset[str] | None = None,
     measure_ops: frozenset[str] | None = None,
+    recovery_fields: frozenset[str] | None = None,
 ) -> Callable[..., Any]:
     if not supports_contract(register_module):
         logger.warning(
@@ -177,9 +223,11 @@ def _registrar(
 
     accepted = frozenset(core_optional_contract_keys() if optional_keys is None else optional_keys)
     ops = frozenset(core_measure_ops() if measure_ops is None else measure_ops)
+    fields = frozenset(core_recovery_fields() if recovery_fields is None else recovery_fields)
     unsupported = OPTIONAL_CONTRACT_KEYS - accepted
     unsupported_ops = ABSOLUTE_MEASURE_OPS - ops
-    if not unsupported and not unsupported_ops:
+    unsupported_recovery = RECOVERY_SEMANTIC_KEYS - fields
+    if not unsupported and not unsupported_ops and not unsupported_recovery:
         return register_module
     logged: set[str] = set()
 
@@ -191,14 +239,21 @@ def _registrar(
     def without_newer_features(**metadata: Any) -> Any:
         contract = metadata.get("contract")
         if isinstance(contract, Mapping):
-            reduced = registrable_contract(contract, accepted, ops)
-            dropped_keys = sorted(set(contract) - set(reduced))
+            reduced = registrable_contract(contract, accepted, ops, fields)
+            dropped_keys = sorted((set(contract) - set(reduced)) & unsupported)
             if dropped_keys:
                 warn_once(
                     "keys",
                     "flyto-core does not accept the contract keys %s; steps register "
                     "without them (install flyto-core>=2.36.0)",
                     ", ".join(dropped_keys),
+                )
+            if "recovery" in accepted and reduced.get("recovery") != contract.get("recovery"):
+                warn_once(
+                    "recovery",
+                    "flyto-core does not accept the recovery keys %s; steps register "
+                    "without them (install flyto-core>=2.39.0)",
+                    ", ".join(sorted(unsupported_recovery)),
                 )
             if reduced.get("evidence") != contract.get("evidence"):
                 warn_once(
@@ -476,6 +531,7 @@ def build_fleet_modules(
     *,
     optional_keys: frozenset[str] | None = None,
     measure_ops: frozenset[str] | None = None,
+    recovery_fields: frozenset[str] | None = None,
 ) -> list[tuple[str, type]]:
     """Register the Open-RMF fleet steps (the ``fleet`` pack).
 
@@ -483,7 +539,7 @@ def build_fleet_modules(
     flyto-robotics ``open_rmf.fleet`` adapter for a ``fleet:<name>`` resource.
     """
 
-    register = _registrar(register_module, optional_keys, measure_ops)
+    register = _registrar(register_module, optional_keys, measure_ops, recovery_fields)
     step = _capability_step(base_module)
     registered: list[tuple[str, type]] = []
     for spec in FLEET_SPECS:
@@ -504,10 +560,11 @@ def build_modules(
     *,
     optional_keys: frozenset[str] | None = None,
     measure_ops: frozenset[str] | None = None,
+    recovery_fields: frozenset[str] | None = None,
 ) -> list[tuple[str, type]]:
     """Register the nine capability steps against flyto-core's API."""
 
-    register = _registrar(register_module, optional_keys, measure_ops)
+    register = _registrar(register_module, optional_keys, measure_ops, recovery_fields)
     CapabilityStep = _capability_step(base_module)
 
     def spec(module_id: str) -> CapabilitySpec:

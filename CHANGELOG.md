@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.4.0 — recovery semantics on the motion contracts (2026-10-07)
+
+- `motion.advance`, `motion.retreat`, `motion.rotate` and `motion.navigate`
+  declare recovery semantics in their contract's `recovery` block (flyto-core
+  2.39.0): advance answers `obstruction` with the roles `reorient`,
+  `reposition`, `travel_to` (in that order), preserves its `destination`, on
+  the `same_resource`, and fills `reposition`; retreat fills `reposition`,
+  rotate `reorient`, navigate `travel_to`. These equal Flyto2 Cloud's
+  platform-reviewed first-party semantics exactly (definition hashes pinned in
+  `tests/test_recovery_semantics.py`), so Cloud builds the way round from the
+  contract instead of its legacy `RECOVERY_SUBSTITUTES` table.
+- Advance's and retreat's host report (`capabilities`, `observe`, `guidance`)
+  is unchanged. Rotate and navigate gain a `recovery` block holding only
+  `fills`; a failed step of theirs still returns no `recovery` output.
+- On a flyto-core without `RECOVERY_FIELDS` (before 2.39.0) the semantic keys
+  are left out, and a block with nothing else is left out whole, with one
+  warning: the registered contracts equal 1.3.0's, and Cloud keeps its legacy
+  floor.
+
 ## 1.3.0 — named places (2026-10-04)
 
 - `robotics.places` (`places.list`): read-only; returns the named places on

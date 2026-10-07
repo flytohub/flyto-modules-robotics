@@ -17,6 +17,8 @@
 - [x] Named places: `robotics.places`, `robotics.mark_place`, and `robotics.navigate(place=...)` with the resolved target in the step output (1.3.0).
 - [ ] Hosts (Cloud, Desktop): judge a call by place against the step's `resolved_arguments` (or the adapter's), so its arrival can be proven.
 - [ ] Cloud: read a step's `recovery` instead of `services/space_tasks/detour.py`, and adapter `artifacts` instead of rendering the map.
+- [x] Declare recovery semantics (roles, `fills`) on advance, retreat, rotate and navigate equal to Cloud's reviewed first-party semantics; feature-detect flyto-core 2.39.0 (1.4.0).
+- [ ] Cloud: pin flyto-core 2.39.0 and this pack's 1.4.0 so the contract path replaces `RECOVERY_SUBSTITUTES` for the motion capabilities.
 - [x] Remove the retired `flyto.robotics.plan.v1`, capability catalog, gateway, and executable Gazebo authoring/runtime path.
 - [x] Keep workflow data free of gateway URLs, credentials, execution-host identities, and Pi-runner assumptions.
 - [ ] Decide separately whether to publish to PyPI.

@@ -4,6 +4,7 @@ New handoffs use `YYYY-MM-DD-topic.md`.
 
 | Date | Topic | File | Status | Owner | Branch |
 |---|---|---|---|---|---|
+| 2026-10-07 | Recovery semantics (roles, fills) on the motion contracts | `2026-10-07-recovery-semantics.md` | Active — 1.4.0; equals Cloud FIRST_PARTY_REVIEWED; needs flyto-core 2.39.0 (feature-detected) | claude | `claude/recovery-declaration` |
 | 2026-10-04 | Named places: `robotics.places`, `robotics.mark_place`, navigate by place with resolved target | `2026-10-04-robot-places.md` | Active — 1.3.0; needs flyto-robotics 0.3.0; hosts must judge against `resolved_arguments` | claude | `claude/robot-places` |
 | 2026-10-04 | Navigation arrival is proven by the contract | `2026-10-04-navigate-arrival-evidence.md` | Done — 1.2.0; needs flyto-core 2.38.0 (feature-detected) | claude | `claude/navigate-arrival-evidence` |
 | 2026-10-04 | Step output drops the legacy capture's bytes as well as the artifacts' | `2026-10-04-strip-legacy-capture-bytes.md` | Active | claude | `claude/strip-capture-bytes` |

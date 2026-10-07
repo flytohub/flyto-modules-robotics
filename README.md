@@ -120,6 +120,14 @@ contracts without them and one warning. Navigate's absolute-target evidence
 (`distance_to`, `angle_to`) needs flyto-core 2.38.0; an older core registers
 navigate without it and one warning.
 
+The same `recovery` blocks also state recovery semantics as roles (flyto-core
+2.39.0): advance, stopped by an `obstruction`, may be worked round on the same
+robot by whatever fills `reorient`, `reposition` or `travel_to`, still
+reaching its destination; retreat fills `reposition`, rotate `reorient`,
+navigate `travel_to`. A host builds the way round from roles, not names. An
+older core gets the blocks without these keys (rotate's and navigate's not at
+all) and one warning.
+
 A step's output keeps each returned artifact's kind, media type, size and
 SHA-256, never its bytes: the host keeps the picture itself.
 

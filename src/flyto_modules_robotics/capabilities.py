@@ -71,6 +71,13 @@ CAPABILITY_UNLOAD = "transport.unload"
 # Keys flyto-core 2.36.0 added to the contract. An older core's closed schema
 # rejects them, so ``modules.py`` registers without them there.
 OPTIONAL_CONTRACT_KEYS = frozenset(("role", "artifacts", "recovery", "expected_duration_ms"))
+# Keys flyto-core 2.39.0 admits in a ``recovery`` block: the recovery semantics
+# a host reads to build a way round from roles. An older core requires
+# ``capabilities`` and rejects these, so ``modules.py`` registers without them
+# there (and without the whole block when nothing else is left).
+RECOVERY_SEMANTIC_KEYS = frozenset(("on", "alternatives", "preserves", "resource_scope", "fills"))
+# What every core that accepts ``recovery`` (2.36.0+) admits in it.
+RECOVERY_REPORT_KEYS = frozenset(("capabilities", "observe", "guidance"))
 # Measure ops flyto-core 2.38.0 added (with ``measure.frame``). An older core
 # rejects an evidence item using them, so ``modules.py`` registers without
 # that item there.
@@ -433,6 +440,35 @@ def _detour() -> dict[str, Any]:
     }
 
 
+# Recovery semantics (flyto-core 2.39.0): what a stopped motion may be worked
+# round with, as roles rather than capability ids, and the roles each motion
+# fills. A host matches roles across the capabilities the stopped robot holds.
+# These equal Flyto2 Cloud's platform-reviewed first-party declarations
+# (``services/space_tasks/recovery_semantics.FIRST_PARTY_REVIEWED``) exactly;
+# Cloud trusts a declaration only when its definition hash matches, so any
+# change here is a change Cloud must review again.
+ROLE_REORIENT = "reorient"
+ROLE_REPOSITION = "reposition"
+ROLE_TRAVEL_TO = "travel_to"
+STOP_FAMILY_OBSTRUCTION = "obstruction"
+PRESERVE_DESTINATION = "destination"
+SCOPE_SAME_RESOURCE = "same_resource"
+
+
+def _fills(*roles: str) -> dict[str, Any]:
+    return {"fills": list(roles)}
+
+
+def _way_round() -> dict[str, Any]:
+    """An advance stopped by what stands ahead may be worked round on the same robot."""
+    return {
+        "on": [STOP_FAMILY_OBSTRUCTION],
+        "alternatives": [ROLE_REORIENT, ROLE_REPOSITION, ROLE_TRAVEL_TO],
+        "preserves": [PRESERVE_DESTINATION],
+        "resource_scope": SCOPE_SAME_RESOURCE,
+    }
+
+
 @dataclass(frozen=True)
 class CapabilitySpec:
     """One capability, as registered: identity, display, parameters, contract."""
@@ -472,7 +508,9 @@ SPECS: tuple[CapabilitySpec, ...] = (
             "speed_mps": _speed(MAX_ADVANCE_SPEED_MPS, DEFAULT_ADVANCE_SPEED_MPS),
         },
         contract=_motion(
-            _displacement_evidence(1), requires=_MOTION_REQUIRES, recovery=_detour()
+            _displacement_evidence(1),
+            requires=_MOTION_REQUIRES,
+            recovery={**_detour(), **_way_round(), **_fills(ROLE_REPOSITION)},
         ),
         timeout_ms=180000,
         retryable=False,
@@ -490,7 +528,9 @@ SPECS: tuple[CapabilitySpec, ...] = (
             "speed_mps": _speed(MAX_RETREAT_SPEED_MPS, DEFAULT_RETREAT_SPEED_MPS),
         },
         contract=_motion(
-            _displacement_evidence(-1), requires=_MOTION_REQUIRES, recovery=_detour()
+            _displacement_evidence(-1),
+            requires=_MOTION_REQUIRES,
+            recovery={**_detour(), **_fills(ROLE_REPOSITION)},
         ),
         timeout_ms=180000,
         retryable=False,
@@ -506,7 +546,9 @@ SPECS: tuple[CapabilitySpec, ...] = (
         params_schema={
             "yaw_radians": _yaw(True, "Signed rotation; positive turns left"),
         },
-        contract=_motion(_rotation_evidence(), requires=_MOTION_REQUIRES),
+        contract=_motion(
+            _rotation_evidence(), requires=_MOTION_REQUIRES, recovery=_fills(ROLE_REORIENT)
+        ),
         timeout_ms=180000,
         retryable=False,
     ),
@@ -561,6 +603,7 @@ SPECS: tuple[CapabilitySpec, ...] = (
         contract=_motion(
             _arrival_evidence(),
             requires=["observation.fresh", "clearance.verified", "map.localized"],
+            recovery=_fills(ROLE_TRAVEL_TO),
         ),
         timeout_ms=360000,
         retryable=False,

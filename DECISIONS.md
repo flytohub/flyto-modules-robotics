@@ -1,5 +1,25 @@
 # Decisions
 
+## 2026-10-07 — Recovery is declared as roles, gated on what the core accepts
+
+Cloud's way round for a stopped advance came from its own table of
+capability names. This pack now declares it as roles in the contract, equal to
+the semantics Cloud reviewed for its first-party vocabulary, so Cloud reads
+the contract and the table is not consulted for these capabilities.
+
+Two ways to stay loadable on a flyto-core whose closed schema rejects the
+keys were weighed:
+
+- Raise the `core` extra's floor to 2.39.0 and release only after Core.
+  Rejected: an execution host on an older core would then fail to install or
+  register the pack, losing every capability, not just the declaration.
+- Feature-detect `RECOVERY_FIELDS` and drop what the core rejects, as for the
+  2.36.0 keys and the 2.38.0 ops. Chosen: an older core registers 1.3.0's
+  contracts, Cloud sees no declaration and keeps its legacy floor, which is
+  the behaviour before this change. The semantics take effect wherever the
+  core is 2.39.0 or later, so the pack's release does not have to wait for
+  Core's.
+
 ## 2026-10-04 — A navigation by place is judged against what the adapter resolved
 
 The arrival evidence (`distance_to` over `x`/`y`, `angle_to` on

@@ -22,6 +22,7 @@ import pytest
 from contract_rules import judge, validate_contract
 
 from flyto_modules_robotics.capabilities import (
+    RECOVERY_REPORT_KEYS,
     ABSOLUTE_MEASURE_OPS,
     MAX_PLACE_NAME_LENGTH,
     PLACE_EFFECT,
@@ -126,6 +127,7 @@ def test_the_contracts_hold_under_the_rules_and_core(module_id):
         spec.contract,
         frozenset(getattr(core, "OPTIONAL_FIELDS", ())),
         frozenset(getattr(core, "MEASURE_OPS", ())),
+        frozenset(getattr(core, "RECOVERY_FIELDS", RECOVERY_REPORT_KEYS)),
     )
     core.validate_contract(registered, dict(spec.params_schema))
 
