@@ -15,12 +15,13 @@ from pathlib import Path
 import pytest
 
 import flyto_modules_robotics as pkg
-from flyto_modules_robotics.capabilities import OPTIONAL_CONTRACT_KEYS, SPECS, SPECS_BY_MODULE
+from flyto_modules_robotics.capabilities import SPECS, SPECS_BY_MODULE
 from flyto_modules_robotics.modules import (
     HOST_DISPATCHER_CONTEXT_KEY,
     build_modules,
     core_measure_ops,
     core_optional_contract_keys,
+    core_recovery_fields,
     registrable_contract,
     supports_contract,
 )
@@ -280,10 +281,10 @@ def test_each_module_declares_its_capability_and_contract():
         assert item["module_id"] == module_id
         assert item["provides_capability"] == spec.capability_id
         assert item["params_schema"] == spec.params_schema
-        # The 2.36.0 optional keys and the 2.38.0 absolute evidence only
-        # where this flyto-core accepts them.
+        # The 2.36.0 optional keys, the 2.38.0 absolute evidence and the
+        # 2.39.0 recovery semantics only where this flyto-core accepts them.
         assert item["contract"] == registrable_contract(
-            spec.contract, core_optional_contract_keys(), core_measure_ops()
+            spec.contract, core_optional_contract_keys(), core_measure_ops(), core_recovery_fields()
         )
         assert item["category"] == "robotics"
         assert item["label"]
@@ -341,6 +342,7 @@ from flyto_modules_robotics.modules import (
     build_modules,
     core_measure_ops,
     core_optional_contract_keys,
+    core_recovery_fields,
     supports_contract,
 )
 
@@ -359,6 +361,8 @@ try:
         "contract_supported": supports_contract(register_module),
         "optional_keys": sorted(core_optional_contract_keys()),
         "measure_ops": sorted(core_measure_ops()),
+        "recovery_fields": sorted(core_recovery_fields()),
+        "metadata": {k: v for k, v in metadata.items() if k.startswith("robotics.")},
         "advance": metadata["robotics.advance"],
         "navigate": metadata["robotics.navigate"],
         "result": result,
@@ -388,19 +392,19 @@ finally:
     assert advance["params_schema"]["distance_m"]["min"] == 0.05
     assert advance["provides_capability"] == "motion.advance"
     if observed["contract_supported"]:
-        dropped = OPTIONAL_CONTRACT_KEYS - set(observed["optional_keys"])
-        expected = {
-            key: value
-            for key, value in SPECS_BY_MODULE["robotics.advance"].contract.items()
-            if key not in dropped
-        }
-        assert advance["contract"] == json.loads(json.dumps(expected))
-        navigate = registrable_contract(
-            SPECS_BY_MODULE["robotics.navigate"].contract,
-            frozenset(observed["optional_keys"]),
-            frozenset(observed["measure_ops"]),
-        )
-        assert observed["navigate"]["contract"] == json.loads(json.dumps(navigate))
+        # Every step registers on the installed core, whatever its version,
+        # with exactly what that core accepts of its spec row.
+        for spec in SPECS:
+            expected = registrable_contract(
+                spec.contract,
+                frozenset(observed["optional_keys"]),
+                frozenset(observed["measure_ops"]),
+                frozenset(observed["recovery_fields"]),
+            )
+            registered = observed["metadata"][spec.module_id]["contract"]
+            assert registered == json.loads(json.dumps(expected)), spec.module_id
+        if "fills" in observed["recovery_fields"]:
+            assert advance["contract"] == json.loads(json.dumps(SPECS_BY_MODULE["robotics.advance"].contract))
         if {"distance_to", "angle_to"} <= set(observed["measure_ops"]):
             kinds = [item["kind"] for item in observed["navigate"]["contract"]["evidence"]]
             assert kinds == ["arrival", "arrival.heading"]

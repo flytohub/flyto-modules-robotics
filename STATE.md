@@ -1,5 +1,15 @@
 # State
 
+## Recovery semantics — 2026-10-07 (branch `claude/recovery-declaration`, 1.4.0)
+
+advance / retreat / rotate / navigate declare the roles Cloud's
+`FIRST_PARTY_REVIEWED` reviewed (hashes pinned in tests). Verified against
+real flyto-core registries 2.33.0 (PyPI), 2.38.0 (`50c4876`) and the 2.39.0
+branch, and against Cloud's `recovery_semantics` / `step_recovery` on branch
+`claude/recovery-semantics` (all four reviewed; advance's way round equals the
+legacy table with the table made to raise on access). Feature-detected, so an
+older core registers 1.3.0's contracts. Not against a live adapter or robot.
+
 ## Named places — 2026-10-04 (branch `claude/robot-places`, 1.3.0)
 
 `robotics.places`, `robotics.mark_place` and `robotics.navigate(place=...)`

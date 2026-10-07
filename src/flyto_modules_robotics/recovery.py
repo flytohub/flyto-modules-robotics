@@ -4,7 +4,9 @@
 
 The advance and retreat contracts declare ``recovery``: the capabilities a
 planner may use instead (rotate, advance, retreat), the observation that
-explains the failure (``recovery_context``), and guidance text. The adapter
+explains the failure (``recovery_context``), and guidance text. The same
+blocks (and rotate's and navigate's) also carry recovery semantics -- roles a
+host reads from the contract itself; this module reports only the former. The adapter
 reports the facts in ``recovery_context`` (flyto-robotics 0.2.0): why the
 motion ended, how far it was asked to go and went, and the LiDAR sweep at the
 stop. This module turns them into what the planner reads: the nearest return
@@ -122,7 +124,9 @@ def recovery_for(spec: CapabilitySpec, record: Mapping[str, Any]) -> dict[str, A
     contract; the measurements come from the adapter's own report.
     """
     declared = spec.contract.get("recovery")
-    if not isinstance(declared, Mapping):
+    # A block that only states roles (``fills``) offers the planner no
+    # substitutes of its own; the host reads those roles from the contract.
+    if not isinstance(declared, Mapping) or "capabilities" not in declared:
         return None
     if str(record.get("outcome") or "") not in RECOVERABLE_OUTCOMES:
         return None

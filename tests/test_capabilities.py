@@ -8,6 +8,7 @@ import pytest
 from contract_rules import ContractInvalid, judge, validate_contract
 
 from flyto_modules_robotics.capabilities import (
+    RECOVERY_REPORT_KEYS,
     ABSOLUTE_MEASURE_OPS,
     NAVIGATE_HEADING_TOLERANCE_RAD,
     NAVIGATE_POSITION_TOLERANCE_M,
@@ -120,11 +121,12 @@ def test_every_contract_satisfies_the_v1_rules(spec):
 
 
 def _as_registered(spec, module):
-    """The contract as this flyto-core registers it (2.36.0 keys, 2.38.0 ops)."""
+    """The contract as this flyto-core registers it (2.36.0 keys, 2.38.0 ops, 2.39.0 recovery)."""
     return registrable_contract(
         spec.contract,
         frozenset(getattr(module, "OPTIONAL_FIELDS", ())),
         frozenset(getattr(module, "MEASURE_OPS", ())),
+        frozenset(getattr(module, "RECOVERY_FIELDS", RECOVERY_REPORT_KEYS)),
     )
 
 

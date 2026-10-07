@@ -79,18 +79,32 @@ ALL_OPS = frozenset(
 )
 
 
-def robotics(optional_keys=ALL_KEYS, measure_ops=ALL_OPS):
+# flyto-core 2.39.0's recovery keys.
+ALL_RECOVERY = frozenset(
+    ("capabilities", "observe", "guidance", "on", "alternatives", "preserves", "resource_scope", "fills")
+)
+
+
+def robotics(optional_keys=ALL_KEYS, measure_ops=ALL_OPS, recovery_fields=ALL_RECOVERY):
     return dict(
         build_modules(
-            StandInModule, fake_register_module, optional_keys=optional_keys, measure_ops=measure_ops
+            StandInModule,
+            fake_register_module,
+            optional_keys=optional_keys,
+            measure_ops=measure_ops,
+            recovery_fields=recovery_fields,
         )
     )
 
 
-def fleet(optional_keys=ALL_KEYS, measure_ops=ALL_OPS):
+def fleet(optional_keys=ALL_KEYS, measure_ops=ALL_OPS, recovery_fields=ALL_RECOVERY):
     return dict(
         build_fleet_modules(
-            StandInModule, fake_register_module, optional_keys=optional_keys, measure_ops=measure_ops
+            StandInModule,
+            fake_register_module,
+            optional_keys=optional_keys,
+            measure_ops=measure_ops,
+            recovery_fields=recovery_fields,
         )
     )
 
@@ -153,6 +167,8 @@ def test_every_contract_is_flyto_core_normalized(spec):
     module = pytest.importorskip("core.capability_contract")
     if "role" not in getattr(module, "OPTIONAL_FIELDS", ()):
         pytest.skip("installed flyto-core predates the 2.36.0 optional keys")
+    if "fills" not in getattr(module, "RECOVERY_FIELDS", ()):
+        pytest.skip("installed flyto-core predates the 2.39.0 recovery semantics")
     assert module.validate_contract(dict(spec.contract), dict(spec.params_schema)) == spec.contract
 
 

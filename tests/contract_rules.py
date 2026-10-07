@@ -172,6 +172,56 @@ def _absolute_expect(op: str, fields: list[str], expect: Mapping[str, Any], para
         raise ContractInvalid("an optional target cannot be a required parameter")
 
 
+RECOVERY_REPORT = {"capabilities", "observe", "guidance"}
+# flyto-core 2.39.0
+RECOVERY_SEMANTICS = {"on", "alternatives", "preserves", "resource_scope", "fills"}
+STOP_FAMILIES = {"obstruction", "no_passage", "stopped_short"}
+PRESERVES = {"destination", "target"}
+
+
+def _closed(value: Any, allowed: set, where: str) -> None:
+    if type(value) is not list or not 1 <= len(value) <= len(allowed) or len(set(value)) != len(value):
+        raise ContractInvalid(f"{where} must be 1..{len(allowed)} distinct values")
+    if not set(value) <= allowed:
+        raise ContractInvalid(f"{where} may name only {sorted(allowed)}")
+
+
+def _roles(value: Any, where: str) -> None:
+    _identifiers(value, where, 8)
+    if not value:
+        raise ContractInvalid(f"{where} is empty")
+
+
+def _recovery(recovery: Any) -> None:
+    if type(recovery) is not dict:
+        raise ContractInvalid("recovery must be a mapping")
+    if not set(recovery) <= RECOVERY_REPORT | RECOVERY_SEMANTICS:
+        raise ContractInvalid("recovery has unknown keys")
+    if not {"capabilities", "alternatives", "fills"} & set(recovery):
+        raise ContractInvalid("recovery declares neither capabilities, alternatives nor fills")
+    if "capabilities" in recovery:
+        _roles(recovery["capabilities"], "recovery.capabilities")
+    if "observe" in recovery:
+        _identifier(recovery["observe"], "recovery.observe")
+    guidance = recovery.get("guidance", "x")
+    if type(guidance) is not str or not guidance.strip() or len(guidance) > 500:
+        raise ContractInvalid("recovery.guidance is 1..500 characters")
+    if "on" in recovery:
+        _closed(recovery["on"], STOP_FAMILIES, "recovery.on")
+    if "preserves" in recovery:
+        _closed(recovery["preserves"], PRESERVES, "recovery.preserves")
+    for key in ("alternatives", "fills"):
+        if key in recovery:
+            _roles(recovery[key], f"recovery.{key}")
+    if "resource_scope" in recovery and recovery["resource_scope"] != "same_resource":
+        raise ContractInvalid("recovery.resource_scope must be same_resource")
+    recovers = "alternatives" in recovery
+    if ("on" in recovery) != recovers or recovers != ("resource_scope" in recovery):
+        raise ContractInvalid("recovery.on, alternatives and resource_scope come together")
+    if "preserves" in recovery and not recovers:
+        raise ContractInvalid("recovery.preserves describes a way round")
+
+
 def validate_contract(contract: Any, params_schema: Mapping[str, Any]) -> None:
     if type(contract) is not dict or not set(contract) <= CONTRACT_KEYS:
         raise ContractInvalid("contract has unknown keys")
@@ -229,19 +279,7 @@ def _optional(contract: Mapping[str, Any]) -> None:
         if len(set(kinds)) != len(kinds):
             raise ContractInvalid("artifacts declare a kind twice")
     if "recovery" in contract:
-        recovery = contract["recovery"]
-        if type(recovery) is not dict or "capabilities" not in recovery:
-            raise ContractInvalid("recovery needs capabilities")
-        if not set(recovery) <= {"capabilities", "observe", "guidance"}:
-            raise ContractInvalid("recovery has unknown keys")
-        _identifiers(recovery["capabilities"], "recovery.capabilities", 8)
-        if not recovery["capabilities"]:
-            raise ContractInvalid("recovery.capabilities is empty")
-        if "observe" in recovery:
-            _identifier(recovery["observe"], "recovery.observe")
-        guidance = recovery.get("guidance", "x")
-        if type(guidance) is not str or not guidance.strip() or len(guidance) > 500:
-            raise ContractInvalid("recovery.guidance is 1..500 characters")
+        _recovery(contract["recovery"])
     if "expected_duration_ms" in contract:
         duration = contract["expected_duration_ms"]
         if type(duration) is not int or not 1 <= duration <= 3_600_000:

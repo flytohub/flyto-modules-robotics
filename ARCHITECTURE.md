@@ -71,6 +71,14 @@ step returns the result as `recovery`. Captures declare `artifacts`; the
 adapter returns them in the contract's transport and a step's output keeps
 only their digests.
 
+The motion contracts' `recovery` blocks also carry recovery semantics
+(flyto-core 2.39.0): `on` / `alternatives` / `preserves` / `resource_scope` on
+advance and `fills` on all four motions. They are data for the host, which
+matches roles across the resource's contracts; `recovery.py` ignores them and
+returns no step `recovery` for a block without `capabilities`.
+`modules._registrar` drops them where the installed core has no
+`RECOVERY_FIELDS`.
+
 ## Fleet pack
 
 `fleet_pack.register_fleet` (entry point `fleet`) registers `fleet.navigate`
