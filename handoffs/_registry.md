@@ -4,11 +4,12 @@ New handoffs use `YYYY-MM-DD-topic.md`.
 
 | Date | Topic | File | Status | Owner | Branch |
 |---|---|---|---|---|---|
-| 2026-10-07 | Recovery semantics (roles, fills) on the motion contracts | `2026-10-07-recovery-semantics.md` | Active — 1.4.0; equals Cloud FIRST_PARTY_REVIEWED; needs flyto-core 2.39.0 (feature-detected) | claude | `claude/recovery-declaration` |
+| 2026-10-11 | Registry rows for merged work marked Merged | `2026-10-11-registry-merged.md` | Merged | claude | `claude/registry-merged-20261011` |
+| 2026-10-07 | Recovery semantics (roles, fills) on the motion contracts | `2026-10-07-recovery-semantics.md` | Merged (#14, 4eb1555) — 1.4.0; equals Cloud FIRST_PARTY_REVIEWED; needs flyto-core 2.39.0 (feature-detected) | claude | `claude/recovery-declaration` |
 | 2026-10-04 | Named places: `robotics.places`, `robotics.mark_place`, navigate by place with resolved target | `2026-10-04-robot-places.md` | Active — 1.3.0; needs flyto-robotics 0.3.0; hosts must judge against `resolved_arguments` | claude | `claude/robot-places` |
 | 2026-10-04 | Navigation arrival is proven by the contract | `2026-10-04-navigate-arrival-evidence.md` | Done — 1.2.0; needs flyto-core 2.38.0 (feature-detected) | claude | `claude/navigate-arrival-evidence` |
 | 2026-10-04 | Step output drops the legacy capture's bytes as well as the artifacts' | `2026-10-04-strip-legacy-capture-bytes.md` | Active | claude | `claude/strip-capture-bytes` |
-| 2026-10-04 | Provider-declared artifacts, safe-stop role and detour recovery; Open-RMF `fleet` pack | `2026-10-04-evidence-recovery-fleet.md` | Active — PR open; fakes only | claude | `claude/evidence-recovery-fleet` |
+| 2026-10-04 | Provider-declared artifacts, safe-stop role and detour recovery; Open-RMF `fleet` pack | `2026-10-04-evidence-recovery-fleet.md` | Merged (#10, 0975534); fakes only | claude | `claude/evidence-recovery-fleet` |
 | 2026-10-04 | One module per capability, each with a declared capability contract | `2026-10-04-capability-contract.md` | Merged (#9); superseded in part by 2026-10-04 evidence-recovery-fleet | claude | `claude/capability-contract` |
 | 2026-09-21 | External ROS 2 adapter architecture | `2026-09-21-external-ros2-adapter.md` | Merged (#3, squash fb0ab0d; branch tip c6914d5 is tree-identical to it); duplicate follow-up #5 closed; remote branch deleted 2026-10-07. Production modules emit canonical capability requests; Pi delivery path is legacy only | ChatGPT | `fix/external-ros2-adapter-architecture` |
 | 2026-08-28 | Safe-stop client that cancels the original gateway session | `2026-08-28-safe-stop-session-cancellation.md` | Historical — superseded for production by the 2026-09-21 external ROS 2 adapter architecture | codex | main |
