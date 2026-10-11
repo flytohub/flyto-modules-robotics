@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased — HMI presentation declaration (2026-10-12)
+
+- New `flyto_modules_robotics.presentation`: the mobile robot's
+  `flyto.resource-presentation.v1` block, built from declarative rows (state
+  and alert panels only) over sources the robot resource really carries — the
+  host's `connection` channel, `presence.state`, `deployment_mode` and the
+  availability of `motion.navigate` / `vision.observe`. No battery, pose,
+  navigation-state or distance-to-goal panel: the ROS 2 adapter's manifest
+  declares no such channel.
+- `manifest_with_presentation(manifest, manifest_extensions)` adds the block
+  only when the host names the `presentation` extension; otherwise the
+  manifest is returned key-for-key unchanged (contract hash stable).
+- The JSON Schema is vendored byte-identical (sha256 `1c600a65…193c80`, the
+  copy flyto-cloud validates with) and shipped as package data; block and
+  schema hashes are pinned in `tests/test_presentation.py`. `jsonschema`
+  joins the `dev` extra.
+- Not yet emitted: the TurtleBot manifest is built by flyto-robotics
+  `adapter_provider`, which must offer and honour the extension.
+
 ## 1.4.0 — recovery semantics on the motion contracts (2026-10-07)
 
 - `motion.advance`, `motion.retreat`, `motion.rotate` and `motion.navigate`
