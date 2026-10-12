@@ -87,6 +87,17 @@ through the same `_capability_step` and dispatcher boundary. The resource is a
 fleet (`fleet:<name>`), the adapter is flyto-robotics' `open_rmf.fleet`, and
 Open-RMF picks the robot.
 
+## HMI presentation
+
+`presentation.py` declares what an HMI shows for the robot
+(`flyto.resource-presentation.v1`): generic panel kinds over the channels
+the flyto-robotics runtime samples (`power.battery`, `pose.planar`,
+`nav.goal`), the host's `connection` channel, presence, deployment mode and
+capability availability. The runtime builds the manifest and finds the block
+through entry point `robotics` in group `flyto2.resource_presentations`;
+Cloud validates and passes it through; the App renders it. No widget and no
+device-specific UI lives here.
+
 ## Host dispatch
 
 With no dispatcher in the step context the step only declares its request. An

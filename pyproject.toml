@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flyto-modules-robotics"
-version = "1.4.0"
+version = "1.5.0"
 description = "Robot capabilities for Flyto2, contributed through @register_module alone"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -42,9 +42,18 @@ robotics = "flyto_modules_robotics:register_all"
 # Open-RMF fleets through the same contract (flyto-robotics open_rmf.fleet).
 fleet = "flyto_modules_robotics.fleet_pack:register_fleet"
 
+# What an HMI shows for the robot (flyto.resource-presentation.v1). The
+# flyto-robotics runtime builds the manifest and finds the block here by the
+# pack's name; neither package imports the other.
+[project.entry-points."flyto2.resource_presentations"]
+robotics = "flyto_modules_robotics.presentation:presentation_block"
+
 [project.optional-dependencies]
 core = ["flyto-core>=2.35.0"]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "jsonschema>=4.23"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+flyto_modules_robotics = ["schemas/*.json"]

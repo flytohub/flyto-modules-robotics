@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.5.0 — HMI presentation with live values (2026-10-12)
+
+- New `flyto_modules_robotics.presentation`: the mobile robot's
+  `flyto.resource-presentation.v1` block, built from declarative rows over
+  sources the robot resource really carries.
+- Live values from the channels flyto-robotics 0.8.0 declares and samples
+  (`ROBOT_CHANNEL_FIELDS`, pinned in both repos): `battery` gauge
+  (`power.battery.percent`, 0-100 %, refused tone below 10, attention below
+  20), `voltage` readout (`voltage_v`), `position` position2d
+  (`pose.planar` x / y / heading_deg, goal, and a plane window from
+  `view_*`), `goal_distance` readout (hero while navigating) and
+  `goal_progress` progress (`nav.goal.distance_m` / `progress_pct`), and a
+  `navigation_state` state panel (idle, navigating, arrived, blocked,
+  cancelled, failed).
+- Still shown: the link-lost alert and the presence, link, navigate, camera
+  and mode state panels.
+- Only kinds flyto-app's registry renders; no field flyto-cloud's schema
+  lacks. The schema is vendored byte-identical from Cloud's current copy
+  (sha256 `cede95aa…5a5736`; was `1c600a65…193c80`).
+- Entry point `robotics` in group `flyto2.resource_presentations` names
+  `presentation_block`: flyto-robotics 0.8.0 carries the block on the
+  manifest when the host asks for the `presentation` extension.
+  `manifest_with_presentation` keeps the same rule for any other caller.
+- `jsonschema` joins the `dev` extra.
+
 ## 1.4.0 — recovery semantics on the motion contracts (2026-10-07)
 
 - `motion.advance`, `motion.retreat`, `motion.rotate` and `motion.navigate`

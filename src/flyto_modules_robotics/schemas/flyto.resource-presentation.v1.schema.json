@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flyto2.com/schemas/flyto.resource-presentation.v1.schema.json",
+  "title": "flyto.resource-presentation.v1",
+  "description": "What an HMI shows for one resource, declared by the device pack. Cloud validates and passes it through unchanged; the App renders each panel through one kind registry. Canonical JSON (sorted keys, compact, UTF-8) must not exceed 16384 bytes; that cap is enforced in code, not here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "panels"],
+  "properties": {
+    "schema": {"const": "flyto.resource-presentation.v1"},
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {"label": {"$ref": "#/$defs/localized"}}
+    },
+    "panels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 24,
+      "items": {"$ref": "#/$defs/panel"}
+    }
+  },
+  "$defs": {
+    "localized": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 8,
+      "propertyNames": {"pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$"},
+      "additionalProperties": {"type": "string", "minLength": 1, "maxLength": 64}
+    },
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$"},
+    "field": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,31}(\\.[a-z_][a-z0-9_]{0,31}){0,2}$"},
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["channel"],
+          "properties": {
+            "channel": {"type": "string", "minLength": 1, "maxLength": 128},
+            "field": {"$ref": "#/$defs/field"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["resource"],
+          "properties": {"resource": {"enum": ["presence.state", "deployment_mode"]}}
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["capability"],
+          "properties": {"capability": {"type": "string", "minLength": 1, "maxLength": 128}}
+        }
+      ]
+    },
+    "scalar": {"type": ["string", "number", "boolean"]},
+    "leaf_condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {"$ref": "#/$defs/source"},
+        "field": {"$ref": "#/$defs/field"},
+        "equals": {"$ref": "#/$defs/scalar"},
+        "not_equals": {"$ref": "#/$defs/scalar"},
+        "in": {"type": "array", "minItems": 1, "maxItems": 16, "items": {"$ref": "#/$defs/scalar"}},
+        "gt": {"type": "number"},
+        "lt": {"type": "number"}
+      },
+      "oneOf": [
+        {"required": ["equals"]},
+        {"required": ["not_equals"]},
+        {"required": ["in"]},
+        {"required": ["gt"]},
+        {"required": ["lt"]}
+      ]
+    },
+    "condition": {
+      "oneOf": [
+        {"$ref": "#/$defs/leaf_condition"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["all"],
+          "properties": {"all": {"type": "array", "minItems": 1, "maxItems": 4, "items": {"$ref": "#/$defs/leaf_condition"}}}
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["any"],
+          "properties": {"any": {"type": "array", "minItems": 1, "maxItems": 4, "items": {"$ref": "#/$defs/leaf_condition"}}}
+        }
+      ]
+    },
+    "tone": {"enum": ["neutral", "live", "running", "verified", "attention", "refused"]},
+    "bound": {"oneOf": [{"type": "number"}, {"$ref": "#/$defs/source"}]},
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {"min": {"$ref": "#/$defs/bound"}, "max": {"$ref": "#/$defs/bound"}}
+    },
+    "state_option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "label"],
+      "properties": {
+        "value": {"$ref": "#/$defs/scalar"},
+        "label": {"$ref": "#/$defs/localized"},
+        "icon": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$"},
+        "tone": {"$ref": "#/$defs/tone"}
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "source"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "label": {"$ref": "#/$defs/localized"},
+        "source": {"$ref": "#/$defs/source"},
+        "unit": {"type": "string", "maxLength": 16},
+        "precision": {"type": "integer", "minimum": 0, "maximum": 3},
+        "range": {"$ref": "#/$defs/range"}
+      }
+    },
+    "panel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "label"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "kind": {
+          "description": "Open string. readout, gauge, state, progress, list, position2d, joints, media and alert have per-kind requirements; any other kind validates on the common fields and the App renders it as a generic readout.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,31}$"
+        },
+        "label": {"$ref": "#/$defs/localized"},
+        "source": {"$ref": "#/$defs/source"},
+        "unit": {"type": "string", "maxLength": 16},
+        "precision": {"type": "integer", "minimum": 0, "maximum": 3},
+        "target_source": {"$ref": "#/$defs/source"},
+        "range": {"$ref": "#/$defs/range"},
+        "plane": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x", "y"],
+          "properties": {"x": {"$ref": "#/$defs/range"}, "y": {"$ref": "#/$defs/range"}}
+        },
+        "priority": {"enum": ["hero", "primary", "secondary"]},
+        "when": {"$ref": "#/$defs/condition"},
+        "severity_map": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["when", "tone"],
+            "properties": {"when": {"$ref": "#/$defs/condition"}, "tone": {"$ref": "#/$defs/tone"}}
+          }
+        },
+        "states": {"type": "array", "maxItems": 16, "items": {"$ref": "#/$defs/state_option"}},
+        "items": {"type": "array", "maxItems": 16, "items": {"$ref": "#/$defs/item"}},
+        "ambient": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["span"],
+          "properties": {"span": {"type": "number", "exclusiveMinimum": 0}}
+        },
+        "x": {"$ref": "#/$defs/source"},
+        "y": {"$ref": "#/$defs/source"},
+        "heading": {"$ref": "#/$defs/source"},
+        "goal_x": {"$ref": "#/$defs/source"},
+        "goal_y": {"$ref": "#/$defs/source"},
+        "refusal_codes": {
+          "description": "Refusal codes (the resource's own refusal.code) this panel's reading explains. While the HMI's current task was refused with one of them, the App shows this panel as the hero. Opaque pack vocabulary; the App never interprets a code.",
+          "type": "array", "maxItems": 16, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$"}
+        }
+      },
+      "allOf": [
+        {"if": {"properties": {"kind": {"const": "readout"}}}, "then": {"required": ["source"]}},
+        {"if": {"properties": {"kind": {"enum": ["gauge", "progress"]}}}, "then": {"required": ["source", "range"]}},
+        {
+          "if": {"properties": {"kind": {"enum": ["state", "media"]}}},
+          "then": {"required": ["source", "states"], "properties": {"states": {"minItems": 1}}}
+        },
+        {"if": {"properties": {"kind": {"const": "list"}}}, "then": {"required": ["items"], "properties": {"items": {"minItems": 1}}}},
+        {
+          "if": {"properties": {"kind": {"const": "joints"}}},
+          "then": {
+            "required": ["items"],
+            "properties": {"items": {"minItems": 1, "items": {"required": ["range"]}}}
+          }
+        },
+        {"if": {"properties": {"kind": {"const": "position2d"}}}, "then": {"required": ["x", "y", "plane"]}},
+        {"if": {"properties": {"kind": {"const": "alert"}}}, "then": {"required": ["when"]}}
+      ]
+    }
+  }
+}
