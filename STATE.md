@@ -1,14 +1,15 @@
 # State
 
-## HMI presentation declaration — 2026-10-12 (branch `claude/presentation-v1`, unreleased)
+## HMI presentation with live values — 2026-10-12 (branch `claude/hmi-values-20261012`, 1.5.0)
 
 - The pack declares a `flyto.resource-presentation.v1` block for the mobile
-  robot (`presentation.py`), schema-valid, 2719 canonical bytes (cap 16384).
-- It is not on any manifest yet: flyto-robotics `adapter_provider` builds the
-  TurtleBot manifest and offers only `module_pack` and `transport`. Wiring it
-  there is the follow-up; until then Cloud and the App see no change.
-- The robot publishes no telemetry channel of its own, so the block shows
-  link, presence, mode and capability availability only.
+  robot (`presentation.py`): 12 panels, 5158 canonical bytes (cap 16384),
+  valid against Cloud's schema and validator.
+- Battery, position and navigation panels read the channels flyto-robotics
+  0.8.0 declares and samples; the block reaches the manifest through the
+  `flyto2.resource_presentations` entry point.
+- Not seen live: no run on the twin or the robot, no App render of this
+  block.
 
 ## Recovery semantics — 2026-10-07 (branch `claude/recovery-declaration`, 1.4.0)
 

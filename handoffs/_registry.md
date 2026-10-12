@@ -4,7 +4,8 @@ New handoffs use `YYYY-MM-DD-topic.md`.
 
 | Date | Topic | File | Status | Owner | Branch |
 |---|---|---|---|---|---|
-| 2026-10-12 | HMI presentation declaration for the mobile robot (`flyto.resource-presentation.v1`) | `2026-10-12-presentation-v1.md` | Active — unreleased; not yet emitted (needs flyto-robotics `adapter_provider` to offer the `presentation` extension) | claude | `claude/presentation-v1` |
+| 2026-10-12 | HMI presentation with live values: battery gauge, position2d, goal distance / progress, navigation state over flyto-robotics 0.8.0 channels; entry point `flyto2.resource_presentations` | `2026-10-12-hmi-live-values.md` | Candidate — 1.5.0; fakes and contract checks only, no live render | claude | `claude/hmi-values-20261012` |
+| 2026-10-12 | HMI presentation declaration for the mobile robot (`flyto.resource-presentation.v1`) | `2026-10-12-presentation-v1.md` | Superseded — landed inside `claude/hmi-values-20261012` (2026-10-12 hmi-live-values) | claude | `claude/presentation-v1` |
 | 2026-10-11 | Registry rows for merged work marked Merged | `2026-10-11-registry-merged.md` | Merged | claude | `claude/registry-merged-20261011` |
 | 2026-10-07 | Recovery semantics (roles, fills) on the motion contracts | `2026-10-07-recovery-semantics.md` | Merged (#14, 4eb1555) — 1.4.0; equals Cloud FIRST_PARTY_REVIEWED; needs flyto-core 2.39.0 (feature-detected) | claude | `claude/recovery-declaration` |
 | 2026-10-04 | Named places: `robotics.places`, `robotics.mark_place`, navigate by place with resolved target | `2026-10-04-robot-places.md` | Active — 1.3.0; needs flyto-robotics 0.3.0; hosts must judge against `resolved_arguments` | claude | `claude/robot-places` |

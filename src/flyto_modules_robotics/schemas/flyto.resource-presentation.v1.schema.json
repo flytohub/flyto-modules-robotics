@@ -173,7 +173,12 @@
         "y": {"$ref": "#/$defs/source"},
         "heading": {"$ref": "#/$defs/source"},
         "goal_x": {"$ref": "#/$defs/source"},
-        "goal_y": {"$ref": "#/$defs/source"}
+        "goal_y": {"$ref": "#/$defs/source"},
+        "refusal_codes": {
+          "description": "Refusal codes (the resource's own refusal.code) this panel's reading explains. While the HMI's current task was refused with one of them, the App shows this panel as the hero. Opaque pack vocabulary; the App never interprets a code.",
+          "type": "array", "maxItems": 16, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$"}
+        }
       },
       "allOf": [
         {"if": {"properties": {"kind": {"const": "readout"}}}, "then": {"required": ["source"]}},
