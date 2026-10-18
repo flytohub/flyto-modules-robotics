@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.6.0 — An idle robot's HMI offers a first request (2026-10-18)
+
+- `request_examples` on the presentation block (`REQUEST_EXAMPLES`): four
+  chips for the Proof #1 tasks (drive 1 m, stop if blocked, photograph; a
+  photo; report battery and position; stop). The App only fills the request
+  field with them. Before this, a robot with no task showed its readings, an
+  empty task card and a blank field, and nothing said what it could be asked.
+- New panels from fields flyto-robotics already samples: `heading` readout
+  (`pose.planar.heading_deg`, °) and a `localization` state panel
+  (`pose.planar.frame`: `map` localized, `odom` odometry only, attention).
+- The vendored schema is now Cloud's f1e72d566 (#579) copy, sha256
+  `e8df2eae...`, which accepts `request_examples`. **Install only after a
+  Cloud with that copy is deployed:** the older copy (production 8f737a101
+  on 2026-10-18) forbids the field and would refuse the whole block.
+
 ## 1.5.0 — HMI presentation with live values (2026-10-12)
 
 - New `flyto_modules_robotics.presentation`: the mobile robot's

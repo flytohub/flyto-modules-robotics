@@ -114,6 +114,25 @@ _NAVIGATION_STATE_OPTIONS = (
     ("cancelled", "已取消", "Cancelled", "stopped", "neutral"),
     ("failed", "未完成", "Did not finish", "error", "refused"),
 )
+#: ``pose.planar.frame``: ``map`` while localization's transform is fresh,
+#: else ``odom`` (dead reckoning only, so a map goal is not trustworthy).
+POSE_FRAMES = ("map", "odom")
+_FRAME_OPTIONS = (
+    ("map", "已定位（地圖）", "Localized (map)", "location", "verified"),
+    ("odom", "僅里程計", "Odometry only", "warning", "attention"),
+)
+
+#: What the robot can be asked to do first, in the person's words. The App
+#: shows them as chips that only fill the request field (Cloud schema
+#: ``request_examples``, at most 4, 64 characters each); nothing is sent until
+#: the person sends it. They are the Proof #1 tasks: move, stop if blocked,
+#: photograph; then report.
+REQUEST_EXAMPLES = (
+    ("前進 1 公尺，遇到障礙就停下，然後拍照", "Drive 1 m forward, stop if blocked, then take a photo"),
+    ("拍一張前方的照片", "Take a photo of what is ahead"),
+    ("回報目前的電量和位置", "Report the battery and position"),
+    ("停下來", "Stop now"),
+)
 
 
 def _field(channel: str, name: str) -> dict[str, str]:
@@ -153,6 +172,11 @@ _VALUE_PANELS: tuple[dict[str, Any], ...] = (
         },
     },
     {
+        "id": "heading", "kind": "readout", "label": _label("車頭方向", "Heading"),
+        "source": _field(POSE_CHANNEL, "heading_deg"), "unit": "°", "precision": 0,
+        "priority": "secondary",
+    },
+    {
         "id": "voltage", "kind": "readout", "label": _label("電池電壓", "Battery voltage"),
         "source": _field(BATTERY_CHANNEL, "voltage_v"), "unit": "V", "precision": 1,
         "priority": "secondary",
@@ -167,6 +191,7 @@ _STATE_PANELS = (
         _field(NAVIGATION_CHANNEL, "state"), "primary", _NAVIGATION_STATE_OPTIONS,
     ),
     ("connection", "連線", "Link", _CONNECTION_STATE, "primary", _CONNECTION_OPTIONS),
+    ("localization", "定位", "Localization", _field(POSE_CHANNEL, "frame"), "primary", _FRAME_OPTIONS),
     ("navigate", "導航", "Navigation", {"capability": CAPABILITY_NAVIGATE}, "primary", _NAVIGATE_OPTIONS),
     ("camera", "相機", "Camera", {"capability": CAPABILITY_OBSERVE}, "secondary", _CAMERA_OPTIONS),
     ("mode", "運行模式", "Mode", {"resource": "deployment_mode"}, "secondary", _MODE_OPTIONS),
@@ -207,6 +232,7 @@ _BLOCK: dict[str, Any] = {
         *copy.deepcopy(_VALUE_PANELS),
         *map(_state_panel, _STATE_PANELS),
     ],
+    "request_examples": [_label(zh, en) for zh, en in REQUEST_EXAMPLES],
 }
 
 #: Read-only view of the declaration; :func:`presentation_block` returns a copy.
@@ -262,9 +288,11 @@ __all__ = [
     "NAVIGATION_CHANNEL",
     "NAVIGATION_STATES",
     "POSE_CHANNEL",
+    "POSE_FRAMES",
     "PRESENCE_STATES",
     "PRESENTATION_EXTENSION",
     "PRESENTATION_SCHEMA",
+    "REQUEST_EXAMPLES",
     "ROBOT_CHANNEL_FIELDS",
     "canonical_bytes",
     "manifest_with_presentation",

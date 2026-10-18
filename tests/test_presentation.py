@@ -1,9 +1,12 @@
 """The mobile robot's HMI declaration (``flyto.resource-presentation.v1``).
 
 The schema is the copy flyto-cloud validates with
-(``services/device/schemas``, sha256 ``cede95aa...``, the same file flyto-app
-published before it added ``request_examples`` / ``check_kinds``); its sha256
-is pinned here and in Cloud, so a one-sided edit fails. The block's canonical
+(``services/device/schemas``, sha256 ``e8df2eae...``, Cloud f1e72d566 / #579,
+which accepts ``request_examples`` and ``visual``); its sha256 is pinned here
+and in Cloud, so a one-sided edit fails. A Cloud older than that copy
+(``cede95aa...``, still production 8f737a101 on 2026-10-18) forbids
+``request_examples`` and would refuse the whole block, so this release is
+installed only after Cloud with the newer copy is deployed. The block's canonical
 sha256 is pinned too.
 """
 
@@ -17,8 +20,8 @@ import pytest
 from flyto_modules_robotics import presentation
 from flyto_modules_robotics.capabilities import SPECS
 
-BLOCK_CANONICAL_SHA256 = "36d57fe241854b2f653fa5a029ae54f641abb0db8bbd2146393d747c7e04da22"
-SCHEMA_FILE_SHA256 = "cede95aa69b7e16c52b3cf3bfdc7004bb7c74f06e5669463c2dd5b871b3a5736"
+BLOCK_CANONICAL_SHA256 = "72b3b5cd0c1f97c67da42196938e04d207d79e4523b0e6f5824630b61fc198fc"
+SCHEMA_FILE_SHA256 = "e8df2eaeda83183ddf88eb892c1d545158697df3d8cc4b9ac6848e596bb85501"
 
 # The live channels flyto-robotics (0.8.0, ``live_telemetry.CHANNELS``)
 # declares and samples, and their payload fields. flyto-robotics
@@ -32,6 +35,8 @@ ROBOT_CHANNEL_FIELDS = {
     "nav.goal": {"state", "distance_m", "progress_pct", "goal_x", "goal_y", "reason"},
 }
 NAVIGATION_STATES = ("idle", "navigating", "arrived", "blocked", "cancelled", "failed")
+# ``pose.planar.frame``'s enum in flyto-robotics ``live_telemetry.CHANNELS``.
+POSE_FRAMES = ("map", "odom")
 
 # The shape flyto-robotics ``adapter_provider._manifest`` publishes. Cloud's
 # host adds ``connection`` before upload.
@@ -140,11 +145,31 @@ def test_only_kinds_the_app_registry_renders():
     assert {panel["kind"] for panel in presentation.presentation_block()["panels"]} <= rendered
 
 
-def test_no_field_cloud_does_not_validate_yet():
-    # flyto-app's newer schema adds these; Cloud's copy (pinned above) does not.
-    text = presentation.canonical_bytes(presentation.presentation_block()).decode("utf-8")
-    for absent in ("check_kinds", "request_examples"):
-        assert absent not in text, absent
+def test_no_field_cloud_does_not_validate():
+    # flyto-app's schema also knows ``check_kinds``; Cloud's copy (pinned above) does not.
+    block = presentation.presentation_block()
+    assert set(block) <= set(json.loads(presentation.schema_text())["properties"])
+    assert "check_kinds" not in presentation.canonical_bytes(block).decode("utf-8")
+
+
+def test_an_idle_robot_offers_a_first_request():
+    """With no task, the HMI still shows what this robot can be asked to do."""
+    examples = presentation.presentation_block()["request_examples"]
+    assert 1 <= len(examples) <= 4
+    for example in examples:
+        assert set(example) == {"zh-TW", "en"}
+        assert all(0 < len(text) <= 64 for text in example.values())
+    assert examples[0]["en"].startswith("Drive") and "photo" in examples[0]["en"]
+
+
+def test_the_robot_shows_heading_and_whether_it_is_localized():
+    panels = _panels()
+    assert panels["heading"]["source"] == {"channel": "pose.planar", "field": "heading_deg"}
+    assert panels["heading"]["kind"] == "readout" and panels["heading"]["unit"] == "°"
+    frame = panels["localization"]
+    assert frame["source"] == {"channel": "pose.planar", "field": "frame"}
+    assert [o["tone"] for o in frame["states"]] == ["verified", "attention"]
+    assert presentation.POSE_FRAMES == POSE_FRAMES
 
 
 def test_state_options_cover_exactly_each_source_vocabulary():
@@ -153,6 +178,7 @@ def test_state_options_cover_exactly_each_source_vocabulary():
         "deployment_mode": set(presentation.DEPLOYMENT_MODES),
         presentation.CONNECTION_CHANNEL: set(presentation.CONNECTION_STATES),
         "nav.goal": set(NAVIGATION_STATES),
+        "pose.planar": set(POSE_FRAMES),
     }
     for panel in presentation.presentation_block()["panels"]:
         if panel["kind"] != "state":

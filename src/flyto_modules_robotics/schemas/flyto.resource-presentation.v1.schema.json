@@ -19,6 +19,16 @@
       "minItems": 1,
       "maxItems": 24,
       "items": {"$ref": "#/$defs/panel"}
+    },
+    "request_examples": {
+      "description": "Example requests for this resource, in the person's words. The App shows them as chips that only fill the request field; nothing is sent until the person sends it. Malformed entries are dropped; the App shows at most 4.",
+      "type": "array",
+      "maxItems": 4,
+      "items": {"$ref": "#/$defs/localized"}
+    },
+    "visual": {
+      "description": "Optional. What the resource looks like, from what its vendor already publishes: a URDF or GLB (format, source, packages, files) with the vendor's own link / node names for parts, or, with no vendor model (format none), the outer dimensions of a stand-in shape (fallback). Every file the App may read is an https URL listed in files with the sha256 its bytes must hash to; nothing else is fetched. A model is appearance only: it moves only from the joint readings named in joints, and never shows a task's outcome. An App refuses a malformed block whole and shows no 3D view; absent, nothing changes.",
+      "$ref": "#/$defs/visual"
     }
   },
   "$defs": {
@@ -178,6 +188,11 @@
           "description": "Refusal codes (the resource's own refusal.code) this panel's reading explains. While the HMI's current task was refused with one of them, the App shows this panel as the hero. Opaque pack vocabulary; the App never interprets a code.",
           "type": "array", "maxItems": 16, "uniqueItems": true,
           "items": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$"}
+        },
+        "check_kinds": {
+          "description": "Verification check kinds (Cloud's checks[].kind) this panel's reading proves, or the capability a running step uses. While the HMI's current task carries one of them, the App shows this panel as the hero, so the number on screen is the number the proof is about. Opaque pack vocabulary; the App never interprets a kind.",
+          "type": "array", "maxItems": 16, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$"}
         }
       },
       "allOf": [
@@ -197,6 +212,130 @@
         },
         {"if": {"properties": {"kind": {"const": "position2d"}}}, "then": {"required": ["x", "y", "plane"]}},
         {"if": {"properties": {"kind": {"const": "alert"}}}, "then": {"required": ["when"]}}
+      ]
+    },
+    "https_url": {"type": "string", "maxLength": 512, "pattern": "^https://[^\\s#]+$"},
+    "file_ref": {
+      "description": "An https URL, or package://<name>/<path> resolved through visual.packages.",
+      "type": "string",
+      "maxLength": 512,
+      "pattern": "^(https://|package://[A-Za-z0-9_.-]{1,64}/)[^\\s#]+$"
+    },
+    "vendor_name": {"type": "string", "pattern": "^[A-Za-z0-9_.:/-]{1,128}$"},
+    "length_m": {"type": "number", "exclusiveMinimum": 0, "maximum": 50},
+    "box_m": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"$ref": "#/$defs/length_m"}},
+    "visual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format"],
+      "properties": {
+        "format": {"enum": ["urdf", "glb", "none"]},
+        "source": {"$ref": "#/$defs/file_ref"},
+        "packages": {
+          "type": "object",
+          "maxProperties": 8,
+          "propertyNames": {"pattern": "^[A-Za-z0-9_.-]{1,64}$"},
+          "additionalProperties": {"type": "string", "maxLength": 512, "pattern": "^https://[^\\s#]+/$"}
+        },
+        "files": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": {"$ref": "#/$defs/file_ref"},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            }
+          }
+        },
+        "frame": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {"up": {"enum": ["z", "y"]}, "units": {"enum": ["m", "cm", "mm"]}}
+        },
+        "fallback": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["body_m"],
+          "properties": {
+            "body_m": {"$ref": "#/$defs/box_m"},
+            "cabin_m": {"$ref": "#/$defs/box_m"},
+            "wheels": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["count", "radius_m", "width_m", "track_m", "wheelbase_m"],
+              "properties": {
+                "count": {"enum": [2, 4, 6]},
+                "radius_m": {"$ref": "#/$defs/length_m"},
+                "width_m": {"$ref": "#/$defs/length_m"},
+                "track_m": {"$ref": "#/$defs/length_m"},
+                "wheelbase_m": {"type": "number", "minimum": 0, "maximum": 50}
+              }
+            }
+          }
+        },
+        "parts": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["link", "label"],
+            "properties": {
+              "link": {
+                "description": "The part this entry names: the vendor's own URDF link or GLB node name. With no vendor model (format none), or when the App falls back to the stand-in, the stand-in's shapes carry fixed generic anchor names a declaration may reference instead: body; cabin (only when fallback.cabin_m is declared); and one per wheel, wheel_left / wheel_right for a two-wheel (one-axle) declaration, wheel_front_left / wheel_front_right / wheel_rear_left / wheel_rear_right for four, and wheel_front_* / wheel_middle_* / wheel_rear_* (left / right) for six. Front is +x and left is +y (x forward, z up). A name the drawn model does not have gets no call-out; the part is still listed.",
+                "$ref": "#/$defs/vendor_name"
+              },
+              "label": {"$ref": "#/$defs/localized"},
+              "state_channel": {"type": "string", "minLength": 1, "maxLength": 128},
+              "state_field": {"$ref": "#/$defs/field"},
+              "unit": {"type": "string", "maxLength": 16},
+              "precision": {"type": "integer", "minimum": 0, "maximum": 6}
+            }
+          }
+        },
+        "joints": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["joint", "source"],
+            "properties": {
+              "joint": {"$ref": "#/$defs/vendor_name"},
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["channel"],
+                "properties": {
+                  "channel": {"type": "string", "minLength": 1, "maxLength": 128},
+                  "field": {"$ref": "#/$defs/field"}
+                }
+              }
+            }
+          }
+        },
+        "credit": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["label", "license"],
+          "properties": {
+            "label": {"$ref": "#/$defs/localized"},
+            "license": {"type": "string", "pattern": "^[A-Za-z0-9.+-]{1,64}$"}
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"format": {"enum": ["urdf", "glb"]}}},
+          "then": {"required": ["source", "files"], "properties": {"files": {"minItems": 1}}}
+        },
+        {
+          "if": {"properties": {"format": {"const": "none"}}},
+          "then": {"required": ["fallback"], "not": {"anyOf": [{"required": ["source"]}, {"required": ["files"]}]}}
+        }
       ]
     }
   }
