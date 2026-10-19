@@ -235,6 +235,56 @@ _BLOCK: dict[str, Any] = {
     "request_examples": [_label(zh, en) for zh, en in REQUEST_EXAMPLES],
 }
 
+
+def _layout(hero: str, *shown: tuple[str, str], hidden: tuple[str, ...] = ()) -> dict[str, Any]:
+    return {"hero": hero, "panels": [{"id": panel_id, "size": size} for panel_id, size in shown],
+            "hidden": list(hidden)}
+
+
+# The robot's screens, as roles a binding chooses (``surfaces``): Cloud
+# enforces each role's grants, the App lays the role out. Whether the robot is
+# reachable and the lost-link alert are required on every role: no layout
+# hides them. Nothing here is specific to a car; the same shape serves an arm's
+# teach pendant or a leader/follower pair's stations.
+_SAFETY = ("link_lost", "presence")
+_SURFACES: tuple[dict[str, Any], ...] = (
+    {
+        # The operator's console: asks, approves up to real-world motion, and stops.
+        "id": "operator_console", "label": _label("操作台", "Operator console"), "aspect": "landscape_16_9",
+        "default": True,
+        "layout": _layout(
+            "position", ("position", "hero"), ("link_lost", "tile"), ("presence", "tile"),
+            ("navigation_state", "tile"), ("goal_progress", "tile"), ("goal_distance", "tile"),
+            ("battery", "tile"), ("connection", "chip"), ("localization", "chip"), ("heading", "chip"),
+            ("navigate", "chip"), ("camera", "chip"), ("mode", "chip"), hidden=("voltage",),
+        ),
+        "grants": {"read": True, "request": {"max_level": 4}, "approve": {"max_level": 4}, "stop": True},
+        "required_panels": list(_SAFETY),
+    },
+    {
+        # A tablet carried beside the robot: may ask and may stop it, never approves its own request.
+        "id": "field_tablet", "label": _label("現場平板", "Field tablet"), "aspect": "portrait",
+        "layout": _layout(
+            "presence", ("presence", "hero"), ("link_lost", "tile"), ("battery", "tile"),
+            ("navigation_state", "tile"), ("goal_progress", "chip"),
+            hidden=("position", "goal_distance", "heading", "localization", "connection", "voltage"),
+        ),
+        "grants": {"read": True, "request": {"max_level": 4}, "stop": True},
+        "required_panels": list(_SAFETY),
+    },
+    {
+        # A remote viewer: watches only.
+        "id": "remote_view", "label": _label("遠端觀看", "Remote view"), "aspect": "landscape_16_9",
+        "layout": _layout(
+            "position", ("position", "hero"), ("link_lost", "tile"), ("presence", "tile"),
+            ("navigation_state", "tile"), ("goal_progress", "chip"), hidden=("battery", "camera"),
+        ),
+        "grants": {"read": True},
+        "required_panels": list(_SAFETY),
+    },
+)
+_BLOCK["surfaces"] = [copy.deepcopy(surface) for surface in _SURFACES]
+
 #: Read-only view of the declaration; :func:`presentation_block` returns a copy.
 MOBILE_ROBOT_PRESENTATION = MappingProxyType(_BLOCK)
 

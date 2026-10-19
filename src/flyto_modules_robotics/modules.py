@@ -70,7 +70,7 @@ logger = logging.getLogger(__name__)
 
 CATEGORY = "robotics"
 FLEET_CATEGORY = "fleet"
-PACK_VERSION = "1.6.0"
+PACK_VERSION = "1.7.0"
 
 # flyto-core's context key for the host-created dispatcher (the same key
 # core's own ``capability.invoke`` reads).  Workflow data cannot create one.

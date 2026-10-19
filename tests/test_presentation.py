@@ -20,8 +20,8 @@ import pytest
 from flyto_modules_robotics import presentation
 from flyto_modules_robotics.capabilities import SPECS
 
-BLOCK_CANONICAL_SHA256 = "72b3b5cd0c1f97c67da42196938e04d207d79e4523b0e6f5824630b61fc198fc"
-SCHEMA_FILE_SHA256 = "e8df2eaeda83183ddf88eb892c1d545158697df3d8cc4b9ac6848e596bb85501"
+BLOCK_CANONICAL_SHA256 = "2f07c993673d9e017aecd4174c8b4f7a9015618cf6d80774435fadda64efc4e7"
+SCHEMA_FILE_SHA256 = "9dce8cba2082faa83257ac026872df674d44b47ae5375572831b43e95831615e"
 
 # The live channels flyto-robotics (0.8.0, ``live_telemetry.CHANNELS``)
 # declares and samples, and their payload fields. flyto-robotics
@@ -227,3 +227,32 @@ def test_manifest_carries_the_block_only_when_asked():
     assert result["presentation"] == presentation.presentation_block()
     assert {key: value for key, value in result.items() if key != "presentation"} == MANIFEST
     assert "presentation" not in MANIFEST
+
+
+# ── Screen roles (``surfaces``) ─────────────────────────────────────
+
+def _surfaces():
+    return {surface["id"]: surface for surface in presentation.presentation_block()["surfaces"]}
+
+
+def test_the_robot_declares_three_non_car_screen_roles():
+    surfaces = _surfaces()
+    assert list(surfaces) == ["operator_console", "field_tablet", "remote_view"]
+    assert [role for role, surface in surfaces.items() if surface.get("default")] == ["operator_console"]
+    assert surfaces["operator_console"]["grants"] == {
+        "read": True, "request": {"max_level": 4}, "approve": {"max_level": 4}, "stop": True}
+    # Beside the robot: may ask and stop it, never approves its own request.
+    assert surfaces["field_tablet"]["grants"] == {"read": True, "request": {"max_level": 4}, "stop": True}
+    assert surfaces["remote_view"]["grants"] == {"read": True}
+
+
+def test_every_role_names_only_the_robots_own_panels_and_never_hides_the_link():
+    """The relations Cloud checks on read (``services.device.surface_admission``), held here first."""
+    panels = {panel["id"] for panel in presentation.presentation_block()["panels"]}
+    for role, surface in _surfaces().items():
+        shown = [row["id"] for row in surface["layout"]["panels"]]
+        hidden = surface["layout"].get("hidden", [])
+        assert len(set(shown)) == len(shown) and not set(shown) & set(hidden), role
+        assert set(shown) | set(hidden) | set(surface["required_panels"]) <= panels, role
+        assert surface["layout"]["hero"] in shown, role
+        assert {"link_lost", "presence"} <= set(surface["required_panels"]) <= set(shown), role

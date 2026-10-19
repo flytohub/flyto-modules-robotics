@@ -4,6 +4,7 @@ New handoffs use `YYYY-MM-DD-topic.md`.
 
 | Date | Topic | File | Status | Owner | Branch |
 |---|---|---|---|---|---|
+| 2026-10-19 | Screen roles: `surfaces` operator_console (default, request+approve <= 4, stop) / field_tablet (request <= 4, stop) / remote_view (read); schema re-vendored 9dce8cba...831615e; block sha256 2f07c993...64efc4e7 | `2026-10-19-robot-surface-roles.md` | Candidate — 1.7.0; 328 passed / 4 skipped; verify --strict 20/0/0; install only after Cloud with schema 9dce8cba is deployed | claude | `claude/hmi-surfaces-20261019` |
 | 2026-10-18 | An idle robot's HMI offers a first request: `request_examples` (Proof #1 tasks), heading readout, localization state; schema re-vendored from Cloud f1e72d566 | `2026-10-18-hmi-first-request.md` | Candidate — 1.6.0; install only after Cloud with schema e8df2eae is deployed | claude | `claude/hmi-first-step-20261018` |
 | 2026-10-12 | HMI presentation with live values: battery gauge, position2d, goal distance / progress, navigation state over flyto-robotics 0.8.0 channels; entry point `flyto2.resource_presentations` | `2026-10-12-hmi-live-values.md` | Candidate — 1.5.0; fakes and contract checks only, no live render | claude | `claude/hmi-values-20261012` |
 | 2026-10-12 | HMI presentation declaration for the mobile robot (`flyto.resource-presentation.v1`) | `2026-10-12-presentation-v1.md` | Superseded — landed inside `claude/hmi-values-20261012` (2026-10-12 hmi-live-values) | claude | `claude/presentation-v1` |
