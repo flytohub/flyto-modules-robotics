@@ -240,7 +240,7 @@ local build only; the dates are when the work landed, not a release date.
   isolation and uploaded nowhere; its digest differs from the earlier 0.1.1 build
   below because the source gained this metadata while the version did not change.
   The build emitted a setuptools license deprecation warning, tracked as a
-  packaging follow-up in `tasks.md`.
+  packaging follow-up in `docs/project/tasks.md`.
 - `execute` is now a coroutine on all three steps. flyto-core runs a module
   with `return await self.execute()`, so against a real engine 0.1.0 raised
   `object dict can't be used in 'await' expression` and no step could run at

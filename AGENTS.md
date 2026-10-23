@@ -1,6 +1,6 @@
 # Agent rules
 
-Read `PROJECT.md`, `ARCHITECTURE.md`, `STATE.md` and `DECISIONS.md` before
+Read `docs/project/PROJECT.md`, `ARCHITECTURE.md`, `docs/project/STATE.md` and `docs/project/DECISIONS.md` before
 changing anything here.
 
 ## Constraints
@@ -8,7 +8,7 @@ changing anything here.
 - **Never drive hardware from this package.** No serial port, no ROS topic, no
   velocity, no `rclpy`, no socket. A step hands one bounded request to the
   host's opaque dispatcher; the flyto-robotics adapter executes it. The reason
-  is in DECISIONS.md and it is a safety property, not a preference.
+  is in docs/project/DECISIONS.md and it is a safety property, not a preference.
 - **Never put an execution host, gateway URL or credential in a step parameter.**
   AI Space / War Room chooses the execution computer. The request names only the
   commanded resource. Tests assert the production request contains no host,
@@ -72,8 +72,8 @@ This repository is deliberately small and deliberately optional. The temptation
 it invites is to make it do more: talk to ROS directly, choose an execution
 host, put a Flyto runtime on the robot, or grow its own safety/verification
 logic. Each of those has been considered and rejected with a stated reason in
-`DECISIONS.md` and `ROADMAP.md`. Read those before proposing any of them again.
+`docs/project/DECISIONS.md` and `docs/project/ROADMAP.md`. Read those before proposing any of them again.
 
-Keep the project-memory scaffold current in the same change: `PROJECT.md`,
-`ARCHITECTURE.md`, `STATE.md`, `ROADMAP.md`, `tasks.md`, `DECISIONS.md`,
-`CHANGELOG.md`, `docs/README.md`, `handoffs/_registry.md`.
+Keep the project-memory scaffold current in the same change: `docs/project/PROJECT.md`,
+`ARCHITECTURE.md`, `docs/project/STATE.md`, `docs/project/ROADMAP.md`, `docs/project/tasks.md`, `docs/project/DECISIONS.md`,
+`CHANGELOG.md`, `docs/README.md`, `docs/project/handoffs/_registry.md`.

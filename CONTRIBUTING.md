@@ -1,7 +1,7 @@
 # Contributing
 
-Read `AGENTS.md`, `PROJECT.md`, `ARCHITECTURE.md`, `STATE.md` and
-`DECISIONS.md` before changing this repository.
+Read `AGENTS.md`, `docs/project/PROJECT.md`, `ARCHITECTURE.md`, `docs/project/STATE.md` and
+`docs/project/DECISIONS.md` before changing this repository.
 
 The production boundary is non-negotiable:
 
