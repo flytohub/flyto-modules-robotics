@@ -4,7 +4,7 @@
 
 **ROS 2 로봇에게 갈 곳만 말하세요. 직접 가서, 둘러보고, 도착했다는 걸 증명해요.**
 
-![Flyto2 device pack](https://img.shields.io/badge/Flyto2-device%20pack-6d5dfc) ![ROS 2](https://img.shields.io/badge/ROS%202-Nav2-22314e) ![Open-RMF](https://img.shields.io/badge/Open--RMF-fleets-0a7d6e) ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
+![Physical AI](https://img.shields.io/badge/Physical%20AI-ROS%202-6d5dfc) ![ROS 2](https://img.shields.io/badge/ROS%202-Nav2-22314e) ![Open-RMF](https://img.shields.io/badge/Open--RMF-fleets-0a7d6e) ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
 [English](README.md) · [日本語](README.ja.md) · **한국어** · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Português (BR)](README.pt-BR.md)
 
