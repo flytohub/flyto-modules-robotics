@@ -19,6 +19,14 @@ import json
 import logging
 
 import pytest
+from test_evidence_recovery_fleet import (
+    ALL_KEYS,
+    ALL_OPS,
+    ALL_RECOVERY,
+    StandInModule,
+    blocked_record,
+    fake_register_module,
+)
 
 from flyto_modules_robotics.capabilities import (
     RECOVERY_REPORT_KEYS,
@@ -28,15 +36,6 @@ from flyto_modules_robotics.capabilities import (
 )
 from flyto_modules_robotics.modules import build_modules, registrable_contract
 from flyto_modules_robotics.recovery import recovery_for
-
-from test_evidence_recovery_fleet import (
-    ALL_KEYS,
-    ALL_OPS,
-    ALL_RECOVERY,
-    StandInModule,
-    blocked_record,
-    fake_register_module,
-)
 
 # Cloud's FIRST_PARTY_REVIEWED, as definitions and their hashes.
 FIRST_PARTY = {

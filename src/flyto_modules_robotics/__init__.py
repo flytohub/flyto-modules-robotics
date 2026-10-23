@@ -19,17 +19,17 @@ import os
 from .capabilities import (
     CAPABILITY_ADVANCE,
     CAPABILITY_DOCK,
-    CAPABILITY_LOAD,
-    CAPABILITY_NAVIGATE_TO_WAYPOINT,
-    CAPABILITY_UNLOAD,
-    FLEET_SPECS,
     CAPABILITY_HALT,
+    CAPABILITY_LOAD,
     CAPABILITY_MAP,
     CAPABILITY_NAVIGATE,
+    CAPABILITY_NAVIGATE_TO_WAYPOINT,
     CAPABILITY_OBSERVE,
     CAPABILITY_RETREAT,
     CAPABILITY_ROTATE,
+    CAPABILITY_UNLOAD,
     CONTRACT_SCHEMA,
+    FLEET_SPECS,
     MODULE_ADVANCE,
     MODULE_HALT,
     MODULE_MAP,
@@ -50,20 +50,19 @@ from .steps import FLEET_MODULE_IDS, MODULE_IDS, is_robotics_step, step_module_i
 __all__ = [
     "CAPABILITY_ADVANCE",
     "CAPABILITY_DOCK",
-    "CAPABILITY_LOAD",
-    "CAPABILITY_NAVIGATE_TO_WAYPOINT",
-    "CAPABILITY_UNLOAD",
-    "FLEET_MODULE_IDS",
-    "FLEET_SPECS",
-    "PACK_DESCRIPTION",
     "CAPABILITY_HALT",
+    "CAPABILITY_LOAD",
     "CAPABILITY_MAP",
     "CAPABILITY_NAVIGATE",
+    "CAPABILITY_NAVIGATE_TO_WAYPOINT",
     "CAPABILITY_OBSERVE",
     "CAPABILITY_REQUEST_VERSION",
     "CAPABILITY_RETREAT",
     "CAPABILITY_ROTATE",
+    "CAPABILITY_UNLOAD",
     "CONTRACT_SCHEMA",
+    "FLEET_MODULE_IDS",
+    "FLEET_SPECS",
     "MODULE_ADVANCE",
     "MODULE_HALT",
     "MODULE_IDS",
@@ -72,6 +71,7 @@ __all__ = [
     "MODULE_OBSERVE",
     "MODULE_RETREAT",
     "MODULE_ROTATE",
+    "PACK_DESCRIPTION",
     "SPECS",
     "CapabilityRequestError",
     "CapabilitySpec",
@@ -81,7 +81,7 @@ __all__ = [
     "step_module_id",
 ]
 
-__version__ = "1.5.0"
+__version__ = "1.7.0"
 
 #: What flyto-core reports for this pack (``PluginInfo.description``).
 PACK_DESCRIPTION = "Robot motion, camera and map through a standard ROS 2 adapter"

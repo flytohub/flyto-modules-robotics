@@ -1,5 +1,26 @@
 # State
 
+## Screen roles — 2026-10-19 (branch `claude/hmi-surfaces-20261019`, 1.7.0)
+
+- The block declares three non-car `surfaces`: `operator_console` (default;
+  request and approve up to level 4, stop), `field_tablet` (request up to 4,
+  stop, no approve) and `remote_view` (read only). `link_lost` and `presence`
+  are required on every role. 7,745 canonical bytes; block sha256
+  2f07c993...64efc4e7; schema re-vendored from Cloud
+  `claude/hmi-surfaces-20261019` (sha256 9dce8cba...831615e).
+- Blocked on deploy: a Cloud whose schema predates `surfaces` refuses the
+  whole block. Do not install 1.7.0 before that Cloud is deployed.
+- Not seen live: no App render of roles or layouts.
+
+## First request on an idle robot — 2026-10-18 (branch `claude/hmi-first-step-20261018`, 1.6.0)
+
+- 14 panels, 6080 canonical bytes, valid against Cloud's e8df2eae schema;
+  four `request_examples` for the Proof #1 tasks.
+- Blocked on deploy: production Cloud (8f737a101) still validates with the
+  cede95aa schema, which forbids `request_examples`. Do not install 1.6.0 on a
+  host whose Cloud is older than f1e72d566.
+- Not seen live: no App render of this block on a phone.
+
 ## HMI presentation with live values — 2026-10-12 (branch `claude/hmi-values-20261012`, 1.5.0)
 
 - The pack declares a `flyto.resource-presentation.v1` block for the mobile

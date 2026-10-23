@@ -1,5 +1,16 @@
 # Decisions
 
+## 2026-10-19 — The robot's screens are declared roles, the same shape a car uses
+
+The presentation declares `surfaces` (Cloud `flyto.resource-presentation.v1`
+extension): `operator_console`, `field_tablet` and `remote_view`, each with a
+default layout over this pack's panels, `required_panels` (`link_lost`,
+`presence` everywhere) and `grants`. The field tablet may ask and stop but
+never approve, so a person beside the robot cannot release its own request.
+Cloud enforces the grants on its scoped HMI routes; nothing in Cloud or the
+App names these roles. This is the non-car proof the owner asked for: the
+same declaration serves a car's cluster and rear screens.
+
 ## 2026-10-07 — Recovery is declared as roles, gated on what the core accepts
 
 Cloud's way round for a stopped advance came from its own table of

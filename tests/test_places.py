@@ -22,10 +22,10 @@ import pytest
 from contract_rules import judge, validate_contract
 
 from flyto_modules_robotics.capabilities import (
-    RECOVERY_REPORT_KEYS,
     ABSOLUTE_MEASURE_OPS,
     MAX_PLACE_NAME_LENGTH,
     PLACE_EFFECT,
+    RECOVERY_REPORT_KEYS,
     RESOLVED_ARGUMENTS,
     SPECS_BY_MODULE,
 )
