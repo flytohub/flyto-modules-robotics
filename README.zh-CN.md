@@ -8,6 +8,8 @@
 
 [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · **简体中文** · [Español](README.es.md) · [Português (BR)](README.pt-BR.md)
 
+[快速开始](#快速开始) · [特性](#特性) · [工作原理](#工作原理) · [开发者](#开发者)
+
 </div>
 
 ## 快速开始
@@ -38,7 +40,7 @@ export FLYTO_ROS2_SSH_HOST=ubuntu@my-robot.local                                
 1. 你用一句话说出要做的事。
 2. Flyto2 拆成步骤并检查权限。
 3. 你电脑上的 ROS 2 适配器驱动机器人的 Nav2。
-4. Flyto2 核对地图位置和照片，确认后才算完成。
+4. Flyto2 自己核对地图位置，确认后才算完成。
 
 ---
 

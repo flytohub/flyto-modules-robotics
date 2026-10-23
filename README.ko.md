@@ -8,6 +8,8 @@
 
 [English](README.md) · [日本語](README.ja.md) · **한국어** · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Português (BR)](README.pt-BR.md)
 
+[빠른 시작](#빠른-시작) · [주요 기능](#주요-기능) · [작동 방식](#작동-방식) · [개발자용](#개발자용)
+
 </div>
 
 ## 빠른 시작
@@ -38,7 +40,7 @@ export FLYTO_ROS2_SSH_HOST=ubuntu@my-robot.local                                
 1. 원하는 걸 말해요.
 2. Flyto2가 단계로 나누고 권한을 확인해요.
 3. 내 컴퓨터의 ROS 2 어댑터가 로봇의 Nav2를 움직여요.
-4. Flyto2가 지도 위치와 사진을 확인한 뒤에 완료로 판정해요.
+4. Flyto2가 지도 위치를 직접 확인한 뒤에 완료로 판정해요.
 
 ---
 

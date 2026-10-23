@@ -8,6 +8,8 @@
 
 [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md) · **Español** · [Português (BR)](README.pt-BR.md)
 
+[Inicio rápido](#inicio-rápido) · [Lo mejor](#lo-mejor) · [Cómo funciona](#cómo-funciona) · [Para desarrolladores](#para-desarrolladores)
+
 </div>
 
 ## Inicio rápido
@@ -38,7 +40,7 @@ Añade el robot a un Space de Flyto2 y di:
 1. Dices lo que quieres.
 2. Flyto2 lo convierte en pasos y revisa los permisos.
 3. El adaptador ROS 2 de tu ordenador mueve Nav2 en el robot.
-4. Flyto2 comprueba la posición en el mapa y la foto antes de darlo por hecho.
+4. Flyto2 comprueba la posición en el mapa antes de darlo por hecho.
 
 ---
 
