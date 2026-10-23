@@ -8,6 +8,8 @@
 
 [English](README.md) · **日本語** · [한국어](README.ko.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Português (BR)](README.pt-BR.md)
 
+[クイックスタート](#クイックスタート) · [特長](#特長) · [しくみ](#しくみ) · [開発者向け](#開発者向け)
+
 </div>
 
 ## クイックスタート
@@ -38,7 +40,7 @@ export FLYTO_ROS2_SSH_HOST=ubuntu@my-robot.local                                
 1. やってほしいことを言う。
 2. Flyto2 が手順に分解し、権限を確認する。
 3. 手元のコンピューターの ROS 2 アダプターが、ロボットの Nav2 を動かす。
-4. Flyto2 が地図上の位置と写真を確かめてから、完了とする。
+4. Flyto2 が地図上の位置を自分で確かめてから、完了とする。
 
 ---
 

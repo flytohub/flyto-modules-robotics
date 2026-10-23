@@ -8,6 +8,8 @@
 
 **English** · [日本語](README.ja.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Português (BR)](README.pt-BR.md)
 
+[Quick start](#quick-start) · [Highlights](#highlights) · [How it works](#how-it-works) · [FAQ](#faq) · [For developers](#for-developers)
+
 </div>
 
 ## Quick start
@@ -38,7 +40,7 @@ Add the robot to a Flyto2 Space and say:
 1. You say what you want.
 2. Flyto2 turns it into steps and checks permissions.
 3. The ROS 2 adapter on your computer drives Nav2 on the robot.
-4. Flyto2 checks the map position and the photo before it calls it done.
+4. Flyto2 checks the map position itself before it calls it done.
 
 ---
 
@@ -49,6 +51,25 @@ A robot SDK plugs in the same way any other provider does: one
 `@register_module` per capability, each carrying `provides_capability` and a
 declared capability contract. Flyto2 Core, Cloud and the builder read those
 declarations as data. Nothing in them knows what a robot is.
+
+
+### FAQ
+
+**The robot doesn't show up in my Space.**
+
+The ROS 2 adapter on your computer serves one robot. Check that `FLYTO_ROS2_SSH_HOST` points at it, and run `flyto-ros2-readiness-probe` from flyto-robotics to see what its ROS 2 graph offers.
+
+**The robot stopped near the goal, but the step isn't proven.**
+
+Arrival counts only when the settled map pose is within 0.30 m (and 0.30 rad when a heading was asked). Nav2 reporting success short of that is not an arrival.
+
+**It refuses a place name.**
+
+Unknown names are refused before anything moves, and the step output lists `known_places`. Save the spot first with `robotics.mark_place`.
+
+**I see a warning that contracts were skipped.**
+
+Capability contracts need flyto-core 2.35.0 or newer. With an older core the steps still register, without them.
 
 ### How a robot plugs in
 
