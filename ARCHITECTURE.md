@@ -122,5 +122,5 @@ result, keeping the execution record either way.
 
 `flyto.robotics.plan.v1`, the delivery capability catalog, the robot-local
 HTTP gateway, the executable Gazebo runtime, and the Move / Turn / Stop
-authoring nodes are gone. Historical files under `handoffs/` and `results/`
+authoring nodes are gone. Historical files under `docs/project/handoffs/` and `docs/project/results/`
 remain evidence only.
