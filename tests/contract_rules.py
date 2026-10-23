@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import math
 import re
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 IDENTIFIER = re.compile(r"^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$")
 CONTRACT_SCHEMA = "flyto.capability-contract.v1"

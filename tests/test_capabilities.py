@@ -8,10 +8,10 @@ import pytest
 from contract_rules import ContractInvalid, judge, validate_contract
 
 from flyto_modules_robotics.capabilities import (
-    RECOVERY_REPORT_KEYS,
     ABSOLUTE_MEASURE_OPS,
     NAVIGATE_HEADING_TOLERANCE_RAD,
     NAVIGATE_POSITION_TOLERANCE_M,
+    RECOVERY_REPORT_KEYS,
     SPECS,
     SPECS_BY_CAPABILITY,
     SPECS_BY_MODULE,
