@@ -1,14 +1,56 @@
-# flyto-modules-robotics
+<div align="center">
+
+# Flyto2 × ROS 2 Robots
+
+**Tell your ROS 2 robot where to go. It drives there, looks around, and proves it arrived.**
+
+![Flyto2 device pack](https://img.shields.io/badge/Flyto2-device%20pack-6d5dfc) ![ROS 2](https://img.shields.io/badge/ROS%202-Nav2-22314e) ![Open-RMF](https://img.shields.io/badge/Open--RMF-fleets-0a7d6e) ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
+
+**English** · [日本語](README.ja.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Português (BR)](README.pt-BR.md)
+
+</div>
+
+## Quick start
+
+```bash
+# in the Python environment that runs Flyto2
+pip install "git+https://github.com/flytohub/flyto-modules-robotics"
+git clone https://github.com/flytohub/flyto-robotics && pip install -e ./flyto-robotics   # the ROS 2 adapter
+export FLYTO_ROS2_SSH_HOST=ubuntu@my-robot.local                                        # your robot
+```
+
+Add the robot to a Flyto2 Space and say:
+
+> Go to the kitchen and take a photo.
+
+## Highlights
+
+- **Just say it.** "Go to the kitchen and take a photo." Your robot handles the rest.
+- **Zero Flyto2 code on the robot.** It keeps running stock ROS 2. Nothing to flash, nothing to babysit.
+- **Arrival you can prove.** Flyto2 checks the map position itself. "I'm there" from the robot isn't enough.
+- **Knows your places by name.** Kitchen, dock, front door. Save a spot once and send it there any time.
+- **Gets itself unstuck.** Path blocked? It comes back with a way around to the same goal.
+- **Stop means stop.** The stop goes out instantly. It never waits for approval.
+- **One robot or a whole fleet.** Open-RMF fleets use the exact same skills.
+
+## How it works
+
+1. You say what you want.
+2. Flyto2 turns it into steps and checks permissions.
+3. The ROS 2 adapter on your computer drives Nav2 on the robot.
+4. Flyto2 checks the map position and the photo before it calls it done.
+
+---
+
+## For developers
 
 Robot capabilities for Flyto2, contributed through `@register_module` alone.
-
-This package is the proof that Flyto2 needs no robot-specific platform code. A
-robot SDK plugs in the same way any other provider does: one
+A robot SDK plugs in the same way any other provider does: one
 `@register_module` per capability, each carrying `provides_capability` and a
 declared capability contract. Flyto2 Core, Cloud and the builder read those
 declarations as data. Nothing in them knows what a robot is.
 
-## How a robot plugs in
+### How a robot plugs in
 
 ```python
 @register_module(
@@ -81,7 +123,7 @@ flyto-robotics Generic ROS 2 adapter (on the host)
 robot (stock ROS 2, no Flyto2 software)
 ```
 
-## Capabilities
+### Capabilities
 
 | Step | Provides | Parameters (bounds) | Contract |
 |---|---|---|---|
@@ -131,7 +173,7 @@ all) and one warning.
 A step's output keeps each returned artifact's kind, media type, size and
 SHA-256, never its bytes: the host keeps the picture itself.
 
-## OpenRMF through the same contract
+### OpenRMF through the same contract
 
 A second `flyto.modules` entry point, `fleet`
 (`flyto_modules_robotics.fleet_pack:register_fleet`), registers Open-RMF fleet
@@ -170,7 +212,7 @@ flyto-core's own `judge` over them against a transcription of Cloud's check
 (fixed cases plus 2,000 seeded random motions per capability): every verdict
 is the same.
 
-## Safety invariants, and where each is enforced
+### Safety invariants, and where each is enforced
 
 | Invariant | Enforced by |
 |---|---|
@@ -185,10 +227,10 @@ is the same.
 | Success means the effect was observed, not that a call returned | Cloud judges the declared evidence against the host's before / after / settled poses |
 | No Flyto2 software runs on the robot | This package imports no ROS and opens no socket; the robot runs stock ROS 2 |
 
-## Installation
+### Installation
 
 ```bash
-pip install "flyto-modules-robotics[core]"
+pip install "git+https://github.com/flytohub/flyto-modules-robotics"
 ```
 
 Install it on the AI Space execution host, never on the robot. The package has
@@ -198,7 +240,7 @@ register, without their contracts, and one warning says so; on 2.35 they
 register without the 2.36.0 optional keys, also with one warning. Without flyto-core
 at all, `register_all` logs and returns; the pure request API still imports.
 
-## API
+### API
 
 ```python
 from flyto_modules_robotics import capability_request_for_step
@@ -210,13 +252,13 @@ capability_request_for_step("robotics.rotate", {"yaw_radians": -1.57}, resource_
 
 `SPECS` lists every capability row (identity, `params_schema`, contract).
 
-## Configuration
+### Configuration
 
 None. There is no robot hostname, gateway, credential or adapter address in
 this package or in any step parameter. The control plane chooses the execution
 host; the host chooses the adapter.
 
-## Testing
+### Testing
 
 ```bash
 PYTHONPATH=src python3 -m pytest tests/ -q
@@ -232,17 +274,17 @@ reproduces Cloud's verdicts, and exercises the dispatch, declare-only and
 refusal paths. A real flyto-core registry run is included
 when flyto-core is installed. Physical robot acceptance is a separate step.
 
-## Development
+### Development
 
 Adding a capability: see `workflows/add-a-capability.md`. Keep the package
 pure: no ROS imports, no network, no execution-host selection. Update the
 project-memory files when a boundary changes.
 
-## Release
+### Release
 
-Not yet published to PyPI. The repository contains a Trusted Publishing
-workflow for an explicit release decision.
+Install from GitHub (above). Releases to PyPI go through the repository's
+Trusted Publishing workflow.
 
-## License
+### License
 
 Apache-2.0. See `LICENSE`.
